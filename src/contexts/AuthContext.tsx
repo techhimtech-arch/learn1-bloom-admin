@@ -59,12 +59,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     adminPassword: string;
   }) => {
     const { data } = await authApi.register(regData);
-    const userData = data.data.user;
-    const tokens = data.data.tokens;
-    localStorage.setItem('accessToken', tokens.accessToken);
-    localStorage.setItem('refreshToken', tokens.refreshToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    const resData = data.data;
+    const token = resData.accessToken || resData.token || '';
+    localStorage.setItem('accessToken', token);
+    if (resData.refreshToken) localStorage.setItem('refreshToken', resData.refreshToken);
+    // Register may not return user object - auto-login after register
+    if (resData.user) {
+      localStorage.setItem('user', JSON.stringify(resData.user));
+      setUser(resData.user);
+    } else {
+      // If no user returned, redirect to login
+      window.location.href = '/login';
+    }
   }, []);
 
   const logout = useCallback(async () => {
