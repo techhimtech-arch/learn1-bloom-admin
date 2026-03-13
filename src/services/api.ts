@@ -74,9 +74,14 @@ export const dashboardApi = {
 
 // User API
 export const userApi = {
-  getAll: () => apiClient.get('/users'),
-  create: (data: Record<string, unknown>) => apiClient.post('/users', data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/users/${id}`, data),
+  getAll: (params?: { page?: number; limit?: number; search?: string; role?: string }) =>
+    apiClient.get('/users', { params }),
+  getById: (id: string) => apiClient.get(`/users/${id}`),
+  getStats: () => apiClient.get('/users/stats'),
+  create: (data: { firstName: string; lastName: string; email: string; password: string; role: string }) =>
+    apiClient.post('/users', data),
+  update: (id: string, data: { firstName?: string; lastName?: string; email?: string; role?: string }) =>
+    apiClient.put(`/users/${id}`, data),
   delete: (id: string) => apiClient.delete(`/users/${id}`),
 };
 
