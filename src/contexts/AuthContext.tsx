@@ -41,10 +41,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     const { data } = await authApi.login(email, password);
-    const userData = data.data.user;
-    const tokens = data.data.tokens;
-    localStorage.setItem('accessToken', tokens.accessToken);
-    localStorage.setItem('refreshToken', tokens.refreshToken);
+    const resData = data.data;
+    const userData = resData.user;
+    const accessToken = resData.accessToken || resData.token;
+    const refreshToken = resData.refreshToken || '';
+    localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   }, []);
