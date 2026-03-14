@@ -105,13 +105,34 @@ export const userApi = {
   delete: (id: string) => apiClient.delete(`/users/${id}`),
 };
 
+// Academic Year API
+export const academicYearApi = {
+  getAll: (params?: { isActive?: boolean }) => apiClient.get('/academic-years', { params }),
+  getCurrent: () => apiClient.get('/academic-years/current'),
+  getById: (id: string) => apiClient.get(`/academic-years/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post('/academic-years', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/academic-years/${id}`, data),
+  setCurrent: (id: string) => apiClient.put(`/academic-years/${id}/set-current`),
+  addTerm: (id: string, data: Record<string, unknown>) => apiClient.post(`/academic-years/${id}/terms`, data),
+  addHoliday: (id: string, data: Record<string, unknown>) => apiClient.post(`/academic-years/${id}/holidays`, data),
+  delete: (id: string) => apiClient.delete(`/academic-years/${id}`),
+};
+
 // Class API
 export const classApi = {
   getAll: () => apiClient.get('/classes'),
   create: (data: Record<string, unknown>) => apiClient.post('/classes', data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/classes/${id}`, data),
-  getSections: () => apiClient.get('/sections'),
-  createSection: (data: Record<string, unknown>) => apiClient.post('/sections', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/classes/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/classes/${id}`),
+};
+
+// Section API
+export const sectionApi = {
+  getAll: () => apiClient.get('/sections'),
+  getByClass: (classId: string) => apiClient.get(`/sections/class/${classId}`),
+  create: (data: Record<string, unknown>) => apiClient.post('/sections', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/sections/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/sections/${id}`),
 };
 
 // Admission API

@@ -4,6 +4,7 @@ import {
   GraduationCap,
   School,
   ClipboardCheck,
+  CalendarDays,
   LogOut,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
@@ -26,6 +27,7 @@ const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'User Management', url: '/users', icon: Users },
   { title: 'Student Admission', url: '/admission', icon: GraduationCap },
+  { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
   { title: 'Class Management', url: '/classes', icon: School },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
