@@ -1,112 +1,214 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, School } from 'lucide-react';
+import { classApi, sectionApi } from '@/services/api';
+import { showApiSuccess, showApiError } from '@/lib/api-toast';
+import { Plus, Edit, Trash2, School, Layers, DoorOpen } from 'lucide-react';
 
-interface ClassData {
-  id: string;
+interface ClassItem {
+  _id: string;
   name: string;
-  sections: string[];
-  capacity: number;
-  currentStrength: number;
-  classTeacher: string;
+  isActive: boolean;
 }
 
-const mockClasses: ClassData[] = [
-  { id: '1', name: 'Class 1', sections: ['A', 'B'], capacity: 80, currentStrength: 72, classTeacher: 'Mrs. Sharma' },
-  { id: '2', name: 'Class 2', sections: ['A', 'B', 'C'], capacity: 120, currentStrength: 110, classTeacher: 'Mr. Gupta' },
-  { id: '3', name: 'Class 3', sections: ['A', 'B'], capacity: 80, currentStrength: 65, classTeacher: 'Mrs. Verma' },
-  { id: '4', name: 'Class 4', sections: ['A', 'B', 'C'], capacity: 120, currentStrength: 115, classTeacher: 'Mr. Singh' },
-  { id: '5', name: 'Class 5', sections: ['A', 'B'], capacity: 80, currentStrength: 78, classTeacher: 'Mrs. Joshi' },
-  { id: '6', name: 'Class 10', sections: ['A', 'B', 'C', 'D'], capacity: 160, currentStrength: 148, classTeacher: 'Mr. Rao' },
-];
+interface SectionItem {
+  _id: string;
+  name: string;
+  classId: { _id: string; name: string } | string;
+  capacity: number;
+  roomNumber?: string;
+  floor?: string;
+  building?: string;
+  isActive: boolean;
+}
 
 const ClassManagement = () => {
-  const { toast } = useToast();
-  const [classes, setClasses] = useState<ClassData[]>(mockClasses);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingClass, setEditingClass] = useState<ClassData | null>(null);
-  const [form, setForm] = useState({ name: '', sections: '', capacity: '', classTeacher: '' });
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [sections, setSections] = useState<SectionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sectionsLoading, setSectionsLoading] = useState(true);
 
-  const handleSave = () => {
-    if (!form.name || !form.sections) return;
-    const sections = form.sections.split(',').map(s => s.trim());
-    if (editingClass) {
-      setClasses(classes.map(c => c.id === editingClass.id ? { ...c, name: form.name, sections, capacity: Number(form.capacity), classTeacher: form.classTeacher } : c));
-      toast({ title: 'Updated', description: `${form.name} has been updated.` });
-    } else {
-      setClasses([...classes, { id: Date.now().toString(), name: form.name, sections, capacity: Number(form.capacity), currentStrength: 0, classTeacher: form.classTeacher }]);
-      toast({ title: 'Created', description: `${form.name} has been created.` });
+  // Class dialog
+  const [classDialogOpen, setClassDialogOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<ClassItem | null>(null);
+  const [className, setClassName] = useState('');
+  const [classSaving, setClassSaving] = useState(false);
+
+  // Section dialog
+  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<SectionItem | null>(null);
+  const [sectionForm, setSectionForm] = useState({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' });
+  const [sectionSaving, setSectionSaving] = useState(false);
+
+  const fetchClasses = async () => {
+    setLoading(true);
+    try {
+      const { data } = await classApi.getAll();
+      setClasses(data.data || []);
+    } catch (err) {
+      showApiError(err, 'Failed to load classes');
+    } finally {
+      setLoading(false);
     }
-    setDialogOpen(false);
-    setEditingClass(null);
-    setForm({ name: '', sections: '', capacity: '', classTeacher: '' });
   };
 
-  const openEdit = (cls: ClassData) => {
+  const fetchSections = async () => {
+    setSectionsLoading(true);
+    try {
+      const { data } = await sectionApi.getAll();
+      setSections(data.data || []);
+    } catch (err) {
+      showApiError(err, 'Failed to load sections');
+    } finally {
+      setSectionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClasses();
+    fetchSections();
+  }, []);
+
+  // Class CRUD
+  const handleSaveClass = async () => {
+    if (!className.trim()) return;
+    setClassSaving(true);
+    try {
+      if (editingClass) {
+        const res = await classApi.update(editingClass._id, { name: className.trim() });
+        showApiSuccess(res.data, 'Class updated successfully');
+      } else {
+        const res = await classApi.create({ name: className.trim() });
+        showApiSuccess(res.data, 'Class created successfully');
+      }
+      setClassDialogOpen(false);
+      setEditingClass(null);
+      setClassName('');
+      fetchClasses();
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setClassSaving(false);
+    }
+  };
+
+  const handleDeleteClass = async (cls: ClassItem) => {
+    try {
+      const res = await classApi.delete(cls._id);
+      showApiSuccess(res.data, 'Class deleted successfully');
+      fetchClasses();
+      fetchSections();
+    } catch (err) {
+      showApiError(err);
+    }
+  };
+
+  const openEditClass = (cls: ClassItem) => {
     setEditingClass(cls);
-    setForm({ name: cls.name, sections: cls.sections.join(', '), capacity: cls.capacity.toString(), classTeacher: cls.classTeacher });
-    setDialogOpen(true);
+    setClassName(cls.name);
+    setClassDialogOpen(true);
   };
 
-  const columns: Column<ClassData>[] = [
-    { key: 'name', label: 'Class' },
-    { key: 'sections', label: 'Sections', render: (val: string[]) => (
-      <div className="flex gap-1">{val.map(s => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}</div>
-    )},
-    { key: 'capacity', label: 'Capacity' },
-    { key: 'currentStrength', label: 'Strength', render: (val: number, row: ClassData) => (
-      <span className={val >= row.capacity * 0.9 ? 'font-medium text-warning' : ''}>{val}/{row.capacity}</span>
-    )},
-    { key: 'classTeacher', label: 'Class Teacher' },
+  // Section CRUD
+  const handleSaveSection = async () => {
+    if (!sectionForm.name.trim() || (!editingSection && !sectionForm.classId)) return;
+    setSectionSaving(true);
+    try {
+      const payload: Record<string, unknown> = {
+        name: sectionForm.name.trim(),
+        capacity: Number(sectionForm.capacity) || 40,
+      };
+      if (sectionForm.roomNumber) payload.roomNumber = sectionForm.roomNumber;
+      if (sectionForm.floor) payload.floor = sectionForm.floor;
+      if (sectionForm.building) payload.building = sectionForm.building;
+
+      if (editingSection) {
+        const res = await sectionApi.update(editingSection._id, payload);
+        showApiSuccess(res.data, 'Section updated successfully');
+      } else {
+        payload.classId = sectionForm.classId;
+        const res = await sectionApi.create(payload);
+        showApiSuccess(res.data, 'Section created successfully');
+      }
+      setSectionDialogOpen(false);
+      setEditingSection(null);
+      setSectionForm({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' });
+      fetchSections();
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setSectionSaving(false);
+    }
+  };
+
+  const handleDeleteSection = async (sec: SectionItem) => {
+    try {
+      const res = await sectionApi.delete(sec._id);
+      showApiSuccess(res.data, 'Section deleted successfully');
+      fetchSections();
+    } catch (err) {
+      showApiError(err);
+    }
+  };
+
+  const openEditSection = (sec: SectionItem) => {
+    setEditingSection(sec);
+    setSectionForm({
+      name: sec.name,
+      classId: typeof sec.classId === 'object' ? sec.classId._id : sec.classId,
+      capacity: String(sec.capacity || 40),
+      roomNumber: sec.roomNumber || '',
+      floor: sec.floor || '',
+      building: sec.building || '',
+    });
+    setSectionDialogOpen(true);
+  };
+
+  const getClassName = (sec: SectionItem) => {
+    if (typeof sec.classId === 'object' && sec.classId?.name) return sec.classId.name;
+    const cls = classes.find(c => c._id === sec.classId);
+    return cls?.name || '-';
+  };
+
+  const classColumns: Column<ClassItem>[] = [
+    { key: 'name', label: 'Class Name' },
+    {
+      key: 'isActive', label: 'Status', render: (val: boolean) => (
+        <Badge variant={val ? 'default' : 'secondary'}>{val ? 'Active' : 'Inactive'}</Badge>
+      ),
+    },
   ];
+
+  const sectionColumns: Column<SectionItem>[] = [
+    { key: 'name', label: 'Section Name' },
+    { key: 'classId', label: 'Class', render: (_: any, row: SectionItem) => getClassName(row) },
+    { key: 'capacity', label: 'Capacity' },
+    { key: 'roomNumber', label: 'Room', render: (val: string) => val || '-' },
+    { key: 'building', label: 'Building', render: (val: string) => val || '-' },
+    {
+      key: 'isActive', label: 'Status', render: (val: boolean) => (
+        <Badge variant={val ? 'default' : 'secondary'}>{val ? 'Active' : 'Inactive'}</Badge>
+      ),
+    },
+  ];
+
+  const totalSections = sections.length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Class Management</h1>
-          <p className="text-sm text-muted-foreground">Manage classes, sections, and teacher assignments</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingClass(null); setForm({ name: '', sections: '', capacity: '', classTeacher: '' }); } }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" />Add Class</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingClass ? 'Edit Class' : 'Create New Class'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>Class Name <span className="text-destructive">*</span></Label>
-                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Class 10" />
-              </div>
-              <div className="space-y-2">
-                <Label>Sections <span className="text-destructive">*</span></Label>
-                <Input value={form.sections} onChange={e => setForm({ ...form, sections: e.target.value })} placeholder="A, B, C" />
-                <p className="text-xs text-muted-foreground">Comma-separated section names</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Total Capacity</Label>
-                <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="120" />
-              </div>
-              <div className="space-y-2">
-                <Label>Class Teacher</Label>
-                <Input value={form.classTeacher} onChange={e => setForm({ ...form, classTeacher: e.target.value })} placeholder="Teacher name" />
-              </div>
-              <Button onClick={handleSave} className="w-full">{editingClass ? 'Update' : 'Create'} Class</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Class & Section Management</h1>
+        <p className="text-sm text-muted-foreground">Manage classes, sections, and room assignments</p>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
@@ -122,10 +224,10 @@ const ClassManagement = () => {
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10">
-              <School className="h-5 w-5 text-secondary" />
+              <Layers className="h-5 w-5 text-secondary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{classes.reduce((acc, c) => acc + c.sections.length, 0)}</p>
+              <p className="text-2xl font-bold text-foreground">{totalSections}</p>
               <p className="text-sm text-muted-foreground">Total Sections</p>
             </div>
           </CardContent>
@@ -133,30 +235,133 @@ const ClassManagement = () => {
         <Card>
           <CardContent className="flex items-center gap-4 p-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-              <School className="h-5 w-5 text-success" />
+              <DoorOpen className="h-5 w-5 text-success" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{classes.reduce((acc, c) => acc + c.currentStrength, 0)}</p>
-              <p className="text-sm text-muted-foreground">Total Students</p>
+              <p className="text-2xl font-bold text-foreground">{sections.reduce((a, s) => a + (s.capacity || 0), 0)}</p>
+              <p className="text-sm text-muted-foreground">Total Capacity</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={classes}
-        searchPlaceholder="Search classes..."
-        actions={(row) => (
-          <div className="flex gap-1">
-            <Button size="sm" variant="ghost" onClick={() => openEdit(row)}><Edit className="h-4 w-4" /></Button>
-            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
-              setClasses(classes.filter(c => c.id !== row.id));
-              toast({ variant: 'destructive', title: 'Deleted', description: `${row.name} has been deleted.` });
-            }}><Trash2 className="h-4 w-4" /></Button>
+      <Tabs defaultValue="classes">
+        <TabsList>
+          <TabsTrigger value="classes">Classes</TabsTrigger>
+          <TabsTrigger value="sections">Sections</TabsTrigger>
+        </TabsList>
+
+        {/* CLASSES TAB */}
+        <TabsContent value="classes" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => { setEditingClass(null); setClassName(''); setClassDialogOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" />Add Class
+            </Button>
           </div>
-        )}
-      />
+          <DataTable
+            columns={classColumns}
+            data={classes}
+            loading={loading}
+            searchPlaceholder="Search classes..."
+            actions={(row) => (
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => openEditClass(row)}><Edit className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteClass(row)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            )}
+          />
+        </TabsContent>
+
+        {/* SECTIONS TAB */}
+        <TabsContent value="sections" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => { setEditingSection(null); setSectionForm({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' }); setSectionDialogOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" />Add Section
+            </Button>
+          </div>
+          <DataTable
+            columns={sectionColumns}
+            data={sections}
+            loading={sectionsLoading}
+            searchPlaceholder="Search sections..."
+            actions={(row) => (
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => openEditSection(row)}><Edit className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteSection(row)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            )}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Class Dialog */}
+      <Dialog open={classDialogOpen} onOpenChange={(o) => { setClassDialogOpen(o); if (!o) { setEditingClass(null); setClassName(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingClass ? 'Edit Class' : 'Create New Class'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Class Name <span className="text-destructive">*</span></Label>
+              <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="e.g. Class 10" />
+            </div>
+            <Button onClick={handleSaveClass} className="w-full" disabled={classSaving}>
+              {classSaving ? 'Saving...' : editingClass ? 'Update Class' : 'Create Class'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Section Dialog */}
+      <Dialog open={sectionDialogOpen} onOpenChange={(o) => { setSectionDialogOpen(o); if (!o) { setEditingSection(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingSection ? 'Edit Section' : 'Create New Section'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Section Name <span className="text-destructive">*</span></Label>
+              <Input value={sectionForm.name} onChange={e => setSectionForm({ ...sectionForm, name: e.target.value })} placeholder="e.g. Section A" />
+            </div>
+            {!editingSection && (
+              <div className="space-y-2">
+                <Label>Class <span className="text-destructive">*</span></Label>
+                <Select value={sectionForm.classId} onValueChange={v => setSectionForm({ ...sectionForm, classId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                  <SelectContent>
+                    {classes.map(c => (
+                      <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Capacity</Label>
+                <Input type="number" value={sectionForm.capacity} onChange={e => setSectionForm({ ...sectionForm, capacity: e.target.value })} placeholder="40" />
+              </div>
+              <div className="space-y-2">
+                <Label>Room Number</Label>
+                <Input value={sectionForm.roomNumber} onChange={e => setSectionForm({ ...sectionForm, roomNumber: e.target.value })} placeholder="101" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Floor</Label>
+                <Input value={sectionForm.floor} onChange={e => setSectionForm({ ...sectionForm, floor: e.target.value })} placeholder="Ground Floor" />
+              </div>
+              <div className="space-y-2">
+                <Label>Building</Label>
+                <Input value={sectionForm.building} onChange={e => setSectionForm({ ...sectionForm, building: e.target.value })} placeholder="Main Building" />
+              </div>
+            </div>
+            <Button onClick={handleSaveSection} className="w-full" disabled={sectionSaving}>
+              {sectionSaving ? 'Saving...' : editingSection ? 'Update Section' : 'Create Section'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
