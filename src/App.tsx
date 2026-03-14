@@ -13,6 +13,7 @@ import UserManagement from "@/pages/UserManagement";
 import StudentAdmission from "@/pages/StudentAdmission";
 import ClassManagement from "@/pages/ClassManagement";
 import AttendanceManagement from "@/pages/AttendanceManagement";
+import AcademicYearManagement from "@/pages/AcademicYearManagement";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
