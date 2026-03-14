@@ -25,6 +25,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { showApiSuccess, showApiError, getApiFieldErrors } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, Shield, Search, ChevronLeft, ChevronRight, Users, Loader2 } from 'lucide-react';
 import { userApi } from '@/services/api';
 
@@ -168,24 +169,26 @@ const UserManagement = () => {
     if (!validate()) return;
     setSaving(true);
     try {
+      const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
       if (editingUser) {
-        await userApi.update(editingUser._id, {
+        const res = await userApi.update(editingUser._id, {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          name: fullName,
           email: form.email.trim(),
           role: form.role,
         });
-        toast({ title: 'Updated', description: `${form.firstName} ${form.lastName} has been updated.` });
+        showApiSuccess(res);
       } else {
-        await userApi.create({
+        const res = await userApi.create({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          name: `${form.firstName.trim()} ${form.lastName.trim()}`,
+          name: fullName,
           email: form.email.trim(),
           password: form.password,
           role: form.role,
         });
-        toast({ title: 'Created', description: `${form.firstName} ${form.lastName} has been added.` });
+        showApiSuccess(res);
       }
       setDialogOpen(false);
       setEditingUser(null);
@@ -193,14 +196,11 @@ const UserManagement = () => {
       fetchUsers(pagination.page);
       fetchStats();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Something went wrong';
-      const apiErrors = err.response?.data?.errors;
-      if (apiErrors?.length) {
-        const mapped: Record<string, string> = {};
-        apiErrors.forEach((e: { field: string; message: string }) => { mapped[e.field] = e.message; });
-        setFormErrors(mapped);
+      const fieldErrors = getApiFieldErrors(err);
+      if (fieldErrors) {
+        setFormErrors(fieldErrors);
       } else {
-        toast({ variant: 'destructive', title: 'Error', description: msg });
+        showApiError(err);
       }
     } finally {
       setSaving(false);
@@ -211,13 +211,13 @@ const UserManagement = () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await userApi.delete(deleteTarget._id);
-      toast({ title: 'Deleted', description: `${deleteTarget.firstName} ${deleteTarget.lastName} has been removed.` });
+      const res = await userApi.delete(deleteTarget._id);
+      showApiSuccess(res);
       setDeleteTarget(null);
       fetchUsers(pagination.page);
       fetchStats();
     } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.response?.data?.message || 'Failed to delete user' });
+      showApiError(err, 'Failed to delete user');
     } finally {
       setDeleting(false);
     }

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { useToast } from '@/hooks/use-toast';
+import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { admissionApi } from '@/services/api';
 import { UserPlus, Check, X } from 'lucide-react';
 
@@ -20,7 +20,6 @@ interface PendingAdmission {
   appliedDate: string;
 }
 
-// Mock pending admissions
 const mockPending: PendingAdmission[] = [
   { id: '1', firstName: 'Aarav', lastName: 'Patel', class: 'Class 10-A', fatherName: 'Rajesh Patel', status: 'pending', appliedDate: '2024-03-10' },
   { id: '2', firstName: 'Ananya', lastName: 'Singh', class: 'Class 8-B', fatherName: 'Vikram Singh', status: 'pending', appliedDate: '2024-03-09' },
@@ -28,7 +27,6 @@ const mockPending: PendingAdmission[] = [
 ];
 
 const StudentAdmission = () => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState<PendingAdmission[]>(mockPending);
   const [form, setForm] = useState({
@@ -46,13 +44,23 @@ const StudentAdmission = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await admissionApi.create(form as any);
-      toast({ title: 'Success', description: 'Student admission submitted successfully.' });
+      const res = await admissionApi.create(form as any);
+      showApiSuccess(res, 'Student admission submitted successfully.');
       setForm({ firstName: '', lastName: '', dateOfBirth: '', gender: '', bloodGroup: '', fatherName: '', fatherPhone: '', motherName: '', motherPhone: '', classId: '', previousSchool: '', street: '', city: '', state: '', pinCode: '' });
-    } catch {
-      toast({ title: 'Submitted', description: 'Admission form saved (API unavailable, using local).' });
+    } catch (err: any) {
+      showApiError(err, 'Failed to submit admission');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (row: PendingAdmission) => {
+    try {
+      const res = await admissionApi.approve(row.id);
+      showApiSuccess(res, `${row.firstName} ${row.lastName} has been approved.`);
+      setPending(pending.filter(p => p.id !== row.id));
+    } catch (err: any) {
+      showApiError(err, 'Failed to approve admission');
     }
   };
 
@@ -92,7 +100,6 @@ const StudentAdmission = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Info */}
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Personal Information</h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,7 +131,6 @@ const StudentAdmission = () => {
                   </div>
                 </div>
 
-                {/* Parent Info */}
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Parent / Guardian Information</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -147,7 +153,6 @@ const StudentAdmission = () => {
                   </div>
                 </div>
 
-                {/* Academic Info */}
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Academic Information</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -167,7 +172,6 @@ const StudentAdmission = () => {
                   </div>
                 </div>
 
-                {/* Address */}
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Address</h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -206,15 +210,11 @@ const StudentAdmission = () => {
             searchPlaceholder="Search pending admissions..."
             actions={(row) => (
               <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="text-success" onClick={() => {
-                  setPending(pending.filter(p => p.id !== row.id));
-                  toast({ title: 'Approved', description: `${row.firstName} ${row.lastName} has been approved.` });
-                }}>
+                <Button size="sm" variant="ghost" className="text-success" onClick={() => handleApprove(row)}>
                   <Check className="h-4 w-4" />
                 </Button>
                 <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
                   setPending(pending.filter(p => p.id !== row.id));
-                  toast({ variant: 'destructive', title: 'Rejected', description: `${row.firstName} ${row.lastName} has been rejected.` });
                 }}>
                   <X className="h-4 w-4" />
                 </Button>

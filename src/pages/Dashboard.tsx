@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatWidget from '@/components/shared/StatWidget';
 import { dashboardApi } from '@/services/api';
-import { useToast } from '@/hooks/use-toast';
+import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const quickActions = [
@@ -27,7 +27,6 @@ const COLORS = [
   'hsl(0, 72%, 51%)',
 ];
 
-// Mock data for charts (used when API is unavailable)
 const mockAttendanceChart = [
   { day: 'Mon', present: 1150, absent: 50 },
   { day: 'Tue', present: 1120, absent: 80 },
@@ -43,14 +42,13 @@ const mockFeeChart = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [stats, setStats] = useState({
-    totalStudents: 1250,
-    totalTeachers: 85,
-    totalClasses: 25,
-    attendancePercentage: 95.8,
-    pendingFees: '₹5,00,000',
-    upcomingExams: 3,
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalClasses: 0,
+    attendancePercentage: 0,
+    pendingFees: '₹0',
+    upcomingExams: 0,
   });
 
   useEffect(() => {
@@ -68,8 +66,8 @@ const Dashboard = () => {
           });
         }
       })
-      .catch(() => {
-        // Use mock data silently
+      .catch((err) => {
+        showApiError(err, 'Failed to load dashboard data');
       });
   }, []);
 
@@ -80,7 +78,6 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">Overview of your school management system</p>
       </div>
 
-      {/* Stat Widgets */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatWidget title="Total Students" value={stats.totalStudents.toLocaleString()} change="12% this month" changeType="positive" icon={GraduationCap} iconColor="bg-primary/10 text-primary" />
         <StatWidget title="Total Teachers" value={stats.totalTeachers} change="3% this month" changeType="positive" icon={Users} iconColor="bg-secondary/10 text-secondary" />
@@ -90,7 +87,6 @@ const Dashboard = () => {
         <StatWidget title="Upcoming Exams" value={stats.upcomingExams} change="Next week" changeType="neutral" icon={FileText} iconColor="bg-destructive/10 text-destructive" />
       </div>
 
-      {/* Quick Actions */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -112,7 +108,6 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -151,7 +146,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Recent Activity</CardTitle>

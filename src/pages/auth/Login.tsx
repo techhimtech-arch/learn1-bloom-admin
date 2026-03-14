@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { showApiError } from '@/lib/api-toast';
+import { toast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,20 +16,16 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await login(email, password);
+      toast({ title: 'Success', description: 'Login successful' });
       navigate('/');
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: err.response?.data?.message || 'Invalid email or password',
-      });
+      showApiError(err, 'Invalid email or password');
     } finally {
       setLoading(false);
     }
