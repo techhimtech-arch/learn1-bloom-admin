@@ -168,24 +168,26 @@ const UserManagement = () => {
     if (!validate()) return;
     setSaving(true);
     try {
+      const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
       if (editingUser) {
-        await userApi.update(editingUser._id, {
+        const res = await userApi.update(editingUser._id, {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          name: fullName,
           email: form.email.trim(),
           role: form.role,
         });
-        toast({ title: 'Updated', description: `${form.firstName} ${form.lastName} has been updated.` });
+        showApiSuccess(res);
       } else {
-        await userApi.create({
+        const res = await userApi.create({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          name: `${form.firstName.trim()} ${form.lastName.trim()}`,
+          name: fullName,
           email: form.email.trim(),
           password: form.password,
           role: form.role,
         });
-        toast({ title: 'Created', description: `${form.firstName} ${form.lastName} has been added.` });
+        showApiSuccess(res);
       }
       setDialogOpen(false);
       setEditingUser(null);
@@ -193,14 +195,11 @@ const UserManagement = () => {
       fetchUsers(pagination.page);
       fetchStats();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Something went wrong';
-      const apiErrors = err.response?.data?.errors;
-      if (apiErrors?.length) {
-        const mapped: Record<string, string> = {};
-        apiErrors.forEach((e: { field: string; message: string }) => { mapped[e.field] = e.message; });
-        setFormErrors(mapped);
+      const fieldErrors = getApiFieldErrors(err);
+      if (fieldErrors) {
+        setFormErrors(fieldErrors);
       } else {
-        toast({ variant: 'destructive', title: 'Error', description: msg });
+        showApiError(err);
       }
     } finally {
       setSaving(false);
