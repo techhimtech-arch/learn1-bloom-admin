@@ -44,6 +44,7 @@ const App = () => (
               <Route path="/admission" element={<StudentAdmission />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
+              <Route path="/academic-years" element={<AcademicYearManagement />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
