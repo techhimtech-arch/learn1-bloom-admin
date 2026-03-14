@@ -180,6 +180,7 @@ const UserManagement = () => {
         await userApi.create({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          name: `${form.firstName.trim()} ${form.lastName.trim()}`,
           email: form.email.trim(),
           password: form.password,
           role: form.role,
