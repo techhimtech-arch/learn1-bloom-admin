@@ -78,10 +78,30 @@ export const userApi = {
     apiClient.get('/users', { params }),
   getById: (id: string) => apiClient.get(`/users/${id}`),
   getStats: () => apiClient.get('/users/stats'),
-  create: (data: { firstName: string; lastName: string; name: string; email: string; password: string; role: string }) =>
-    apiClient.post('/users', data),
-  update: (id: string, data: { firstName?: string; lastName?: string; name?: string; email?: string; role?: string }) =>
-    apiClient.put(`/users/${id}`, data),
+  create: (data: { firstName: string; lastName: string; name?: string; email: string; password: string; role: string }) => {
+    const firstName = data.firstName.trim();
+    const lastName = data.lastName.trim();
+    const name = data.name?.trim() || `${firstName} ${lastName}`.trim();
+
+    return apiClient.post('/users', {
+      ...data,
+      firstName,
+      lastName,
+      name,
+    });
+  },
+  update: (id: string, data: { firstName?: string; lastName?: string; name?: string; email?: string; role?: string }) => {
+    const firstName = data.firstName?.trim();
+    const lastName = data.lastName?.trim();
+    const computedName = [firstName, lastName].filter(Boolean).join(' ').trim();
+
+    return apiClient.put(`/users/${id}`, {
+      ...data,
+      ...(firstName !== undefined ? { firstName } : {}),
+      ...(lastName !== undefined ? { lastName } : {}),
+      ...(data.name?.trim() || computedName ? { name: data.name?.trim() || computedName } : {}),
+    });
+  },
   delete: (id: string) => apiClient.delete(`/users/${id}`),
 };
 
