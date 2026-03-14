@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { showApiError } from '@/lib/api-toast';
+import { toast } from '@/hooks/use-toast';
 
 const Register = () => {
   const [form, setForm] = useState({
@@ -19,7 +20,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,14 +30,10 @@ const Register = () => {
     setLoading(true);
     try {
       await register(form);
-      toast({ title: 'Registration Successful', description: 'Your school has been registered.' });
+      toast({ title: 'Success', description: 'Your school has been registered successfully.' });
       navigate('/');
     } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Registration Failed',
-        description: err.response?.data?.message || 'Something went wrong',
-      });
+      showApiError(err, 'Registration failed');
     } finally {
       setLoading(false);
     }

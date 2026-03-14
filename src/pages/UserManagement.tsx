@@ -211,13 +211,13 @@ const UserManagement = () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await userApi.delete(deleteTarget._id);
-      toast({ title: 'Deleted', description: `${deleteTarget.firstName} ${deleteTarget.lastName} has been removed.` });
+      const res = await userApi.delete(deleteTarget._id);
+      showApiSuccess(res);
       setDeleteTarget(null);
       fetchUsers(pagination.page);
       fetchStats();
     } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.response?.data?.message || 'Failed to delete user' });
+      showApiError(err, 'Failed to delete user');
     } finally {
       setDeleting(false);
     }
