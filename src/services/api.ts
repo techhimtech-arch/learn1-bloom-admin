@@ -147,7 +147,7 @@ export const admissionApi = {
   getPartial: (params?: { page?: number; limit?: number; search?: string }) =>
     apiClient.get('/admission/partial', { params }),
   completePartial: (id: string, data: Record<string, unknown>) =>
-    apiClient.put(`/admission/${id}/complete`, data),
+    apiClient.put(`/admission/complete/${id}`, data),
   // Form data
   getFormData: () => apiClient.get('/admission/form-data'),
   // Bulk
