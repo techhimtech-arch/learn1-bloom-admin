@@ -55,18 +55,18 @@ const Dashboard = () => {
 
   useEffect(() => {
     dashboardApi.getStats()
-      .then(({ data }) => {
-        const d = data.data || data;
-        setStats({
-          totalStudents: d.stats?.totalStudents ?? 1250,
-          totalTeachers: d.stats?.totalTeachers ?? 85,
-          totalClasses: d.stats?.totalClasses ?? 25,
-          attendancePercentage: d.attendance?.attendancePercentage ?? 95.8,
-          pendingFees: d.fees?.totalPendingFees
-            ? `₹${Number(d.fees.totalPendingFees).toLocaleString('en-IN')}`
-            : '₹5,00,000',
-          upcomingExams: d.exams?.totalExams ?? 3,
-        });
+      .then(({ data: res }) => {
+        const d = res.data;
+        if (d) {
+          setStats({
+            totalStudents: d.stats?.totalStudents ?? 0,
+            totalTeachers: d.stats?.totalTeachers ?? 0,
+            totalClasses: d.stats?.totalClasses ?? 0,
+            attendancePercentage: d.attendance?.attendancePercentage ?? 0,
+            pendingFees: `₹${Number(d.fees?.totalPendingFees ?? 0).toLocaleString('en-IN')}`,
+            upcomingExams: d.exams?.totalExams ?? 0,
+          });
+        }
       })
       .catch(() => {
         // Use mock data silently
