@@ -4,6 +4,7 @@ import {
   GraduationCap,
   School,
   ClipboardCheck,
+  CalendarDays,
   LogOut,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
