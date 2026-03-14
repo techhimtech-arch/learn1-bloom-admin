@@ -78,7 +78,7 @@ export const userApi = {
     apiClient.get('/users', { params }),
   getById: (id: string) => apiClient.get(`/users/${id}`),
   getStats: () => apiClient.get('/users/stats'),
-  create: (data: { firstName: string; lastName: string; email: string; password: string; role: string }) =>
+  create: (data: { firstName: string; lastName: string; name?: string; email: string; password: string; role: string }) =>
     apiClient.post('/users', data),
   update: (id: string, data: { firstName?: string; lastName?: string; email?: string; role?: string }) =>
     apiClient.put(`/users/${id}`, data),
