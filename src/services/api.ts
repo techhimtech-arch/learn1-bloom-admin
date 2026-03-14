@@ -137,10 +137,21 @@ export const sectionApi = {
 
 // Admission API
 export const admissionApi = {
+  // Full admission
   create: (data: Record<string, unknown>) => apiClient.post('/admission', data),
+  getAll: (params?: { page?: number; limit?: number; search?: string; classId?: string; sectionId?: string; academicYearId?: string }) =>
+    apiClient.get('/admission', { params }),
+  getById: (id: string) => apiClient.get(`/admission/${id}`),
+  // Partial admission
+  createPartial: (data: Record<string, unknown>) => apiClient.post('/admission/partial', data),
+  getPartial: (params?: { page?: number; limit?: number; search?: string }) =>
+    apiClient.get('/admission/partial', { params }),
+  completePartial: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admission/${id}/complete`, data),
+  // Form data
+  getFormData: () => apiClient.get('/admission/form-data'),
+  // Bulk
   bulkCreate: (data: Record<string, unknown>) => apiClient.post('/admission/bulk', data),
-  getPending: () => apiClient.get('/admission/pending'),
-  approve: (id: string) => apiClient.put(`/admission/${id}/approve`),
 };
 
 // Attendance API

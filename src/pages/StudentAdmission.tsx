@@ -1,228 +1,339 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { admissionApi } from '@/services/api';
-import { UserPlus, Check, X } from 'lucide-react';
+import { admissionApi, classApi, sectionApi } from '@/services/api';
+import { UserPlus, Users, ClipboardList, Eye, CheckCircle } from 'lucide-react';
 
-interface PendingAdmission {
-  id: string;
-  firstName: string;
-  lastName: string;
-  class: string;
-  fatherName: string;
-  status: string;
-  appliedDate: string;
-}
+const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
+const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-const mockPending: PendingAdmission[] = [
-  { id: '1', firstName: 'Aarav', lastName: 'Patel', class: 'Class 10-A', fatherName: 'Rajesh Patel', status: 'pending', appliedDate: '2024-03-10' },
-  { id: '2', firstName: 'Ananya', lastName: 'Singh', class: 'Class 8-B', fatherName: 'Vikram Singh', status: 'pending', appliedDate: '2024-03-09' },
-  { id: '3', firstName: 'Rohan', lastName: 'Kumar', class: 'Class 6-C', fatherName: 'Suresh Kumar', status: 'pending', appliedDate: '2024-03-08' },
-];
+interface ClassOption { _id: string; name: string; }
+interface SectionOption { _id: string; name: string; classId: string | { _id: string; name: string }; }
 
 const StudentAdmission = () => {
+  const [activeTab, setActiveTab] = useState('partial');
   const [loading, setLoading] = useState(false);
-  const [pending, setPending] = useState<PendingAdmission[]>(mockPending);
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', dateOfBirth: '', gender: '', bloodGroup: '',
-    fatherName: '', fatherPhone: '', motherName: '', motherPhone: '',
-    classId: '', previousSchool: '',
-    street: '', city: '', state: '', pinCode: '',
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [sections, setSections] = useState<SectionOption[]>([]);
+
+  // Partial admission form
+  const [partialForm, setPartialForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    dateOfBirth: '', gender: '', address: '', emergencyContact: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  // Full admission form
+  const [fullForm, setFullForm] = useState({
+    firstName: '', lastName: '', admissionNumber: '', gender: '',
+    dateOfBirth: '', email: '', password: '', classId: '', sectionId: '',
+    rollNumber: '', address: '', bloodGroup: '', emergencyContact: '',
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Lists
+  const [partialList, setPartialList] = useState<any[]>([]);
+  const [admittedList, setAdmittedList] = useState<any[]>([]);
+  const [partialLoading, setPartialLoading] = useState(false);
+  const [admittedLoading, setAdmittedLoading] = useState(false);
+
+  // Complete dialog
+  const [completeDialog, setCompleteDialog] = useState(false);
+  const [selectedPartial, setSelectedPartial] = useState<any>(null);
+  const [completeForm, setCompleteForm] = useState({
+    classId: '', sectionId: '', rollNumber: '', bloodGroup: '', admissionNumber: '',
+  });
+
+  // Detail dialog
+  const [detailDialog, setDetailDialog] = useState(false);
+  const [studentDetail, setStudentDetail] = useState<any>(null);
+
+  useEffect(() => {
+    classApi.getAll().then(r => setClasses(r.data?.data || [])).catch(() => {});
+    sectionApi.getAll().then(r => setSections(r.data?.data || [])).catch(() => {});
+  }, []);
+
+  const fetchPartial = useCallback(async () => {
+    setPartialLoading(true);
+    try {
+      const res = await admissionApi.getPartial({ limit: 100 });
+      setPartialList(res.data?.data || []);
+    } catch { /* ignore */ }
+    setPartialLoading(false);
+  }, []);
+
+  const fetchAdmitted = useCallback(async () => {
+    setAdmittedLoading(true);
+    try {
+      const res = await admissionApi.getAll({ limit: 100 });
+      setAdmittedList(res.data?.data || []);
+    } catch { /* ignore */ }
+    setAdmittedLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'partial-list') fetchPartial();
+    if (activeTab === 'admitted') fetchAdmitted();
+  }, [activeTab, fetchPartial, fetchAdmitted]);
+
+  const getSectionsForClass = (classId: string) =>
+    sections.filter(s => {
+      const cId = typeof s.classId === 'object' ? s.classId._id : s.classId;
+      return cId === classId;
+    });
+
+  const handlePartialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await admissionApi.create(form as any);
-      showApiSuccess(res, 'Student admission submitted successfully.');
-      setForm({ firstName: '', lastName: '', dateOfBirth: '', gender: '', bloodGroup: '', fatherName: '', fatherPhone: '', motherName: '', motherPhone: '', classId: '', previousSchool: '', street: '', city: '', state: '', pinCode: '' });
+      const res = await admissionApi.createPartial(partialForm);
+      showApiSuccess(res, 'Partial admission created successfully.');
+      setPartialForm({ firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', gender: '', address: '', emergencyContact: '' });
     } catch (err: any) {
-      showApiError(err, 'Failed to submit admission');
-    } finally {
-      setLoading(false);
+      showApiError(err, 'Failed to create partial admission');
     }
+    setLoading(false);
   };
 
-  const handleApprove = async (row: PendingAdmission) => {
+  const handleFullSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const res = await admissionApi.approve(row.id);
-      showApiSuccess(res, `${row.firstName} ${row.lastName} has been approved.`);
-      setPending(pending.filter(p => p.id !== row.id));
+      const payload: Record<string, unknown> = { ...fullForm };
+      if (fullForm.rollNumber) payload.rollNumber = parseInt(fullForm.rollNumber);
+      if (!fullForm.password) delete payload.password;
+      const res = await admissionApi.create(payload);
+      showApiSuccess(res, 'Student admitted successfully.');
+      setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' });
     } catch (err: any) {
-      showApiError(err, 'Failed to approve admission');
+      showApiError(err, 'Failed to admit student');
+    }
+    setLoading(false);
+  };
+
+  const handleComplete = async () => {
+    if (!selectedPartial) return;
+    setLoading(true);
+    try {
+      const payload: Record<string, unknown> = { ...completeForm };
+      if (completeForm.rollNumber) payload.rollNumber = parseInt(completeForm.rollNumber);
+      const res = await admissionApi.completePartial(selectedPartial._id, payload);
+      showApiSuccess(res, 'Admission completed successfully.');
+      setCompleteDialog(false);
+      setSelectedPartial(null);
+      fetchPartial();
+    } catch (err: any) {
+      showApiError(err, 'Failed to complete admission');
+    }
+    setLoading(false);
+  };
+
+  const viewDetail = async (id: string) => {
+    try {
+      const res = await admissionApi.getById(id);
+      setStudentDetail(res.data?.data?.studentProfile || res.data?.data);
+      setDetailDialog(true);
+    } catch (err: any) {
+      showApiError(err, 'Failed to load student details');
     }
   };
 
-  const pendingColumns: Column<PendingAdmission>[] = [
+  const selectField = (name: string, value: string, onChange: (e: any) => void, options: { value: string; label: string }[], required = false) => (
+    <select name={name} value={value} onChange={onChange} required={required}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <option value="">Select</option>
+      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+  );
+
+  const partialColumns: Column<any>[] = [
     { key: 'firstName', label: 'First Name' },
     { key: 'lastName', label: 'Last Name' },
-    { key: 'class', label: 'Class' },
-    { key: 'fatherName', label: "Father's Name" },
-    { key: 'appliedDate', label: 'Applied Date' },
-    { key: 'status', label: 'Status', render: (val: string) => (
-      <Badge variant={val === 'pending' ? 'secondary' : 'default'}>{val}</Badge>
+    { key: 'gender', label: 'Gender' },
+    { key: 'dateOfBirth', label: 'DOB', render: (v: string) => v ? new Date(v).toLocaleDateString() : '-' },
+    { key: 'email', label: 'Email', render: (v: string) => v || '-' },
+    { key: 'status', label: 'Status', render: (v: string) => <Badge variant="secondary">{v || 'partial'}</Badge> },
+  ];
+
+  const admittedColumns: Column<any>[] = [
+    { key: 'firstName', label: 'Name', render: (_: any, row: any) => `${row.firstName || ''} ${row.lastName || ''}`.trim() },
+    { key: 'admissionNumber', label: 'Adm No.', render: (_: any, row: any) => row.admissionNumber || '-' },
+    { key: 'gender', label: 'Gender' },
+    { key: 'currentEnrollment', label: 'Class', render: (_: any, row: any) => row.currentEnrollment?.classId?.name || '-' },
+    { key: 'status', label: 'Status', render: (v: string) => (
+      <Badge variant={v === 'completed' ? 'default' : 'secondary'}>{v}</Badge>
     )},
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Student Admission</h1>
-          <p className="text-sm text-muted-foreground">Manage student admissions and enrollment</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Student Admission</h1>
+        <p className="text-sm text-muted-foreground">Manage partial and full student admissions</p>
       </div>
 
-      <Tabs defaultValue="new">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="new">New Admission</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({pending.length})</TabsTrigger>
+          <TabsTrigger value="partial" className="gap-1.5"><ClipboardList className="h-4 w-4" />Partial Admission</TabsTrigger>
+          <TabsTrigger value="full" className="gap-1.5"><UserPlus className="h-4 w-4" />Full Admission</TabsTrigger>
+          <TabsTrigger value="partial-list" className="gap-1.5"><ClipboardList className="h-4 w-4" />Partial List</TabsTrigger>
+          <TabsTrigger value="admitted" className="gap-1.5"><Users className="h-4 w-4" />Admitted Students</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="new" className="mt-4">
+        {/* PARTIAL ADMISSION FORM */}
+        <TabsContent value="partial" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <UserPlus className="h-5 w-5 text-primary" />
-                Admission Form
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" />Partial Admission Form</CardTitle></CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handlePartialSubmit} className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2"><Label>First Name <span className="text-destructive">*</span></Label><Input name="firstName" value={partialForm.firstName} onChange={e => setPartialForm({ ...partialForm, firstName: e.target.value })} required minLength={2} maxLength={50} /></div>
+                  <div className="space-y-2"><Label>Last Name <span className="text-destructive">*</span></Label><Input name="lastName" value={partialForm.lastName} onChange={e => setPartialForm({ ...partialForm, lastName: e.target.value })} required minLength={2} maxLength={50} /></div>
+                  <div className="space-y-2"><Label>Gender <span className="text-destructive">*</span></Label>{selectField('gender', partialForm.gender, e => setPartialForm({ ...partialForm, gender: e.target.value }), GENDER_OPTIONS.map(g => ({ value: g, label: g })), true)}</div>
+                  <div className="space-y-2"><Label>Date of Birth <span className="text-destructive">*</span></Label><Input type="date" value={partialForm.dateOfBirth} onChange={e => setPartialForm({ ...partialForm, dateOfBirth: e.target.value })} required /></div>
+                  <div className="space-y-2"><Label>Email</Label><Input type="email" value={partialForm.email} onChange={e => setPartialForm({ ...partialForm, email: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>Phone</Label><Input type="tel" value={partialForm.phone} onChange={e => setPartialForm({ ...partialForm, phone: e.target.value })} /></div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2"><Label>Address</Label><Input value={partialForm.address} onChange={e => setPartialForm({ ...partialForm, address: e.target.value })} maxLength={200} /></div>
+                  <div className="space-y-2"><Label>Emergency Contact</Label><Input type="tel" value={partialForm.emergencyContact} onChange={e => setPartialForm({ ...partialForm, emergencyContact: e.target.value })} /></div>
+                </div>
+                <Button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Create Partial Admission'}</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* FULL ADMISSION FORM */}
+        <TabsContent value="full" className="mt-4">
+          <Card>
+            <CardHeader><CardTitle className="text-lg flex items-center gap-2"><UserPlus className="h-5 w-5 text-primary" />Full Admission Form</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleFullSubmit} className="space-y-6">
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Personal Information</h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label>First Name <span className="text-destructive">*</span></Label>
-                      <Input name="firstName" value={form.firstName} onChange={handleChange} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Last Name <span className="text-destructive">*</span></Label>
-                      <Input name="lastName" value={form.lastName} onChange={handleChange} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Date of Birth <span className="text-destructive">*</span></Label>
-                      <Input name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleChange} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Gender</Label>
-                      <select name="gender" value={form.gender} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <option value="">Select</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Blood Group</Label>
-                      <Input name="bloodGroup" value={form.bloodGroup} onChange={handleChange} placeholder="e.g. O+" />
-                    </div>
+                    <div className="space-y-2"><Label>First Name <span className="text-destructive">*</span></Label><Input value={fullForm.firstName} onChange={e => setFullForm({ ...fullForm, firstName: e.target.value })} required minLength={2} maxLength={50} /></div>
+                    <div className="space-y-2"><Label>Last Name <span className="text-destructive">*</span></Label><Input value={fullForm.lastName} onChange={e => setFullForm({ ...fullForm, lastName: e.target.value })} required minLength={2} maxLength={50} /></div>
+                    <div className="space-y-2"><Label>Admission Number <span className="text-destructive">*</span></Label><Input value={fullForm.admissionNumber} onChange={e => setFullForm({ ...fullForm, admissionNumber: e.target.value })} required minLength={3} maxLength={20} /></div>
+                    <div className="space-y-2"><Label>Gender <span className="text-destructive">*</span></Label>{selectField('gender', fullForm.gender, e => setFullForm({ ...fullForm, gender: e.target.value }), GENDER_OPTIONS.map(g => ({ value: g, label: g })), true)}</div>
+                    <div className="space-y-2"><Label>Date of Birth <span className="text-destructive">*</span></Label><Input type="date" value={fullForm.dateOfBirth} onChange={e => setFullForm({ ...fullForm, dateOfBirth: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Blood Group</Label>{selectField('bloodGroup', fullForm.bloodGroup, e => setFullForm({ ...fullForm, bloodGroup: e.target.value }), BLOOD_GROUP_OPTIONS.map(b => ({ value: b, label: b })))}</div>
                   </div>
                 </div>
-
                 <div>
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Parent / Guardian Information</h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Father's Name <span className="text-destructive">*</span></Label>
-                      <Input name="fatherName" value={form.fatherName} onChange={handleChange} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Father's Phone</Label>
-                      <Input name="fatherPhone" type="tel" value={form.fatherPhone} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Mother's Name</Label>
-                      <Input name="motherName" value={form.motherName} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Mother's Phone</Label>
-                      <Input name="motherPhone" type="tel" value={form.motherPhone} onChange={handleChange} />
-                    </div>
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Contact & Account</h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2"><Label>Email</Label><Input type="email" value={fullForm.email} onChange={e => setFullForm({ ...fullForm, email: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>Password</Label><Input type="password" value={fullForm.password} onChange={e => setFullForm({ ...fullForm, password: e.target.value })} placeholder="Auto-generated if empty" minLength={6} /></div>
+                    <div className="space-y-2"><Label>Emergency Contact</Label><Input type="tel" value={fullForm.emergencyContact} onChange={e => setFullForm({ ...fullForm, emergencyContact: e.target.value })} /></div>
+                    <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Input value={fullForm.address} onChange={e => setFullForm({ ...fullForm, address: e.target.value })} maxLength={200} /></div>
                   </div>
                 </div>
-
                 <div>
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Academic Information</h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Class <span className="text-destructive">*</span></Label>
-                      <select name="classId" value={form.classId} onChange={handleChange} required className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <option value="">Select Class</option>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <option key={i} value={`class-${i + 1}`}>Class {i + 1}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Previous School</Label>
-                      <Input name="previousSchool" value={form.previousSchool} onChange={handleChange} />
-                    </div>
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Academic Details</h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2"><Label>Class</Label>{selectField('classId', fullForm.classId, e => setFullForm({ ...fullForm, classId: e.target.value, sectionId: '' }), classes.map(c => ({ value: c._id, label: c.name })))}</div>
+                    <div className="space-y-2"><Label>Section</Label>{selectField('sectionId', fullForm.sectionId, e => setFullForm({ ...fullForm, sectionId: e.target.value }), getSectionsForClass(fullForm.classId).map(s => ({ value: s._id, label: s.name })))}</div>
+                    <div className="space-y-2"><Label>Roll Number</Label><Input type="number" value={fullForm.rollNumber} onChange={e => setFullForm({ ...fullForm, rollNumber: e.target.value })} /></div>
                   </div>
                 </div>
-
-                <div>
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Address</h3>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label>Street Address</Label>
-                      <Input name="street" value={form.street} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>City</Label>
-                      <Input name="city" value={form.city} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>PIN Code</Label>
-                      <Input name="pinCode" value={form.pinCode} onChange={handleChange} />
-                    </div>
-                  </div>
-                </div>
-
                 <div className="flex gap-3">
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'Submitting...' : 'Submit Admission'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setForm({ firstName: '', lastName: '', dateOfBirth: '', gender: '', bloodGroup: '', fatherName: '', fatherPhone: '', motherName: '', motherPhone: '', classId: '', previousSchool: '', street: '', city: '', state: '', pinCode: '' })}>
-                    Clear Form
-                  </Button>
+                  <Button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Admit Student'}</Button>
+                  <Button type="button" variant="outline" onClick={() => setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' })}>Clear</Button>
                 </div>
               </form>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="pending" className="mt-4">
+        {/* PARTIAL LIST */}
+        <TabsContent value="partial-list" className="mt-4">
           <DataTable
-            columns={pendingColumns}
-            data={pending}
-            searchPlaceholder="Search pending admissions..."
+            columns={partialColumns}
+            data={partialList}
+            loading={partialLoading}
+            searchPlaceholder="Search partial admissions..."
             actions={(row) => (
               <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="text-success" onClick={() => handleApprove(row)}>
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
-                  setPending(pending.filter(p => p.id !== row.id));
-                }}>
-                  <X className="h-4 w-4" />
+                <Button size="sm" variant="ghost" onClick={() => { setSelectedPartial(row); setCompleteForm({ classId: '', sectionId: '', rollNumber: '', bloodGroup: '', admissionNumber: '' }); setCompleteDialog(true); }}>
+                  <CheckCircle className="h-4 w-4 text-success mr-1" /> Complete
                 </Button>
               </div>
             )}
           />
         </TabsContent>
+
+        {/* ADMITTED STUDENTS */}
+        <TabsContent value="admitted" className="mt-4">
+          <DataTable
+            columns={admittedColumns}
+            data={admittedList}
+            loading={admittedLoading}
+            searchPlaceholder="Search admitted students..."
+            actions={(row) => (
+              <Button size="sm" variant="ghost" onClick={() => viewDetail(row._id)}>
+                <Eye className="h-4 w-4 mr-1" /> View
+              </Button>
+            )}
+          />
+        </TabsContent>
       </Tabs>
+
+      {/* COMPLETE PARTIAL DIALOG */}
+      <Dialog open={completeDialog} onOpenChange={setCompleteDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Complete Admission — {selectedPartial?.firstName} {selectedPartial?.lastName}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2"><Label>Class</Label>{selectField('classId', completeForm.classId, e => setCompleteForm({ ...completeForm, classId: e.target.value, sectionId: '' }), classes.map(c => ({ value: c._id, label: c.name })))}</div>
+            <div className="space-y-2"><Label>Section</Label>{selectField('sectionId', completeForm.sectionId, e => setCompleteForm({ ...completeForm, sectionId: e.target.value }), getSectionsForClass(completeForm.classId).map(s => ({ value: s._id, label: s.name })))}</div>
+            <div className="space-y-2"><Label>Admission Number</Label><Input value={completeForm.admissionNumber} onChange={e => setCompleteForm({ ...completeForm, admissionNumber: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Roll Number</Label><Input type="number" value={completeForm.rollNumber} onChange={e => setCompleteForm({ ...completeForm, rollNumber: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Blood Group</Label>{selectField('bloodGroup', completeForm.bloodGroup, e => setCompleteForm({ ...completeForm, bloodGroup: e.target.value }), BLOOD_GROUP_OPTIONS.map(b => ({ value: b, label: b })))}</div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCompleteDialog(false)}>Cancel</Button>
+            <Button onClick={handleComplete} disabled={loading}>{loading ? 'Saving...' : 'Complete Admission'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* STUDENT DETAIL DIALOG */}
+      <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Student Details</DialogTitle></DialogHeader>
+          {studentDetail && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div><span className="text-muted-foreground">Name:</span> {studentDetail.firstName} {studentDetail.lastName}</div>
+                <div><span className="text-muted-foreground">Gender:</span> {studentDetail.gender}</div>
+                <div><span className="text-muted-foreground">DOB:</span> {studentDetail.dateOfBirth ? new Date(studentDetail.dateOfBirth).toLocaleDateString() : '-'}</div>
+                <div><span className="text-muted-foreground">Blood Group:</span> {studentDetail.bloodGroup || '-'}</div>
+                <div><span className="text-muted-foreground">Email:</span> {studentDetail.email || '-'}</div>
+                <div><span className="text-muted-foreground">Phone:</span> {studentDetail.phone || '-'}</div>
+                <div><span className="text-muted-foreground">Admission No:</span> {studentDetail.admissionNumber || '-'}</div>
+                <div><span className="text-muted-foreground">Status:</span> <Badge variant={studentDetail.status === 'completed' ? 'default' : 'secondary'}>{studentDetail.status}</Badge></div>
+                <div className="col-span-2"><span className="text-muted-foreground">Address:</span> {studentDetail.address || '-'}</div>
+                {studentDetail.currentEnrollment && (
+                  <>
+                    <div><span className="text-muted-foreground">Class:</span> {studentDetail.currentEnrollment.classId?.name || '-'}</div>
+                    <div><span className="text-muted-foreground">Section:</span> {studentDetail.currentEnrollment.sectionId?.name || '-'}</div>
+                    <div><span className="text-muted-foreground">Roll No:</span> {studentDetail.currentEnrollment.rollNumber || '-'}</div>
+                  </>
+                )}
+                {studentDetail.parentUserId && (
+                  <div className="col-span-2"><span className="text-muted-foreground">Parent:</span> {studentDetail.parentUserId.name || studentDetail.parentUserId.email || '-'}</div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
