@@ -14,11 +14,31 @@ export const showApiSuccess = (response: any, fallback = 'Operation successful')
  * Uses the `message` field from the API error response if available.
  */
 export const showApiError = (error: any, fallback = 'Something went wrong') => {
-  const message =
-    error?.response?.data?.message ||
-    error?.message ||
-    fallback;
-  toast({ variant: 'destructive', title: 'Error', description: message });
+  const data = error?.response?.data;
+  const message = data?.message || error?.message || fallback;
+
+  // Extract field-level validation errors
+  const errors = data?.errors;
+  let details = '';
+  if (Array.isArray(errors) && errors.length > 0) {
+    // Deduplicate by path, keep first message per field
+    const seen = new Set<string>();
+    details = errors
+      .filter((e: any) => {
+        const key = e.path || e.field || '';
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((e: any) => `• ${e.msg || e.message}`)
+      .join('\n');
+  }
+
+  toast({
+    variant: 'destructive',
+    title: 'Error',
+    description: details ? `${message}\n${details}` : message,
+  });
 };
 
 /**

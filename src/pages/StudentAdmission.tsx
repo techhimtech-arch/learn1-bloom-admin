@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { admissionApi, classApi, sectionApi } from '@/services/api';
+import { admissionApi, classApi, sectionApi, academicYearApi } from '@/services/api';
 import { UserPlus, Users, ClipboardList, Eye, CheckCircle } from 'lucide-react';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
