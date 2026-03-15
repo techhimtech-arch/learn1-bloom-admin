@@ -242,6 +242,7 @@ const StudentAdmission = () => {
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Academic Details</h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2"><Label>Academic Year <span className="text-destructive">*</span></Label>{selectField('academicYearId', fullForm.academicYearId, e => setFullForm({ ...fullForm, academicYearId: e.target.value }), academicYears.map(a => ({ value: a._id, label: a.year || a.label || a._id })), true)}</div>
                     <div className="space-y-2"><Label>Class</Label>{selectField('classId', fullForm.classId, e => setFullForm({ ...fullForm, classId: e.target.value, sectionId: '' }), classes.map(c => ({ value: c._id, label: c.name })))}</div>
                     <div className="space-y-2"><Label>Section</Label>{selectField('sectionId', fullForm.sectionId, e => setFullForm({ ...fullForm, sectionId: e.target.value }), getSectionsForClass(fullForm.classId).map(s => ({ value: s._id, label: s.name })))}</div>
                     <div className="space-y-2"><Label>Roll Number</Label><Input type="number" value={fullForm.rollNumber} onChange={e => setFullForm({ ...fullForm, rollNumber: e.target.value })} /></div>
@@ -249,7 +250,7 @@ const StudentAdmission = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Admit Student'}</Button>
-                  <Button type="button" variant="outline" onClick={() => setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' })}>Clear</Button>
+                  <Button type="button" variant="outline" onClick={() => setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '', academicYearId: '' })}>Clear</Button>
                 </div>
               </form>
             </CardContent>
