@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { admissionApi, classApi, sectionApi } from '@/services/api';
+import { admissionApi, classApi, sectionApi, academicYearApi } from '@/services/api';
 import { UserPlus, Users, ClipboardList, Eye, CheckCircle } from 'lucide-react';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
@@ -16,12 +16,14 @@ const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 interface ClassOption { _id: string; name: string; }
 interface SectionOption { _id: string; name: string; classId: string | { _id: string; name: string }; }
+interface AcademicYearOption { _id: string; year: string; label?: string; isActive?: boolean; }
 
 const StudentAdmission = () => {
   const [activeTab, setActiveTab] = useState('partial');
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [sections, setSections] = useState<SectionOption[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
 
   // Partial admission form
   const [partialForm, setPartialForm] = useState({
@@ -34,6 +36,7 @@ const StudentAdmission = () => {
     firstName: '', lastName: '', admissionNumber: '', gender: '',
     dateOfBirth: '', email: '', password: '', classId: '', sectionId: '',
     rollNumber: '', address: '', bloodGroup: '', emergencyContact: '',
+    academicYearId: '',
   });
 
   // Lists
@@ -56,6 +59,7 @@ const StudentAdmission = () => {
   useEffect(() => {
     classApi.getAll().then(r => setClasses(r.data?.data || [])).catch(() => {});
     sectionApi.getAll().then(r => setSections(r.data?.data || [])).catch(() => {});
+    academicYearApi.getAll().then(r => setAcademicYears(r.data?.data || [])).catch(() => {});
   }, []);
 
   const fetchPartial = useCallback(async () => {
@@ -109,7 +113,7 @@ const StudentAdmission = () => {
       if (!fullForm.password) delete payload.password;
       const res = await admissionApi.create(payload);
       showApiSuccess(res, 'Student admitted successfully.');
-      setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' });
+      setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '', academicYearId: '' });
     } catch (err: any) {
       showApiError(err, 'Failed to admit student');
     }
@@ -238,6 +242,7 @@ const StudentAdmission = () => {
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Academic Details</h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2"><Label>Academic Year <span className="text-destructive">*</span></Label>{selectField('academicYearId', fullForm.academicYearId, e => setFullForm({ ...fullForm, academicYearId: e.target.value }), academicYears.map(a => ({ value: a._id, label: a.year || a.label || a._id })), true)}</div>
                     <div className="space-y-2"><Label>Class</Label>{selectField('classId', fullForm.classId, e => setFullForm({ ...fullForm, classId: e.target.value, sectionId: '' }), classes.map(c => ({ value: c._id, label: c.name })))}</div>
                     <div className="space-y-2"><Label>Section</Label>{selectField('sectionId', fullForm.sectionId, e => setFullForm({ ...fullForm, sectionId: e.target.value }), getSectionsForClass(fullForm.classId).map(s => ({ value: s._id, label: s.name })))}</div>
                     <div className="space-y-2"><Label>Roll Number</Label><Input type="number" value={fullForm.rollNumber} onChange={e => setFullForm({ ...fullForm, rollNumber: e.target.value })} /></div>
@@ -245,7 +250,7 @@ const StudentAdmission = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Admit Student'}</Button>
-                  <Button type="button" variant="outline" onClick={() => setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' })}>Clear</Button>
+                  <Button type="button" variant="outline" onClick={() => setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '', academicYearId: '' })}>Clear</Button>
                 </div>
               </form>
             </CardContent>
