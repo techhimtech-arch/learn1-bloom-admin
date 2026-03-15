@@ -23,6 +23,7 @@ const StudentAdmission = () => {
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [sections, setSections] = useState<SectionOption[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
 
   // Partial admission form
   const [partialForm, setPartialForm] = useState({
