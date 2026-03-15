@@ -18,7 +18,7 @@ import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const AuthRedirect: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null;
   if (isAuthenticated) return <Navigate to="/" replace />;
