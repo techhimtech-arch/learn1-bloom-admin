@@ -113,7 +113,7 @@ const StudentAdmission = () => {
       if (!fullForm.password) delete payload.password;
       const res = await admissionApi.create(payload);
       showApiSuccess(res, 'Student admitted successfully.');
-      setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '' });
+      setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '', academicYearId: '' });
     } catch (err: any) {
       showApiError(err, 'Failed to admit student');
     }
