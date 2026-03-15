@@ -16,6 +16,7 @@ const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 interface ClassOption { _id: string; name: string; }
 interface SectionOption { _id: string; name: string; classId: string | { _id: string; name: string }; }
+interface AcademicYearOption { _id: string; year: string; label?: string; isActive?: boolean; }
 
 const StudentAdmission = () => {
   const [activeTab, setActiveTab] = useState('partial');
