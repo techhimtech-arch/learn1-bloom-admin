@@ -156,9 +156,10 @@ export const admissionApi = {
 
 // Attendance API
 export const attendanceApi = {
-  mark: (data: Record<string, unknown>) => apiClient.post('/attendance/mark', data),
-  getByClass: (classId: string, params?: Record<string, string>) =>
-    apiClient.get(`/attendance/class/${classId}`, { params }),
+  mark: (data: Record<string, unknown>) => apiClient.post('/attendance', data),
+  markBulk: (data: Record<string, unknown>) => apiClient.post('/attendance/bulk', data),
+  getAll: (params?: Record<string, string>) => apiClient.get('/attendance', { params }),
+  delete: (id: string) => apiClient.delete(`/attendance/${id}`),
   getByStudent: (studentId: string) => apiClient.get(`/attendance/student/${studentId}`),
   getReport: (params?: Record<string, string>) => apiClient.get('/attendance/report', { params }),
 };
