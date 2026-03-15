@@ -59,6 +59,7 @@ const StudentAdmission = () => {
   useEffect(() => {
     classApi.getAll().then(r => setClasses(r.data?.data || [])).catch(() => {});
     sectionApi.getAll().then(r => setSections(r.data?.data || [])).catch(() => {});
+    academicYearApi.getAll().then(r => setAcademicYears(r.data?.data || [])).catch(() => {});
   }, []);
 
   const fetchPartial = useCallback(async () => {
