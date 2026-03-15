@@ -36,6 +36,7 @@ const StudentAdmission = () => {
     firstName: '', lastName: '', admissionNumber: '', gender: '',
     dateOfBirth: '', email: '', password: '', classId: '', sectionId: '',
     rollNumber: '', address: '', bloodGroup: '', emergencyContact: '',
+    academicYearId: '',
   });
 
   // Lists
