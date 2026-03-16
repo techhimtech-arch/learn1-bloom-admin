@@ -223,12 +223,12 @@ const SubjectManagement = () => {
 
       <div className="flex items-center gap-3">
         <Label className="whitespace-nowrap">Filter by Class:</Label>
-        <Select value={filterClass} onValueChange={setFilterClass}>
+        <Select value={filterClass || "all"} onValueChange={(v) => setFilterClass(v === "all" ? "" : v)}>
           <SelectTrigger className="w-full sm:w-64">
             <SelectValue placeholder="All Classes" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Classes</SelectItem>
+            <SelectItem value="all">All Classes</SelectItem>
             {classes.map(cls => (
               <SelectItem key={cls._id} value={cls._id}>{cls.name}</SelectItem>
             ))}
