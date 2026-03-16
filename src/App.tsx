@@ -15,6 +15,7 @@ import ClassManagement from "@/pages/ClassManagement";
 import AttendanceManagement from "@/pages/AttendanceManagement";
 import AcademicYearManagement from "@/pages/AcademicYearManagement";
 import SubjectManagement from "@/pages/SubjectManagement";
+import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,8 +38,9 @@ const App = () => (
             {/* Auth routes */}
             <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
             <Route path="/register" element={<AuthRedirect><Register /></AuthRedirect>} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected routes with layout */}
+            {/* Protected routes with layout — role checked per-route via ProtectedRoute */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
