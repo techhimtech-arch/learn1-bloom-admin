@@ -179,13 +179,6 @@ export const attendanceApi = {
   getReport: (params?: Record<string, string>) => apiClient.get("/attendance/report", { params }),
 };
 
-// Subject API
-export const subjectApi = {
-  getAll: () => apiClient.get("/subjects"),
-  create: (data: Record<string, unknown>) => apiClient.post("/subjects", data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/subjects/${id}`, data),
-};
-
 // Fee API
 export const feeApi = {
   getStructure: () => apiClient.get("/fees/structure"),
@@ -218,4 +211,13 @@ export const reportApi = {
   fees: (params?: Record<string, string>) => apiClient.get("/reports/fees", { params }),
   exams: (params?: Record<string, string>) => apiClient.get("/reports/exams", { params }),
   students: (params?: Record<string, string>) => apiClient.get("/reports/students", { params }),
+};
+
+// Subject API
+export const subjectApi = {
+  getAll: () => apiClient.get("/subjects"),
+  getByClass: (classId: string) => apiClient.get(`/subjects/class/${classId}`),
+  create: (data: { name: string; classId: string }) => apiClient.post("/subjects", data),
+  update: (id: string, data: { name: string }) => apiClient.patch(`/subjects/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/subjects/${id}`),
 };

@@ -5,6 +5,7 @@ import {
   School,
   ClipboardCheck,
   CalendarDays,
+  BookOpen,
   LogOut,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
@@ -29,6 +30,7 @@ const navItems = [
   { title: 'Student Admission', url: '/admission', icon: GraduationCap },
   { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
   { title: 'Class Management', url: '/classes', icon: School },
+  { title: 'Subject Management', url: '/subjects', icon: BookOpen },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 
