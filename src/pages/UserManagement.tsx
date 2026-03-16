@@ -432,7 +432,7 @@ const UserManagement = () => {
             ) : (
               users.map((user) => (
                 <TableRow key={user._id}>
-                  <TableCell className="font-medium">{user.firstName} {user.lastName}</TableCell>
+                  <TableCell className="font-medium">{(user as any).name || `${user.firstName} ${user.lastName}`}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={roleColors[user.role] || ''}>
