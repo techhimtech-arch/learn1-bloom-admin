@@ -30,7 +30,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/',
   ],
   parent: [
-    '/', '/attendance',
+    '/', '/attendance', '/fees', '/results',
   ],
   student: [
     '/', '/attendance',
