@@ -221,3 +221,13 @@ export const subjectApi = {
   update: (id: string, data: { name: string }) => apiClient.patch(`/subjects/${id}`, data),
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
 };
+
+// Parent Portal API
+export const parentApi = {
+  getProfile: () => apiClient.get("/parent/profile"),
+  getAttendance: (params?: { startDate?: string; endDate?: string }) =>
+    apiClient.get("/parent/attendance", { params }),
+  getFees: () => apiClient.get("/parent/fees"),
+  getResults: (params?: { examId?: string }) =>
+    apiClient.get("/parent/results", { params }),
+};
