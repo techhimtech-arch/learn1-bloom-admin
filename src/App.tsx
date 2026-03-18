@@ -15,6 +15,7 @@ import ClassManagement from "@/pages/ClassManagement";
 import AttendanceManagement from "@/pages/AttendanceManagement";
 import AcademicYearManagement from "@/pages/AcademicYearManagement";
 import SubjectManagement from "@/pages/SubjectManagement";
+import TeacherAssignments from "@/pages/TeacherAssignments";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
 
