@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   CalendarDays,
   BookOpen,
+  UserCheck,
   type LucideIcon,
 } from 'lucide-react';
 
