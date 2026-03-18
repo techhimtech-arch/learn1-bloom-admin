@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// const API_BASE_URL = import.meta.env.VITE_API_URL || "https://sms-backend-d19v.onrender.com/api/v1";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
 const apiClient = axios.create({
@@ -27,12 +26,13 @@ apiClient.interceptors.response.use(
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
         try {
-          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
-          const newAccessToken = data.data?.tokens?.accessToken;
+          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken });
+          const newAccessToken = data.data?.accessToken || data.data?.tokens?.accessToken;
           if (newAccessToken) {
             localStorage.setItem("accessToken", newAccessToken);
-            if (data.data?.tokens?.refreshToken) {
-              localStorage.setItem("refreshToken", data.data.tokens.refreshToken);
+            const newRefresh = data.data?.refreshToken || data.data?.tokens?.refreshToken;
+            if (newRefresh) {
+              localStorage.setItem("refreshToken", newRefresh);
             }
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return apiClient(originalRequest);
@@ -43,6 +43,18 @@ apiClient.interceptors.response.use(
           localStorage.removeItem("user");
           window.location.href = "/login";
         }
+      } else {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+    }
+    // Handle 403 forbidden
+    if (error.response?.status === 403) {
+      const msg = error.response?.data?.message || "Access forbidden";
+      if (msg.toLowerCase().includes("permission")) {
+        window.location.href = "/unauthorized";
       }
     }
     return Promise.reject(error);
@@ -51,7 +63,7 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
-// Auth API
+// ── Auth API ──────────────────────────────────────────────
 export const authApi = {
   login: (email: string, password: string) => apiClient.post("/auth/login", { email, password }),
   register: (data: {
@@ -65,19 +77,40 @@ export const authApi = {
     const refreshToken = localStorage.getItem("refreshToken");
     return apiClient.post("/auth/logout", { refreshToken });
   },
+  logoutAll: () => apiClient.post("/auth/logout-all"),
+  refreshToken: () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    return apiClient.post("/auth/refresh-token", { refreshToken });
+  },
+  getSessions: () => apiClient.get("/auth/sessions"),
+  revokeSession: (sessionId: string) => apiClient.delete(`/auth/sessions/${sessionId}`),
+  forgotPassword: (email: string) => apiClient.post("/auth/forgot-password", { email }),
+  resetPassword: (data: { token: string; password: string; confirmPassword: string }) =>
+    apiClient.post("/auth/reset-password", data),
 };
 
-// Dashboard API
+// ── Dashboard API ─────────────────────────────────────────
 export const dashboardApi = {
   getStats: () => apiClient.get("/dashboard"),
 };
 
-// User API
+// ── User API ──────────────────────────────────────────────
 export const userApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string; role?: string }) =>
+  getAll: (params?: { page?: number; limit?: number; search?: string; role?: string; sort?: string }) =>
     apiClient.get("/users", { params }),
   getById: (id: string) => apiClient.get(`/users/${id}`),
   getStats: () => apiClient.get("/users/stats"),
+  getMe: () => apiClient.get("/users/me"),
+  updateMe: (data: Record<string, unknown>) => apiClient.patch("/users/me", data),
+  changePassword: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
+    apiClient.patch("/users/change-password", data),
+  uploadProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+    return apiClient.post("/users/profile-image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   create: (data: {
     firstName: string;
     lastName: string;
@@ -89,13 +122,7 @@ export const userApi = {
     const firstName = data.firstName.trim();
     const lastName = data.lastName.trim();
     const name = data.name?.trim() || `${firstName} ${lastName}`.trim();
-
-    return apiClient.post("/users", {
-      ...data,
-      firstName,
-      lastName,
-      name,
-    });
+    return apiClient.post("/users", { ...data, firstName, lastName, name });
   },
   update: (
     id: string,
@@ -104,7 +131,6 @@ export const userApi = {
     const firstName = data.firstName?.trim();
     const lastName = data.lastName?.trim();
     const computedName = [firstName, lastName].filter(Boolean).join(" ").trim();
-
     return apiClient.put(`/users/${id}`, {
       ...data,
       ...(firstName !== undefined ? { firstName } : {}),
@@ -115,7 +141,7 @@ export const userApi = {
   delete: (id: string) => apiClient.delete(`/users/${id}`),
 };
 
-// Academic Year API
+// ── Academic Year API ─────────────────────────────────────
 export const academicYearApi = {
   getAll: (params?: { isActive?: boolean }) => apiClient.get("/academic-years", { params }),
   getCurrent: () => apiClient.get("/academic-years/current"),
@@ -128,7 +154,7 @@ export const academicYearApi = {
   delete: (id: string) => apiClient.delete(`/academic-years/${id}`),
 };
 
-// Class API
+// ── Class API ─────────────────────────────────────────────
 export const classApi = {
   getAll: () => apiClient.get("/classes"),
   create: (data: Record<string, unknown>) => apiClient.post("/classes", data),
@@ -136,7 +162,7 @@ export const classApi = {
   delete: (id: string) => apiClient.delete(`/classes/${id}`),
 };
 
-// Section API
+// ── Section API ───────────────────────────────────────────
 export const sectionApi = {
   getAll: () => apiClient.get("/sections"),
   getByClass: (classId: string) => apiClient.get(`/sections/class/${classId}`),
@@ -145,31 +171,23 @@ export const sectionApi = {
   delete: (id: string) => apiClient.delete(`/sections/${id}`),
 };
 
-// Admission API
+// ── Admission API ─────────────────────────────────────────
 export const admissionApi = {
-  // Full admission
   create: (data: Record<string, unknown>) => apiClient.post("/admission", data),
   getAll: (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    classId?: string;
-    sectionId?: string;
-    academicYearId?: string;
+    page?: number; limit?: number; search?: string;
+    classId?: string; sectionId?: string; academicYearId?: string;
   }) => apiClient.get("/admission", { params }),
   getById: (id: string) => apiClient.get(`/admission/${id}`),
-  // Partial admission
   createPartial: (data: Record<string, unknown>) => apiClient.post("/admission/partial", data),
   getPartial: (params?: { page?: number; limit?: number; search?: string }) =>
     apiClient.get("/admission/partial", { params }),
   completePartial: (id: string, data: Record<string, unknown>) => apiClient.put(`/admission/${id}/complete`, data),
-  // Form data
   getFormData: () => apiClient.get("/admission/form-data"),
-  // Bulk
   bulkCreate: (data: Record<string, unknown>) => apiClient.post("/admission/bulk", data),
 };
 
-// Attendance API
+// ── Attendance API ────────────────────────────────────────
 export const attendanceApi = {
   mark: (data: Record<string, unknown>) => apiClient.post("/attendance", data),
   markBulk: (data: Record<string, unknown>) => apiClient.post("/attendance/bulk", data),
@@ -179,7 +197,7 @@ export const attendanceApi = {
   getReport: (params?: Record<string, string>) => apiClient.get("/attendance/report", { params }),
 };
 
-// Fee API
+// ── Fee API ───────────────────────────────────────────────
 export const feeApi = {
   getStructure: () => apiClient.get("/fees/structure"),
   createStructure: (data: Record<string, unknown>) => apiClient.post("/fees/structure", data),
@@ -188,7 +206,7 @@ export const feeApi = {
   getReport: (params?: Record<string, string>) => apiClient.get("/fees/report", { params }),
 };
 
-// Exam API
+// ── Exam API ──────────────────────────────────────────────
 export const examApi = {
   getAll: () => apiClient.get("/results/exams"),
   create: (data: Record<string, unknown>) => apiClient.post("/results/exams", data),
@@ -197,7 +215,7 @@ export const examApi = {
   getClassResults: (classId: string) => apiClient.get(`/results/class/${classId}`),
 };
 
-// Announcement API
+// ── Announcement API ──────────────────────────────────────
 export const announcementApi = {
   getAll: () => apiClient.get("/announcements"),
   create: (data: Record<string, unknown>) => apiClient.post("/announcements", data),
@@ -205,7 +223,7 @@ export const announcementApi = {
   delete: (id: string) => apiClient.delete(`/announcements/${id}`),
 };
 
-// Reports API
+// ── Reports API ───────────────────────────────────────────
 export const reportApi = {
   attendance: (params?: Record<string, string>) => apiClient.get("/reports/attendance", { params }),
   fees: (params?: Record<string, string>) => apiClient.get("/reports/fees", { params }),
@@ -213,7 +231,7 @@ export const reportApi = {
   students: (params?: Record<string, string>) => apiClient.get("/reports/students", { params }),
 };
 
-// Subject API
+// ── Subject API ───────────────────────────────────────────
 export const subjectApi = {
   getAll: () => apiClient.get("/subjects"),
   getByClass: (classId: string) => apiClient.get(`/subjects/class/${classId}`),
@@ -222,7 +240,7 @@ export const subjectApi = {
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
 };
 
-// Teacher Assignment API
+// ── Teacher Assignment API ────────────────────────────────
 export const teacherAssignmentApi = {
   getAll: () => apiClient.get("/teacher-assignments"),
   getByTeacher: (teacherId: string) => apiClient.get(`/teacher-assignments/teacher/${teacherId}`),
@@ -232,7 +250,7 @@ export const teacherAssignmentApi = {
   update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/teacher-assignments/${id}`, data),
 };
 
-// Class Teacher Assignment API
+// ── Class Teacher Assignment API ──────────────────────────
 export const classTeacherAssignmentApi = {
   getAll: () => apiClient.get("/class-teacher-assignments"),
   getByClassSection: (classId: string, sectionId: string) =>
@@ -241,7 +259,7 @@ export const classTeacherAssignmentApi = {
     apiClient.post("/class-teacher-assignments", data),
 };
 
-// Parent Portal API
+// ── Parent Portal API ─────────────────────────────────────
 export const parentApi = {
   getProfile: () => apiClient.get("/parent/profile"),
   getAttendance: (params?: { startDate?: string; endDate?: string }) =>
@@ -249,4 +267,4 @@ export const parentApi = {
   getFees: () => apiClient.get("/parent/fees"),
   getResults: (params?: { examId?: string }) =>
     apiClient.get("/parent/results", { params }),
-}
+};

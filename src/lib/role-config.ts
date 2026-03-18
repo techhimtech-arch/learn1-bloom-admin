@@ -7,6 +7,8 @@ import {
   CalendarDays,
   BookOpen,
   UserCheck,
+  User,
+  Monitor,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,22 +25,23 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
+    '/profile', '/sessions',
   ],
   teacher: [
-    '/', '/attendance', '/subjects',
+    '/', '/attendance', '/subjects', '/profile', '/sessions',
   ],
   accountant: [
-    '/',
+    '/', '/profile', '/sessions',
   ],
   parent: [
-    '/', '/attendance', '/fees', '/results',
+    '/', '/attendance', '/fees', '/results', '/profile', '/sessions',
   ],
   student: [
-    '/', '/attendance',
+    '/', '/attendance', '/profile', '/sessions',
   ],
 };
 
-// All nav items — filtered per role at runtime
+// Main nav items — filtered per role at runtime
 const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'User Management', url: '/users', icon: Users },
@@ -50,9 +53,15 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 
+// Account nav items — always visible
+export const ACCOUNT_NAV_ITEMS: NavItem[] = [
+  { title: 'My Profile', url: '/profile', icon: User },
+  { title: 'Sessions', url: '/sessions', icon: Monitor },
+];
+
 export function getNavItemsForRole(role: string): NavItem[] {
   const allowed = ROLE_ROUTES[role as AppRole];
-  if (!allowed) return [ALL_NAV_ITEMS[0]]; // fallback: dashboard only
+  if (!allowed) return [ALL_NAV_ITEMS[0]];
   return ALL_NAV_ITEMS.filter((item) => allowed.includes(item.url));
 }
 

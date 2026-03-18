@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import UserManagement from "@/pages/UserManagement";
 import StudentAdmission from "@/pages/StudentAdmission";
@@ -16,6 +18,8 @@ import AttendanceManagement from "@/pages/AttendanceManagement";
 import AcademicYearManagement from "@/pages/AcademicYearManagement";
 import SubjectManagement from "@/pages/SubjectManagement";
 import TeacherAssignments from "@/pages/TeacherAssignments";
+import Profile from "@/pages/Profile";
+import SessionManagement from "@/pages/SessionManagement";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
 
@@ -39,9 +43,11 @@ const App = () => (
             {/* Auth routes */}
             <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
             <Route path="/register" element={<AuthRedirect><Register /></AuthRedirect>} />
+            <Route path="/forgot-password" element={<AuthRedirect><ForgotPassword /></AuthRedirect>} />
+            <Route path="/reset-password" element={<AuthRedirect><ResetPassword /></AuthRedirect>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected routes with layout — role checked per-route via ProtectedRoute */}
+            {/* Protected routes with layout */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
@@ -51,6 +57,8 @@ const App = () => (
               <Route path="/teacher-assignments" element={<TeacherAssignments />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
               <Route path="/academic-years" element={<AcademicYearManagement />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/sessions" element={<SessionManagement />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
