@@ -15,6 +15,7 @@ import ClassManagement from "@/pages/ClassManagement";
 import AttendanceManagement from "@/pages/AttendanceManagement";
 import AcademicYearManagement from "@/pages/AcademicYearManagement";
 import SubjectManagement from "@/pages/SubjectManagement";
+import TeacherAssignments from "@/pages/TeacherAssignments";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/admission" element={<StudentAdmission />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/subjects" element={<SubjectManagement />} />
+              <Route path="/teacher-assignments" element={<TeacherAssignments />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
               <Route path="/academic-years" element={<AcademicYearManagement />} />
             </Route>

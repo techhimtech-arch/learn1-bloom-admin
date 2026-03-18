@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   CalendarDays,
   BookOpen,
+  UserCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export interface NavItem {
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/classes', '/subjects',
-    '/attendance', '/academic-years',
+    '/attendance', '/academic-years', '/teacher-assignments',
   ],
   teacher: [
     '/', '/attendance', '/subjects',
@@ -45,6 +46,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
   { title: 'Class Management', url: '/classes', icon: School },
   { title: 'Subject Management', url: '/subjects', icon: BookOpen },
+  { title: 'Teacher Assignments', url: '/teacher-assignments', icon: UserCheck },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 
