@@ -249,11 +249,4 @@ export const parentApi = {
   getFees: () => apiClient.get("/parent/fees"),
   getResults: (params?: { examId?: string }) =>
     apiClient.get("/parent/results", { params }),
-};
-  getProfile: () => apiClient.get("/parent/profile"),
-  getAttendance: (params?: { startDate?: string; endDate?: string }) =>
-    apiClient.get("/parent/attendance", { params }),
-  getFees: () => apiClient.get("/parent/fees"),
-  getResults: (params?: { examId?: string }) =>
-    apiClient.get("/parent/results", { params }),
-};
+}
