@@ -46,6 +46,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
   { title: 'Class Management', url: '/classes', icon: School },
   { title: 'Subject Management', url: '/subjects', icon: BookOpen },
+  { title: 'Teacher Assignments', url: '/teacher-assignments', icon: UserCheck },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 

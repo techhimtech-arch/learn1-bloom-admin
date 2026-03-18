@@ -222,8 +222,34 @@ export const subjectApi = {
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
 };
 
+// Teacher Assignment API
+export const teacherAssignmentApi = {
+  getAll: () => apiClient.get("/teacher-assignments"),
+  getByTeacher: (teacherId: string) => apiClient.get(`/teacher-assignments/teacher/${teacherId}`),
+  getByClass: (classId: string) => apiClient.get(`/teacher-assignments/class/${classId}`),
+  create: (data: { teacherId: string; classId: string; sectionId: string; subjectId: string }) =>
+    apiClient.post("/teacher-assignments", data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/teacher-assignments/${id}`, data),
+};
+
+// Class Teacher Assignment API
+export const classTeacherAssignmentApi = {
+  getAll: () => apiClient.get("/class-teacher-assignments"),
+  getByClassSection: (classId: string, sectionId: string) =>
+    apiClient.get(`/class-teacher-assignments/class/${classId}/section/${sectionId}`),
+  create: (data: { teacherId: string; classId: string; sectionId: string; academicYear: string }) =>
+    apiClient.post("/class-teacher-assignments", data),
+};
+
 // Parent Portal API
 export const parentApi = {
+  getProfile: () => apiClient.get("/parent/profile"),
+  getAttendance: (params?: { startDate?: string; endDate?: string }) =>
+    apiClient.get("/parent/attendance", { params }),
+  getFees: () => apiClient.get("/parent/fees"),
+  getResults: (params?: { examId?: string }) =>
+    apiClient.get("/parent/results", { params }),
+};
   getProfile: () => apiClient.get("/parent/profile"),
   getAttendance: (params?: { startDate?: string; endDate?: string }) =>
     apiClient.get("/parent/attendance", { params }),
