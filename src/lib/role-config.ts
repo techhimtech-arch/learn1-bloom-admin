@@ -21,7 +21,7 @@ export interface NavItem {
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/classes', '/subjects',
-    '/attendance', '/academic-years',
+    '/attendance', '/academic-years', '/teacher-assignments',
   ],
   teacher: [
     '/', '/attendance', '/subjects',
