@@ -214,8 +214,25 @@ export const subjectApi = {
 
 // Fee API
 export const feeApi = {
+  // Fee Structure
   getStructure: () => apiClient.get("/fees/structure"),
   createStructure: (data: Record<string, unknown>) => apiClient.post("/fees/structure", data),
+  updateStructure: (data: Record<string, unknown>) => apiClient.put("/fees/structure", data),
+  deleteStructure: (id: string) => apiClient.delete(`/fees/structure/${id}`),
+  
+  // Student Fees
+  generateStudentFees: (data: Record<string, unknown>) => apiClient.post("/fees/generate-student-fees", data),
+  getStudentFees: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
+  
+  // Payments
+  pay: (data: Record<string, unknown>) => apiClient.post("/fees/pay", data),
+  getPayments: (params?: Record<string, any>) => apiClient.get("/fees/payments", { params }),
+  getReceipt: (paymentId: string) => apiClient.get(`/fees/receipt/${paymentId}`),
+  
+  // Dues
+  getDues: (params?: Record<string, any>) => apiClient.get("/fees/dues", { params }),
+  
+  // Legacy endpoints (keep for backward compatibility)
   getByStudent: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
   recordPayment: (data: Record<string, unknown>) => apiClient.post("/fees/payment", data),
   getReport: (params?: Record<string, string>) => apiClient.get("/fees/report", { params }),
@@ -320,6 +337,27 @@ export const notificationApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/notifications", { params }),
   markRead: (id: string) => apiClient.post(`/notifications/mark-read/${id}`),
   markAllRead: () => apiClient.post("/notifications/mark-all-read"),
+};
+
+// ── Parent Portal API ───────────────────────────────────
+export const parentApi = {
+  getDashboard: () => apiClient.get("/parent/dashboard"),
+  getStudent: (studentId: string) => apiClient.get(`/parent/student/${studentId}`),
+  getStudentAttendance: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/student/${studentId}/attendance`, { params }),
+  getStudentResults: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/student/${studentId}/results`, { params }),
+  getStudentAssignments: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/student/${studentId}/assignments`, { params }),
+  getStudentFees: (studentId: string) => apiClient.get(`/parent/student/${studentId}/fees`),
+};
+
+// ── Certificate API ─────────────────────────────────────
+export const certificateApi = {
+  generate: (data: Record<string, unknown>) => apiClient.post("/certificates/generate", data),
+  getStudentCertificates: (studentId: string) => apiClient.get(`/certificates/student/${studentId}`),
+  getById: (id: string) => apiClient.get(`/certificates/${id}`),
+  delete: (id: string) => apiClient.delete(`/certificates/${id}`),
 };
 
 // Roll Number API

@@ -20,6 +20,10 @@ import {
   TeacherDashboardWidgets, 
   StudentDashboardWidgets 
 } from '@/components/dashboard/Phase4Widgets';
+import { 
+  AdminDashboardWidgets as Phase5AdminWidgets, 
+  ParentDashboardWidgets as Phase5ParentWidgets
+} from '@/components/dashboard/Phase5Widgets';
 import { dashboardApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -201,6 +205,10 @@ const Dashboard = () => {
         </TabsContent>
 
         <TabsContent value="academic" className="space-y-6">
+          {/* Phase 5 Widgets based on user role */}
+          {user?.role === 'school_admin' && <Phase5AdminWidgets />}
+          {user?.role === 'parent' && <Phase5ParentWidgets />}
+          
           {/* Phase 4 Widgets based on user role */}
           {user?.role === 'school_admin' && <AdminDashboardWidgets />}
           {user?.role === 'teacher' && <TeacherDashboardWidgets />}

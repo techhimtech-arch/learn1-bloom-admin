@@ -35,6 +35,12 @@ import AnnouncementManagement from "@/pages/AnnouncementManagement";
 import AssignmentManagement from "@/pages/AssignmentManagement";
 import StudentAssignmentSubmission from "@/pages/StudentAssignmentSubmission";
 import TeacherAssignmentGrading from "@/pages/TeacherAssignmentGrading";
+import FeeStructureManagement from "@/pages/FeeStructureManagement";
+import StudentFeeManagement from "@/pages/StudentFeeManagement";
+import FeeReports from "@/pages/FeeReports";
+import ParentDashboard from "@/pages/ParentDashboard";
+import ParentStudentDetail from "@/pages/ParentStudentDetail";
+import CertificateGenerator from "@/pages/CertificateGenerator";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +95,19 @@ const App = () => (
               <Route path="/assignments" element={<AssignmentManagement />} />
               <Route path="/assignments/:assignmentId/submit" element={<StudentAssignmentSubmission />} />
               <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
+              
+              {/* Fee Management Routes */}
+              <Route path="/fees/structure" element={<FeeStructureManagement />} />
+              <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
+              <Route path="/fees/reports" element={<FeeReports />} />
+              
+              {/* Parent Portal Routes */}
+              <Route path="/parent/dashboard" element={<ParentDashboard />} />
+              <Route path="/parent/student/:studentId" element={<ParentStudentDetail />} />
+              <Route path="/parent/student/:studentId/:tab" element={<ParentStudentDetail />} />
+              
+              {/* Certificate Routes */}
+              <Route path="/certificates" element={<CertificateGenerator />} />
               
               {/* Student Routes */}
               <Route path="/results" element={<StudentResults />} />

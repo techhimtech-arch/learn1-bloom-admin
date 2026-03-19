@@ -15,6 +15,9 @@ import {
   TrendingUp,
   Send,
   Bell,
+  DollarSign,
+  FileCheck,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,16 +35,18 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/users', '/admission', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
+    '/fees/structure', '/fees/reports', '/certificates',
   ],
   teacher: [
     '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams', 
     '/assignments', '/results',
   ],
   accountant: [
-    '/', '/profile', '/sessions',
+    '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
   ],
   parent: [
-    '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
+    '/', '/attendance', 'fees', '/results', '/profile', '/sessions', '/announcements',
+    '/parent/dashboard', '/parent/student/:studentId',
   ],
   student: [
     '/', '/attendance', '/profile', '/sessions', '/results', '/announcements', '/assignments',
@@ -60,6 +65,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Exam Management', url: '/exams', icon: FileText },
   { title: 'Announcements', url: '/announcements', icon: Send },
   { title: 'Assignments', url: '/assignments', icon: Edit },
+  { title: 'Fee Structure', url: '/fees/structure', icon: DollarSign },
+  { title: 'Fee Reports', url: '/fees/reports', icon: TrendingUp },
+  { title: 'Certificates', url: '/certificates', icon: FileCheck },
+  { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 
