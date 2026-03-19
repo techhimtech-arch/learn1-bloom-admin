@@ -46,6 +46,8 @@ export function NotificationDropdown() {
     },
     enabled: !!user?.id,
     refetchInterval: 60000, // Refetch every minute
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 
   const markReadMutation = useMutation({

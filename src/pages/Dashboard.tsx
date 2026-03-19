@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import {
   Users, GraduationCap, School, ClipboardCheck, IndianRupee, FileText,
@@ -27,6 +28,11 @@ import {
 import { dashboardApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import AdminDashboard from './dashboards/AdminDashboard';
+import TeacherDashboard from './dashboards/TeacherDashboard';
+import ParentDashboard from './dashboards/ParentDashboard';
+import StudentDashboard from './dashboards/StudentDashboard';
+import AccountantDashboard from './dashboards/AccountantDashboard';
 
 const quickActions = [
   { label: 'Add Student', icon: UserPlus, route: '/admission' },
@@ -58,14 +64,8 @@ const mockFeeChart = [
   { name: 'Collected', value: 2500000 },
   { name: 'Pending', value: 500000 },
 ];
-import { useAuth } from '@/contexts/AuthContext';
-import AdminDashboard from './dashboards/AdminDashboard';
-import TeacherDashboard from './dashboards/TeacherDashboard';
-import ParentDashboard from './dashboards/ParentDashboard';
-import StudentDashboard from './dashboards/StudentDashboard';
-import AccountantDashboard from './dashboards/AccountantDashboard';
-
 const Dashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -274,23 +274,6 @@ const Dashboard = () => {
       </Tabs>
     </div>
   );
-  const { user } = useAuth();
-  const role = user?.role || '';
-
-  switch (role) {
-    case 'school_admin':
-      return <AdminDashboard />;
-    case 'teacher':
-      return <TeacherDashboard />;
-    case 'parent':
-      return <ParentDashboard />;
-    case 'student':
-      return <StudentDashboard />;
-    case 'accountant':
-      return <AccountantDashboard />;
-    default:
-      return <TeacherDashboard />;
-  }
 };
 
 export default Dashboard;
