@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
+import { NotificationDropdown } from './NotificationDropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,7 @@ export function AppLayout() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <Bell className="h-4 w-4" />
-              </Button>
+              <NotificationDropdown />
               <Link to="/profile">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer">
                   {user?.name?.charAt(0)?.toUpperCase() || 'A'}

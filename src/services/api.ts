@@ -259,10 +259,13 @@ export const examApi = {
 
 // ── Announcement API ──────────────────────────────────────
 export const announcementApi = {
-  getAll: () => apiClient.get("/announcements"),
+  getAll: (params?: Record<string, any>) => apiClient.get("/announcements", { params }),
+  getById: (id: string) => apiClient.get(`/announcements/${id}`),
   create: (data: Record<string, unknown>) => apiClient.post("/announcements", data),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/announcements/${id}`, data),
   delete: (id: string) => apiClient.delete(`/announcements/${id}`),
+  publish: (id: string) => apiClient.post(`/announcements/${id}/publish`),
+  unpublish: (id: string) => apiClient.post(`/announcements/${id}/unpublish`),
 };
 
 // ── Reports API ───────────────────────────────────────────
@@ -294,9 +297,29 @@ export const academicCalendarApi = {
   getUpcoming: () => apiClient.get('/academic-calendar/upcoming'),
   getHolidays: (year: number) => apiClient.get(`/academic-calendar/holidays/${year}`),
   getExams: (year: number) => apiClient.get(`/academic-calendar/exams/${year}`),
-  create: (data: Record<string, unknown>) => apiClient.post('/academic-calendar', data),
+  create: (data: Record<string, unknown>) => apiClient.post("/academic-calendar", data),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/academic-calendar/${id}`, data),
   delete: (id: string) => apiClient.delete(`/academic-calendar/${id}`),
+};
+
+// ── Assignment API ───────────────────────────────────────
+export const assignmentApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get("/assignments", { params }),
+  getById: (id: string) => apiClient.get(`/assignments/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post("/assignments", data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/assignments/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/assignments/${id}`),
+  publish: (id: string) => apiClient.post(`/assignments/${id}/publish`),
+  submit: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/submit`, data),
+  getSubmissions: (id: string) => apiClient.get(`/assignments/${id}/submissions`),
+  grade: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/grade`, data),
+};
+
+// ── Notification API ─────────────────────────────────────
+export const notificationApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get("/notifications", { params }),
+  markRead: (id: string) => apiClient.post(`/notifications/mark-read/${id}`),
+  markAllRead: () => apiClient.post("/notifications/mark-all-read"),
 };
 
 // Roll Number API

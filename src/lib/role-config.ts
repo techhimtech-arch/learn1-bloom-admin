@@ -13,6 +13,8 @@ import {
   Edit,
   Award,
   TrendingUp,
+  Send,
+  Bell,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,19 +31,20 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
-    '/profile', '/sessions', '/exams',
+    '/profile', '/sessions', '/exams', '/announcements', '/assignments',
   ],
   teacher: [
-    '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams',
+    '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams', 
+    '/assignments', '/results',
   ],
   accountant: [
     '/', '/profile', '/sessions',
   ],
   parent: [
-    '/', '/attendance', '/fees', '/results', '/profile', '/sessions',
+    '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
   ],
   student: [
-    '/', '/attendance', '/profile', '/sessions', '/results',
+    '/', '/attendance', '/profile', '/sessions', '/results', '/announcements', '/assignments',
   ],
 };
 
@@ -55,6 +58,8 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Subject Management', url: '/subjects', icon: BookOpen },
   { title: 'Teacher Assignments', url: '/teacher-assignments', icon: UserCheck },
   { title: 'Exam Management', url: '/exams', icon: FileText },
+  { title: 'Announcements', url: '/announcements', icon: Send },
+  { title: 'Assignments', url: '/assignments', icon: Edit },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 

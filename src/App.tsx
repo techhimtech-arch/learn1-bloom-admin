@@ -29,6 +29,12 @@ import ExamManagement from "@/pages/ExamManagement";
 import ExamSubjectPapers from "@/pages/ExamSubjectPapers";
 import MarksEntry from "@/pages/MarksEntry";
 import ResultDashboard from "@/pages/ResultDashboard";
+import StudentResults from "@/pages/StudentResults";
+import TeacherExamDashboard from "@/pages/TeacherExamDashboard";
+import AnnouncementManagement from "@/pages/AnnouncementManagement";
+import AssignmentManagement from "@/pages/AssignmentManagement";
+import StudentAssignmentSubmission from "@/pages/StudentAssignmentSubmission";
+import TeacherAssignmentGrading from "@/pages/TeacherAssignmentGrading";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +81,17 @@ const App = () => (
               <Route path="/exams/:examId/papers" element={<ExamSubjectPapers />} />
               <Route path="/exams/:examId/marks" element={<MarksEntry />} />
               <Route path="/exams/:examId/results" element={<ResultDashboard />} />
+              
+              {/* Announcement Routes */}
+              <Route path="/announcements" element={<AnnouncementManagement />} />
+              
+              {/* Assignment Routes */}
+              <Route path="/assignments" element={<AssignmentManagement />} />
+              <Route path="/assignments/:assignmentId/submit" element={<StudentAssignmentSubmission />} />
+              <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
+              
+              {/* Student Routes */}
+              <Route path="/results" element={<StudentResults />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

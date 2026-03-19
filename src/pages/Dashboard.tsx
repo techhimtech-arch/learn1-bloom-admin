@@ -9,13 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StatWidget from '@/components/shared/StatWidget';
-import { 
-  AcademicSummaryCards, 
+import { AcademicSummaryCards, 
   ClassStatsTable, 
   TeacherWorkloadTable, 
   EnrollmentTrendChart,
   UpcomingAcademicEvents 
 } from '@/components/academic/AcademicSummaryWidgets';
+import { 
+  AdminDashboardWidgets, 
+  TeacherDashboardWidgets, 
+  StudentDashboardWidgets 
+} from '@/components/dashboard/Phase4Widgets';
 import { dashboardApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -197,6 +201,12 @@ const Dashboard = () => {
         </TabsContent>
 
         <TabsContent value="academic" className="space-y-6">
+          {/* Phase 4 Widgets based on user role */}
+          {user?.role === 'school_admin' && <AdminDashboardWidgets />}
+          {user?.role === 'teacher' && <TeacherDashboardWidgets />}
+          {user?.role === 'student' && <StudentDashboardWidgets />}
+          
+          {/* Original Academic Widgets */}
           <AcademicSummaryCards />
           
           <div className="grid gap-4 lg:grid-cols-2">
