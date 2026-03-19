@@ -9,6 +9,10 @@ import {
   UserCheck,
   User,
   Monitor,
+  FileText,
+  Edit,
+  Award,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -25,10 +29,10 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
-    '/profile', '/sessions',
+    '/profile', '/sessions', '/exams',
   ],
   teacher: [
-    '/', '/attendance', '/subjects', '/profile', '/sessions',
+    '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams',
   ],
   accountant: [
     '/', '/profile', '/sessions',
@@ -37,7 +41,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/attendance', '/fees', '/results', '/profile', '/sessions',
   ],
   student: [
-    '/', '/attendance', '/profile', '/sessions',
+    '/', '/attendance', '/profile', '/sessions', '/results',
   ],
 };
 
@@ -50,6 +54,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Class Management', url: '/classes', icon: School },
   { title: 'Subject Management', url: '/subjects', icon: BookOpen },
   { title: 'Teacher Assignments', url: '/teacher-assignments', icon: UserCheck },
+  { title: 'Exam Management', url: '/exams', icon: FileText },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 

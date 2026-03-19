@@ -223,11 +223,38 @@ export const feeApi = {
 
 // ── Exam API ──────────────────────────────────────────────
 export const examApi = {
-  getAll: () => apiClient.get("/results/exams"),
-  create: (data: Record<string, unknown>) => apiClient.post("/results/exams", data),
+  // Exam Management
+  getAll: (params?: Record<string, any>) => apiClient.get("/exams", { params }),
+  getById: (id: string) => apiClient.get(`/exams/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post("/exams", data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/exams/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/exams/${id}`),
+  
+  // Exam Subject Papers
+  getPapers: (examId: string) => apiClient.get(`/exams/${examId}/papers`),
+  getPaper: (examId: string, paperId: string) => apiClient.get(`/exams/${examId}/papers/${paperId}`),
+  createPaper: (examId: string, data: Record<string, unknown>) => apiClient.post(`/exams/${examId}/papers`, data),
+  updatePaper: (examId: string, paperId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/papers/${paperId}`, data),
+  deletePaper: (examId: string, paperId: string) => apiClient.delete(`/exams/${examId}/papers/${paperId}`),
+  
+  // Marks Entry
+  getMarks: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/marks`, { params }),
+  createMarks: (examId: string, data: Record<string, unknown>) => apiClient.post(`/exams/${examId}/marks`, data),
+  updateMarks: (examId: string, markId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/marks/${markId}`, data),
+  lockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/lock`),
+  unlockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/unlock`),
+  
+  // Results
+  getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/results`, { params }),
+  getStudentResults: (studentId: string, params?: Record<string, any>) => apiClient.get(`/results/student/${studentId}`, { params }),
+  getClassResults: (classId: string, params?: Record<string, any>) => apiClient.get(`/results/class/${classId}`, { params }),
+  
+  // Publish Control
+  publishResults: (examId: string) => apiClient.post(`/exams/${examId}/publish`),
+  unpublishResults: (examId: string) => apiClient.post(`/exams/${examId}/unpublish`),
+  
+  // Legacy endpoints (keep for backward compatibility)
   enterResults: (data: Record<string, unknown>) => apiClient.post("/results/enter", data),
-  getStudentResults: (studentId: string) => apiClient.get(`/results/student/${studentId}`),
-  getClassResults: (classId: string) => apiClient.get(`/results/class/${classId}`),
 };
 
 // ── Announcement API ──────────────────────────────────────

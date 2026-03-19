@@ -73,7 +73,7 @@ export default function ExamManagement() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.search) params.append('search', filters.search);
-      if (filters.academicYearId) params.append('sessionId', filters.academicYearId);
+      if (filters.academicYearId) params.append('academicYearId', filters.academicYearId);
       if (filters.classId) params.append('classId', filters.classId);
       if (filters.sectionId) params.append('sectionId', filters.sectionId);
       if (filters.examType) params.append('examType', filters.examType);

@@ -20,12 +20,15 @@ import SubjectManagement from "@/pages/SubjectManagement";
 import TimetableManagement from "@/pages/TimetableManagement";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import RollNumberManagement from "@/pages/RollNumberManagement";
-import SubjectManagement from "@/pages/SubjectManagement";
 import TeacherAssignments from "@/pages/TeacherAssignments";
 import Profile from "@/pages/Profile";
 import SessionManagement from "@/pages/SessionManagement";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
+import ExamManagement from "@/pages/ExamManagement";
+import ExamSubjectPapers from "@/pages/ExamSubjectPapers";
+import MarksEntry from "@/pages/MarksEntry";
+import ResultDashboard from "@/pages/ResultDashboard";
 
 const queryClient = new QueryClient();
 
@@ -61,12 +64,17 @@ const App = () => (
               <Route path="/teacher-assignments" element={<TeacherAssignments />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
               <Route path="/academic-years" element={<AcademicYearManagement />} />
-              <Route path="/subjects" element={<SubjectManagement />} />
               <Route path="/timetable" element={<TimetableManagement />} />
               <Route path="/academic-calendar" element={<AcademicCalendar />} />
               <Route path="/roll-numbers" element={<RollNumberManagement />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/sessions" element={<SessionManagement />} />
+              
+              {/* Exam Routes */}
+              <Route path="/exams" element={<ExamManagement />} />
+              <Route path="/exams/:examId/papers" element={<ExamSubjectPapers />} />
+              <Route path="/exams/:examId/marks" element={<MarksEntry />} />
+              <Route path="/exams/:examId/results" element={<ResultDashboard />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

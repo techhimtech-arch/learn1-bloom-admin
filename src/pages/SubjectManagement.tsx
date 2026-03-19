@@ -32,8 +32,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-<<<<<<< HEAD
-  AlertDialogTrigger,
+AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -391,21 +390,7 @@ export default function SubjectManagement() {
       )}
     </div>
   );
-}
-=======
-} from '@/components/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import DataTable, { Column } from '@/components/shared/DataTable';
-import StatWidget from '@/components/shared/StatWidget';
-import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { subjectApi, classApi } from '@/services/api';
-import { Plus, CreditCard as Edit, Trash2, BookOpen, School, GraduationCap, Loader as Loader2 } from 'lucide-react';
-
-interface ClassOption {
-  _id: string;
-  name: string;
-  isActive: boolean;
-}
+export default SubjectManagement;
 
 interface SubjectData {
   _id: string;
@@ -708,4 +693,3 @@ const SubjectManagement = () => {
 };
 
 export default SubjectManagement;
->>>>>>> 7b513526980fa9f94872a70b3d8c8e4fb6346ab9
