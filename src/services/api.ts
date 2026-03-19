@@ -167,8 +167,16 @@ export const attendanceApi = {
 // Subject API
 export const subjectApi = {
   getAll: () => apiClient.get('/subjects'),
+  getByClass: (classId: string) => apiClient.get(`/subjects/class/${classId}`),
+  getByTeacher: (teacherId: string) => apiClient.get(`/subjects/teacher/${teacherId}`),
+  getOptional: (classId: string) => apiClient.get(`/subjects/optional/${classId}`),
   create: (data: Record<string, unknown>) => apiClient.post('/subjects', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/subjects/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/subjects/${id}`),
+  assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) => 
+    apiClient.post(`/subjects/${subjectId}/assign-teacher`, data),
+  removeTeacher: (subjectId: string, teacherId: string) => 
+    apiClient.delete(`/subjects/${subjectId}/remove-teacher/${teacherId}`),
 };
 
 // Fee API
@@ -203,4 +211,48 @@ export const reportApi = {
   fees: (params?: Record<string, string>) => apiClient.get('/reports/fees', { params }),
   exams: (params?: Record<string, string>) => apiClient.get('/reports/exams', { params }),
   students: (params?: Record<string, string>) => apiClient.get('/reports/students', { params }),
+};
+
+// Timetable API
+export const timetableApi = {
+  create: (data: Record<string, unknown>) => apiClient.post('/timetable', data),
+  createBulk: (data: Record<string, unknown>) => apiClient.post('/timetable/bulk', data),
+  getByClass: (classId: string, sectionId: string) => 
+    apiClient.get(`/timetable/class/${classId}/section/${sectionId}`),
+  getByTeacher: (teacherId: string) => apiClient.get(`/timetable/teacher/${teacherId}`),
+  getWeekly: (classId: string, sectionId: string) => 
+    apiClient.get(`/timetable/weekly/class/${classId}/section/${sectionId}`),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/timetable/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/timetable/${id}`),
+};
+
+// Academic Calendar API
+export const academicCalendarApi = {
+  getAll: () => apiClient.get('/academic-calendar'),
+  getMonthly: (year: number, month: number) => 
+    apiClient.get(`/academic-calendar/monthly/${year}/${month}`),
+  getUpcoming: () => apiClient.get('/academic-calendar/upcoming'),
+  getHolidays: (year: number) => apiClient.get(`/academic-calendar/holidays/${year}`),
+  getExams: (year: number) => apiClient.get(`/academic-calendar/exams/${year}`),
+  create: (data: Record<string, unknown>) => apiClient.post('/academic-calendar', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/academic-calendar/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/academic-calendar/${id}`),
+};
+
+// Roll Number API
+export const rollNumberApi = {
+  bulkAssign: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/bulk-assign', data),
+  reassign: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/reassign', data),
+  getByClass: (classId: string, sectionId: string) => 
+    apiClient.get(`/roll-numbers/class/${classId}/section/${sectionId}`),
+  autoAssignSession: (data: { academicYearId: string; classId?: string; sectionId?: string }) => 
+    apiClient.post('/roll-numbers/auto-assign-session', data),
+  validate: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/validate', data),
+};
+
+// Academic Summary API
+export const academicApi = {
+  getSummary: () => apiClient.get('/academic/summary'),
+  getClassStats: (classId: string) => apiClient.get(`/academic/class-stats/${classId}`),
+  getEnrollmentTrends: () => apiClient.get('/academic/enrollment-trends'),
 };

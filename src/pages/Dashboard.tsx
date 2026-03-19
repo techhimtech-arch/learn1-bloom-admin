@@ -2,11 +2,20 @@ import { useEffect, useState } from 'react';
 import {
   Users, GraduationCap, School, ClipboardCheck, IndianRupee, FileText,
   UserPlus, CalendarCheck, Receipt, PenSquare, Megaphone, BarChart3,
+  BookOpen, TrendingUp, Calendar,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StatWidget from '@/components/shared/StatWidget';
+import { 
+  AcademicSummaryCards, 
+  ClassStatsTable, 
+  TeacherWorkloadTable, 
+  EnrollmentTrendChart,
+  UpcomingAcademicEvents 
+} from '@/components/academic/AcademicSummaryWidgets';
 import { dashboardApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -18,6 +27,8 @@ const quickActions = [
   { label: 'New Exam', icon: PenSquare, route: '/' },
   { label: 'Announcement', icon: Megaphone, route: '/' },
   { label: 'Generate Report', icon: BarChart3, route: '/' },
+  { label: 'Manage Subjects', icon: BookOpen, route: '/subjects' },
+  { label: 'Timetable', icon: Calendar, route: '/timetable' },
 ];
 
 const COLORS = [
@@ -78,97 +89,165 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">Overview of your school management system</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatWidget title="Total Students" value={stats.totalStudents.toLocaleString()} change="12% this month" changeType="positive" icon={GraduationCap} iconColor="bg-primary/10 text-primary" />
-        <StatWidget title="Total Teachers" value={stats.totalTeachers} change="3% this month" changeType="positive" icon={Users} iconColor="bg-secondary/10 text-secondary" />
-        <StatWidget title="Total Classes" value={stats.totalClasses} change="Same as last" changeType="neutral" icon={School} iconColor="bg-accent/10 text-accent" />
-        <StatWidget title="Today's Attendance" value={`${stats.attendancePercentage}%`} change="1,150 present" changeType="positive" icon={ClipboardCheck} iconColor="bg-success/10 text-success" />
-        <StatWidget title="Pending Fees" value={stats.pendingFees} change="125 students" changeType="negative" icon={IndianRupee} iconColor="bg-warning/10 text-warning" />
-        <StatWidget title="Upcoming Exams" value={stats.upcomingExams} change="Next week" changeType="neutral" icon={FileText} iconColor="bg-destructive/10 text-destructive" />
-      </div>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="academic">Academic</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {quickActions.map((action) => (
-              <Button
-                key={action.label}
-                variant="outline"
-                className="flex h-auto flex-col gap-2 py-4"
-                onClick={() => navigate(action.route)}
-              >
-                <action.icon className="h-5 w-5 text-primary" />
-                <span className="text-xs">{action.label}</span>
-              </Button>
-            ))}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StatWidget title="Total Students" value={stats.totalStudents.toLocaleString()} change="12% this month" changeType="positive" icon={GraduationCap} iconColor="bg-primary/10 text-primary" />
+            <StatWidget title="Total Teachers" value={stats.totalTeachers} change="3% this month" changeType="positive" icon={Users} iconColor="bg-secondary/10 text-secondary" />
+            <StatWidget title="Total Classes" value={stats.totalClasses} change="Same as last" changeType="neutral" icon={School} iconColor="bg-accent/10 text-accent" />
+            <StatWidget title="Today's Attendance" value={`${stats.attendancePercentage}%`} change="1,150 present" changeType="positive" icon={ClipboardCheck} iconColor="bg-success/10 text-success" />
+            <StatWidget title="Pending Fees" value={stats.pendingFees} change="125 students" changeType="negative" icon={IndianRupee} iconColor="bg-warning/10 text-warning" />
+            <StatWidget title="Upcoming Exams" value={stats.upcomingExams} change="Next week" changeType="neutral" icon={FileText} iconColor="bg-destructive/10 text-destructive" />
           </div>
-        </CardContent>
-      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Weekly Attendance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={mockAttendanceChart}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" fontSize={12} stroke="hsl(var(--muted-foreground))" />
-                <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                <Bar dataKey="present" fill="hsl(160, 60%, 45%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="absent" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Fee Collection</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={mockFeeChart} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                  {mockFeeChart.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              { text: 'New student Priya Sharma admitted to Class 10-A', time: '2 mins ago', color: 'bg-primary' },
-              { text: 'Attendance marked for Class 8-B', time: '15 mins ago', color: 'bg-success' },
-              { text: 'Fee payment received from Rahul Kumar - ₹5,000', time: '1 hour ago', color: 'bg-warning' },
-              { text: 'Mid-term exam schedule published', time: '3 hours ago', color: 'bg-secondary' },
-            ].map((activity, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50">
-                <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${activity.color}`} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-foreground">{activity.text}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {quickActions.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant="outline"
+                    className="flex h-auto flex-col gap-2 py-4"
+                    onClick={() => navigate(action.route)}
+                  >
+                    <action.icon className="h-5 w-5 text-primary" />
+                    <span className="text-xs">{action.label}</span>
+                  </Button>
+                ))}
               </div>
-            ))}
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Weekly Attendance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={mockAttendanceChart}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="day" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                    <Bar dataKey="present" fill="hsl(160, 60%, 45%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="absent" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Fee Collection</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={mockFeeChart} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                      {mockFeeChart.map((_, index) => (
+                        <Cell key={index} fill={COLORS[index]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { text: 'New student Priya Sharma admitted to Class 10-A', time: '2 mins ago', color: 'bg-primary' },
+                  { text: 'Attendance marked for Class 8-B', time: '15 mins ago', color: 'bg-success' },
+                  { text: 'Fee payment received from Rahul Kumar - ₹5,000', time: '1 hour ago', color: 'bg-warning' },
+                  { text: 'Mid-term exam schedule published', time: '3 hours ago', color: 'bg-secondary' },
+                ].map((activity, i) => (
+                  <div key={i} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50">
+                    <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${activity.color}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-foreground">{activity.text}</p>
+                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="academic" className="space-y-6">
+          <AcademicSummaryCards />
+          
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ClassStatsTable />
+            <UpcomingAcademicEvents />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TeacherWorkloadTable />
+            <EnrollmentTrendChart />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="operations" className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">System Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span>Database Connection</span>
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>API Services</span>
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Backup Status</span>
+                    <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Storage Usage</span>
+                    <span className="text-sm text-muted-foreground">45%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Recent Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <div className="text-muted-foreground">2024-03-18 10:30 - User login: admin@example.com</div>
+                  <div className="text-muted-foreground">2024-03-18 10:25 - Attendance marked for Class 9-A</div>
+                  <div className="text-muted-foreground">2024-03-18 10:20 - New student registered</div>
+                  <div className="text-muted-foreground">2024-03-18 10:15 - Fee payment received</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

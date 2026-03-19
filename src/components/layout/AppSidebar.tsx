@@ -6,6 +6,10 @@ import {
   ClipboardCheck,
   CalendarDays,
   LogOut,
+  BookOpen,
+  Calendar as CalendarIcon,
+  Hash,
+  Clock,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
@@ -29,6 +33,10 @@ const navItems = [
   { title: 'Student Admission', url: '/admission', icon: GraduationCap },
   { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
   { title: 'Class Management', url: '/classes', icon: School },
+  { title: 'Subject Management', url: '/subjects', icon: BookOpen },
+  { title: 'Timetable', url: '/timetable', icon: Clock },
+  { title: 'Academic Calendar', url: '/academic-calendar', icon: CalendarIcon },
+  { title: 'Roll Numbers', url: '/roll-numbers', icon: Hash },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
 ];
 

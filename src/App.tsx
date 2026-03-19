@@ -14,6 +14,10 @@ import StudentAdmission from "@/pages/StudentAdmission";
 import ClassManagement from "@/pages/ClassManagement";
 import AttendanceManagement from "@/pages/AttendanceManagement";
 import AcademicYearManagement from "@/pages/AcademicYearManagement";
+import SubjectManagement from "@/pages/SubjectManagement";
+import TimetableManagement from "@/pages/TimetableManagement";
+import AcademicCalendar from "@/pages/AcademicCalendar";
+import RollNumberManagement from "@/pages/RollNumberManagement";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +49,10 @@ const App = () => (
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
               <Route path="/academic-years" element={<AcademicYearManagement />} />
+              <Route path="/subjects" element={<SubjectManagement />} />
+              <Route path="/timetable" element={<TimetableManagement />} />
+              <Route path="/academic-calendar" element={<AcademicCalendar />} />
+              <Route path="/roll-numbers" element={<RollNumberManagement />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
