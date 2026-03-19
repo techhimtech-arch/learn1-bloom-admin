@@ -86,7 +86,7 @@ function DataTable<T extends Record<string, any>>({
               </TableRow>
             ) : (
               paginated.map((row, i) => (
-                <TableRow key={row.id || i}>
+                <TableRow key={row._id || row.id || i}>
                   {columns.map((col) => (
                     <TableCell key={col.key}>
                       {col.render ? col.render(row[col.key], row) : row[col.key]}

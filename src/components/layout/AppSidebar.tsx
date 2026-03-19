@@ -1,10 +1,5 @@
 import {
-  LayoutDashboard,
-  Users,
   GraduationCap,
-  School,
-  ClipboardCheck,
-  CalendarDays,
   LogOut,
   BookOpen,
   Calendar as CalendarIcon,
@@ -12,8 +7,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getNavItemsForRole, ACCOUNT_NAV_ITEMS, ROLE_LABELS } from '@/lib/role-config';
 import {
   Sidebar,
   SidebarContent,
@@ -43,8 +38,9 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const location = useLocation();
   const { logout, user } = useAuth();
+
+  const navItems = getNavItemsForRole(user?.role || '');
 
   return (
     <Sidebar collapsible="icon">
@@ -57,7 +53,9 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-sidebar-foreground">School SMS</p>
-              <p className="truncate text-xs text-sidebar-muted">Admin Panel</p>
+              <p className="truncate text-xs text-sidebar-muted">
+                {user ? ROLE_LABELS[user.role] || 'Panel' : 'Panel'}
+              </p>
             </div>
           )}
         </div>
@@ -84,13 +82,38 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Account section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-muted">Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {ACCOUNT_NAV_ITEMS.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="hover:bg-sidebar-accent"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
         {!collapsed && user && (
           <div className="mb-2 px-4">
             <p className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</p>
-            <p className="truncate text-xs text-sidebar-muted">{user.role}</p>
+            <p className="truncate text-xs capitalize text-sidebar-muted">
+              {ROLE_LABELS[user.role] || user.role}
+            </p>
           </div>
         )}
         <SidebarMenu>
