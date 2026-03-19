@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, 
   Download, 
-  Print, 
+  Printer, 
   X, 
   Calendar,
   User,
@@ -169,7 +169,7 @@ export function CertificatePreview({ certificate, onClose }: CertificatePreviewP
                 </>
               ) : (
                 <>
-                  <Print className="h-4 w-4 mr-2" />
+                  <Printer className="h-4 w-4 mr-2" />
                   Print
                 </>
               )}
@@ -389,7 +389,7 @@ export function CertificatePreview({ certificate, onClose }: CertificatePreviewP
                 </>
               ) : (
                 <>
-                  <Print className="h-4 w-4 mr-2" />
+                  <Printer className="h-4 w-4 mr-2" />
                   Print Certificate
                 </>
               )}

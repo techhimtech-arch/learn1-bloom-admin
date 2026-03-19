@@ -5,6 +5,11 @@ import {
   Calendar as CalendarIcon,
   Hash,
   Clock,
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  School,
+  ClipboardCheck,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';

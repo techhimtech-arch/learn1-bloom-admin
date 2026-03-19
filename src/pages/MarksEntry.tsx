@@ -408,7 +408,7 @@ export default function MarksEntry() {
                         <TableCell>
                           {isEditing ? (
                             <Textarea
-                              value={currentValue?.remarks ?? mark.remarks || ''}
+                              value={(currentValue?.remarks ?? mark.remarks) || ''}
                               onChange={(e) => handleMarkChange(mark.id, 'remarks', e.target.value)}
                               placeholder="Add remarks..."
                               className="min-w-[150px]"

@@ -2,6 +2,8 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
+// const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
@@ -352,6 +354,15 @@ export const parentApi = {
   getStudentFees: (studentId: string) => apiClient.get(`/parent/student/${studentId}/fees`),
 };
 
+// ── Student API ─────────────────────────────────────────
+export const studentApi = {
+  getAll: (params?: { page?: number; limit?: number; search?: string; classId?: string; sectionId?: string }) =>
+    apiClient.get('/students', { params }),
+  getById: (id: string) => apiClient.get(`/students/${id}`),
+  getByClass: (classId: string, sectionId?: string) => 
+    apiClient.get(`/students/class/${classId}${sectionId ? `?sectionId=${sectionId}` : ''}`),
+};
+
 // ── Certificate API ─────────────────────────────────────
 export const certificateApi = {
   generate: (data: Record<string, unknown>) => apiClient.post("/certificates/generate", data),
@@ -376,4 +387,20 @@ export const academicApi = {
   getSummary: () => apiClient.get('/academic/summary'),
   getClassStats: (classId: string) => apiClient.get(`/academic/class-stats/${classId}`),
   getEnrollmentTrends: () => apiClient.get('/academic/enrollment-trends'),
+};
+
+// Teacher Assignment API
+export const teacherAssignmentApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get('/teacher-assignments', { params }),
+  create: (data: Record<string, unknown>) => apiClient.post('/teacher-assignments', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher-assignments/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/teacher-assignments/${id}`),
+};
+
+// Class Teacher Assignment API
+export const classTeacherAssignmentApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get('/class-teacher-assignments', { params }),
+  create: (data: Record<string, unknown>) => apiClient.post('/class-teacher-assignments', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/class-teacher-assignments/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/class-teacher-assignments/${id}`),
 };
