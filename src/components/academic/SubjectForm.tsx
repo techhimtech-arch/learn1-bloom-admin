@@ -231,11 +231,11 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="academicYearId"
+                name="academicSessionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic year" />

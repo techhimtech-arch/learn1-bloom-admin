@@ -42,7 +42,7 @@ interface Subject {
   isOptional: boolean;
   status: 'active' | 'inactive' | 'archived';
   classId: string;
-  academicYearId: string;
+  academicSessionId: string;
   teachers?: Array<{
     id: string;
     name: string;
