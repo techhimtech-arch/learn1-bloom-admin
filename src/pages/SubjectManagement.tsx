@@ -96,12 +96,14 @@ export default function SubjectManagement() {
     },
   });
 
+  // Only fetch teachers when the assignment dialog is open
   const { data: teachersData } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
       const response = await userApi.getAll({ role: 'teacher' });
       return response.data;
     },
+    enabled: showTeacherDialog,
   });
 
   const deleteMutation = useMutation({

@@ -42,7 +42,16 @@ import ParentDashboard from "@/pages/ParentDashboard";
 import ParentStudentDetail from "@/pages/ParentStudentDetail";
 import CertificateGenerator from "@/pages/CertificateGenerator";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes — avoid duplicate fetches
+      gcTime: 10 * 60 * 1000,   // 10 minutes cache
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
