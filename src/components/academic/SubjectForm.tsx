@@ -109,7 +109,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
         code: subject.code,
         description: subject.description || '',
         classId: subject.classId,
-        academicYearId: subject.academicYearId,
+        academicSessionId: subject.academicSessionId,
         department: subject.department,
         credits: subject.credits,
         weeklyHours: subject.weeklyHours,
