@@ -25,7 +25,7 @@ import {
   AdminDashboardWidgets as Phase5AdminWidgets, 
   ParentDashboardWidgets as Phase5ParentWidgets
 } from '@/components/dashboard/Phase5Widgets';
-import { dashboardApi } from '@/services/api';
+import { dashboardApi, teacherApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import AdminDashboard from './dashboards/AdminDashboard';
@@ -80,7 +80,7 @@ const Dashboard = () => {
     const getDashboardStats = () => {
       switch (user?.role) {
         case 'teacher':
-          return dashboardApi.getTeacherStats();
+          return teacherApi.getDashboard();
         case 'parent':
           return dashboardApi.getParentStats();
         case 'student':

@@ -358,6 +358,28 @@ export const parentApi = {
   getStudentFees: (studentId: string) => apiClient.get(`/parent/student/${studentId}/fees`),
 };
 
+// ── Teacher Portal API ─────────────────────────────────────
+export const teacherApi = {
+  // Dashboard & Profile
+  getDashboard: () => apiClient.get("/teacher/dashboard"),
+  getProfile: () => apiClient.get("/teacher/profile"),
+  
+  // Classes & Students
+  getClasses: () => apiClient.get("/teacher/classes"),
+  getStudents: () => apiClient.get("/teacher/students"),
+  
+  // Attendance Management
+  getAttendance: (params?: Record<string, any>) => apiClient.get("/teacher/attendance", { params }),
+  markAttendance: (data: Record<string, unknown>) => apiClient.post("/teacher/attendance/mark", data),
+  updateAttendance: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher/attendance/update/${id}`, data),
+  
+  // Exams & Results
+  getExams: (params?: Record<string, any>) => apiClient.get("/teacher/exams", { params }),
+  getResults: (params?: Record<string, any>) => apiClient.get("/teacher/results", { params }),
+  addResults: (data: Record<string, unknown>) => apiClient.post("/teacher/results/add", data),
+  updateResults: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher/results/update/${id}`, data),
+};
+
 // ── Student API ─────────────────────────────────────────
 export const studentApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string; classId?: string; sectionId?: string }) =>
