@@ -172,7 +172,7 @@ export default function Results() {
   const handleDownloadResults = () => {
     // Generate CSV data
     const csvContent = [
-      'Roll Number,Student Name,Class, Section,Total Marks,Obtained Marks,Percentage,Grade,Status',
+      'Roll Number,Student Name,Class,Section,Total Marks,Obtained Marks,Percentage,Grade,Status',
       ...results.map((result: Result) => [
         result.student?.rollNumber || '',
         result.student?.name || '',
@@ -183,8 +183,7 @@ export default function Results() {
         result.percentage || 0,
         result.grade || '',
         result.status || ''
-      ])
-    ].join('\n')
+      ].join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });

@@ -98,6 +98,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     },
   });
 
+  const academicYears = academicYearsData?.data || [];
+  const classes = classesData?.data || [];
+
   useEffect(() => {
     if (subject) {
       form.reset({
