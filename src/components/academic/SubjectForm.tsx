@@ -259,15 +259,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
+                        {classes.map((cls: any) => (
+                          <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>
                             {cls.name}
                           </SelectItem>
                         ))}
