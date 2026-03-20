@@ -329,11 +329,11 @@ export const academicCalendarApi = {
 export const assignmentApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/assignments", { params }),
   getById: (id: string) => apiClient.get(`/assignments/${id}`),
-  create: (data: Record<string, unknown>) => apiClient.post("/assignments", data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/assignments/${id}`, data),
+  create: (data: Record<string, unknown> | FormData) => apiClient.post("/assignments", data),
+  update: (id: string, data: Record<string, unknown> | FormData) => apiClient.put(`/assignments/${id}`, data),
   delete: (id: string) => apiClient.delete(`/assignments/${id}`),
   publish: (id: string) => apiClient.post(`/assignments/${id}/publish`),
-  submit: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/submit`, data),
+  submit: (id: string, data: Record<string, unknown> | FormData) => apiClient.post(`/assignments/${id}/submit`, data),
   getSubmissions: (id: string) => apiClient.get(`/assignments/${id}/submissions`),
   grade: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/grade`, data),
 };

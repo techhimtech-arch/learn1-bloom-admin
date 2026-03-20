@@ -23,8 +23,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentResult {
   id: string;
+  studentId?: string;
   examId: string;
   totalMarks: number;
+  obtainedMarks?: number;
   maxTotalMarks: number;
   percentage: number;
   grade: string;

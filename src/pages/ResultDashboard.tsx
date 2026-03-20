@@ -29,9 +29,10 @@ import { toast } from 'sonner';
 
 interface StudentResult {
   id: string;
-  studentId: string;
+  studentId?: string;
   examId: string;
   totalMarks: number;
+  obtainedMarks?: number;
   maxTotalMarks: number;
   percentage: number;
   grade: string;
