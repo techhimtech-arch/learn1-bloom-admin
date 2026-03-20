@@ -24,6 +24,13 @@ interface RolePermissions {
 }
 
 const rolePermissions: RolePermissions = {
+  school_admin: [
+    'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
+    'create_timetable', 'edit_timetable', 'delete_timetable',
+    'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
+    'assign_roll_numbers', 'view_academic_summary',
+    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+  ],
   admin: [
     'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
     'create_timetable', 'edit_timetable', 'delete_timetable',

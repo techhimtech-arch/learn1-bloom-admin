@@ -210,7 +210,7 @@ export const subjectApi = {
   getByTeacher: (teacherId: string) => apiClient.get(`/subjects/teacher/${teacherId}`),
   getOptional: (classId: string) => apiClient.get(`/subjects/optional/${classId}`),
   create: (data: Record<string, unknown>) => apiClient.post('/subjects', data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/subjects/${id}`, data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/subjects/${id}`, data),
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
   assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) => 
     apiClient.post(`/subjects/${subjectId}/assign-teacher`, data),
