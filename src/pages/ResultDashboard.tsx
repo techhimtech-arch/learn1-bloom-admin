@@ -509,7 +509,7 @@ export default function ResultDashboard() {
 
       {showDetailModal && selectedResult && (
         <ResultDetailModal
-          result={selectedResult}
+          result={selectedResult as any}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedResult(null);

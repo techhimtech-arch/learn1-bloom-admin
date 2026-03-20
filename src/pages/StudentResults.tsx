@@ -357,7 +357,7 @@ export default function StudentResults() {
 
       {showDetailModal && selectedResult && (
         <ResultDetailModal
-          result={selectedResult}
+          result={selectedResult as any}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedResult(null);
