@@ -76,7 +76,7 @@ const AttendanceManagement = () => {
 
     // Fetch students in this class/section and existing attendance in parallel
     Promise.all([
-      admissionApi.getAll({ classId: selectedClass, sectionId: selectedSection, limit: 200 }),
+      admissionApi.getAll({ classId: selectedClass, sectionId: selectedSection, limit: 100 }),
       attendanceApi.getAll({ date: selectedDate, classId: selectedClass, sectionId: selectedSection }),
     ])
       .then(([studentsRes, attendanceRes]) => {

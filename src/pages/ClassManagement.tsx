@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { classApi, sectionApi } from '@/services/api';
+import { classApi, sectionApi, academicYearApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, School, Layers, DoorOpen } from 'lucide-react';
 
@@ -27,11 +27,20 @@ interface SectionItem {
   floor?: string;
   building?: string;
   isActive: boolean;
+  academicSessionId?: string;
+}
+
+interface AcademicYear {
+  _id: string;
+  name: string;
+  isActive: boolean;
+  isCurrent: boolean;
 }
 
 const ClassManagement = () => {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [sections, setSections] = useState<SectionItem[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [sectionsLoading, setSectionsLoading] = useState(true);
 
@@ -44,7 +53,15 @@ const ClassManagement = () => {
   // Section dialog
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<SectionItem | null>(null);
-  const [sectionForm, setSectionForm] = useState({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' });
+  const [sectionForm, setSectionForm] = useState({ 
+    name: '', 
+    classId: '', 
+    academicSessionId: '',
+    capacity: '40', 
+    roomNumber: '', 
+    floor: '', 
+    building: '' 
+  });
   const [sectionSaving, setSectionSaving] = useState(false);
 
   const fetchClasses = async () => {
@@ -71,9 +88,25 @@ const ClassManagement = () => {
     }
   };
 
+  const fetchAcademicYears = async () => {
+    try {
+      const { data } = await academicYearApi.getAll();
+      setAcademicYears(data.data || []);
+      
+      // Auto-select current academic year for new sections
+      const currentYear = data.data?.find((year: AcademicYear) => year.isCurrent || year.isActive);
+      if (currentYear) {
+        setSectionForm(prev => ({ ...prev, academicSessionId: currentYear._id }));
+      }
+    } catch (err) {
+      showApiError(err, 'Failed to load academic years');
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
     fetchSections();
+    fetchAcademicYears();
   }, []);
 
   // Class CRUD
@@ -118,12 +151,13 @@ const ClassManagement = () => {
 
   // Section CRUD
   const handleSaveSection = async () => {
-    if (!sectionForm.name.trim() || (!editingSection && !sectionForm.classId)) return;
+    if (!sectionForm.name.trim() || (!editingSection && (!sectionForm.classId || !sectionForm.academicSessionId))) return;
     setSectionSaving(true);
     try {
       const payload: Record<string, unknown> = {
         name: sectionForm.name.trim(),
         capacity: Number(sectionForm.capacity) || 40,
+        academicSessionId: sectionForm.academicSessionId,
       };
       if (sectionForm.roomNumber) payload.roomNumber = sectionForm.roomNumber;
       if (sectionForm.floor) payload.floor = sectionForm.floor;
@@ -139,7 +173,15 @@ const ClassManagement = () => {
       }
       setSectionDialogOpen(false);
       setEditingSection(null);
-      setSectionForm({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' });
+      setSectionForm({ 
+        name: '', 
+        classId: '', 
+        academicSessionId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+        capacity: '40', 
+        roomNumber: '', 
+        floor: '', 
+        building: '' 
+      });
       fetchSections();
     } catch (err) {
       showApiError(err);
@@ -163,6 +205,7 @@ const ClassManagement = () => {
     setSectionForm({
       name: sec.name,
       classId: typeof sec.classId === 'object' ? sec.classId._id : sec.classId,
+      academicSessionId: sec.academicSessionId || academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
       capacity: String(sec.capacity || 40),
       roomNumber: sec.roomNumber || '',
       floor: sec.floor || '',
@@ -275,7 +318,15 @@ const ClassManagement = () => {
         {/* SECTIONS TAB */}
         <TabsContent value="sections" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => { setEditingSection(null); setSectionForm({ name: '', classId: '', capacity: '40', roomNumber: '', floor: '', building: '' }); setSectionDialogOpen(true); }}>
+            <Button onClick={() => { setEditingSection(null); setSectionForm({ 
+              name: '', 
+              classId: '', 
+              academicSessionId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+              capacity: '40', 
+              roomNumber: '', 
+              floor: '', 
+              building: '' 
+            }); setSectionDialogOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" />Add Section
             </Button>
           </div>
@@ -336,6 +387,19 @@ const ClassManagement = () => {
                 </Select>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>Academic Year <span className="text-destructive">*</span></Label>
+              <Select value={sectionForm.academicSessionId} onValueChange={v => setSectionForm({ ...sectionForm, academicSessionId: v })}>
+                <SelectTrigger><SelectValue placeholder="Select academic year" /></SelectTrigger>
+                <SelectContent>
+                  {academicYears.map(year => (
+                    <SelectItem key={year._id} value={year._id}>
+                      {year.name} {year.isCurrent && '(Current)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Capacity</Label>

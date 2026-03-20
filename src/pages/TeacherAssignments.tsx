@@ -42,7 +42,7 @@ const TeacherAssignments = () => {
   const [ctForm, setCtForm] = useState({ teacherId: '', classId: '', sectionId: '', academicYear: '' });
 
   // Fetch data
-  const { data: teachersRes } = useQuery({ queryKey: ['teachers'], queryFn: () => userApi.getAll({ role: 'teacher', limit: 200 }) });
+  const { data: teachersRes } = useQuery({ queryKey: ['teachers'], queryFn: () => userApi.getAll({ role: 'teacher', limit: 100 }) });
   const { data: classesRes } = useQuery({ queryKey: ['classes'], queryFn: () => classApi.getAll() });
   const { data: sectionsRes } = useQuery({ queryKey: ['sections'], queryFn: () => sectionApi.getAll() });
   const { data: subjectsRes } = useQuery({ queryKey: ['subjects'], queryFn: () => subjectApi.getAll() });
