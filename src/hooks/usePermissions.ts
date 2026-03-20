@@ -50,14 +50,26 @@ const rolePermissions: RolePermissions = {
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
+    'create_announcement', 'view_announcement', 'edit_announcement', 'publish_announcement', 'delete_announcement',
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'delete_assignment',
+    'generate_certificate', 'delete_certificate',
+    'create_exam_paper', 'edit_exam_paper', 'delete_exam_paper',
+    'manage_fee_structure', 'edit_fee_structure', 'delete_fee_structure',
+    'lock_marks', 'delete_marks', 'publish_results'
   ],
   admin: [
     'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
+    'create_announcement', 'view_announcement', 'edit_announcement', 'publish_announcement', 'delete_announcement',
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'delete_assignment',
+    'generate_certificate', 'delete_certificate',
+    'create_exam_paper', 'edit_exam_paper', 'delete_exam_paper',
+    'manage_fee_structure', 'edit_fee_structure', 'delete_fee_structure',
+    'lock_marks', 'delete_marks', 'publish_results'
   ],
   principal: [
     'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
