@@ -26,7 +26,7 @@ const subjectSchema = z.object({
   code: z.string().min(1, 'Subject code is required'),
   description: z.string().optional(),
   classId: z.string().min(1, 'Class is required'),
-  academicYearId: z.string().min(1, 'Academic year is required'),
+  academicSessionId: z.string().min(1, 'Academic session is required'),
   department: z.string().min(1, 'Department is required'),
   credits: z.number().min(1).max(10),
   weeklyHours: z.number().min(1).max(40),
@@ -41,7 +41,7 @@ interface Subject {
   code: string;
   description?: string;
   classId: string;
-  academicYearId: string;
+  academicSessionId: string;
   department: string;
   credits: number;
   weeklyHours: number;
@@ -55,13 +55,14 @@ interface SubjectFormProps {
 }
 
 const departments = [
-  { value: 'science', label: 'Science' },
-  { value: 'commerce', label: 'Commerce' },
-  { value: 'arts', label: 'Arts' },
-  { value: 'mathematics', label: 'Mathematics' },
-  { value: 'computer', label: 'Computer Science' },
-  { value: 'languages', label: 'Languages' },
-  { value: 'physical', label: 'Physical Education' },
+  { value: 'SCIENCE', label: 'Science' },
+  { value: 'COMMERCE', label: 'Commerce' },
+  { value: 'ARTS', label: 'Arts' },
+  { value: 'MATHEMATICS', label: 'Mathematics' },
+  { value: 'COMPUTER_SCIENCE', label: 'Computer Science' },
+  { value: 'LANGUAGE', label: 'Language' },
+  { value: 'PHYSICAL_EDUCATION', label: 'Physical Education' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
