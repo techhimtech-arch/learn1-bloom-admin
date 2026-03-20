@@ -234,15 +234,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={year.id} value={year.id}>
+                        {academicYears.map((year: any) => (
+                          <SelectItem key={year._id || year.id} value={year._id || year.id}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
