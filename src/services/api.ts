@@ -348,7 +348,11 @@ export const notificationApi = {
 // ── Parent Portal API ───────────────────────────────────
 export const parentApi = {
   getDashboard: () => apiClient.get("/parent/dashboard"),
+  getProfile: () => apiClient.get("/parent/profile"),
   getStudent: (studentId: string) => apiClient.get(`/parent/student/${studentId}`),
+  getAttendance: (params?: Record<string, any>) => apiClient.get("/parent/attendance", { params }),
+  getFees: () => apiClient.get("/parent/fees"),
+  getResults: (params?: Record<string, any>) => apiClient.get("/parent/results", { params }),
   getStudentAttendance: (studentId: string, params?: Record<string, any>) => 
     apiClient.get(`/parent/student/${studentId}/attendance`, { params }),
   getStudentResults: (studentId: string, params?: Record<string, any>) => 
