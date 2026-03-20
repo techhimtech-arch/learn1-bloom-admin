@@ -179,7 +179,7 @@ export function AcademicFilters({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {showSession && (
             <Select
-              value={filters.academicYearId}
+              value={filters.academicYearId || undefined}
               onValueChange={(value) => updateFilter('academicYearId', value)}
               disabled={loading || dataLoading}
             >
@@ -187,8 +187,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Academic Year" />
               </SelectTrigger>
               <SelectContent>
-                {academicYears.map((year) => (
-                  <SelectItem key={year.id} value={year.id}>
+                {academicYears.map((year, index) => (
+                  <SelectItem key={year.id || `year-${index}`} value={year.id}>
                     {year.name} {year.isActive && '(Current)'}
                   </SelectItem>
                 ))}
@@ -198,7 +198,7 @@ export function AcademicFilters({
 
           {showClass && (
             <Select
-              value={filters.classId}
+              value={filters.classId || undefined}
               onValueChange={(value) => updateFilter('classId', value)}
               disabled={loading || dataLoading}
             >
@@ -206,8 +206,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+                {classes.map((cls, index) => (
+                  <SelectItem key={cls.id || `class-${index}`} value={cls.id}>
                     {cls.name}
                   </SelectItem>
                 ))}
@@ -217,7 +217,7 @@ export function AcademicFilters({
 
           {showSection && (
             <Select
-              value={filters.sectionId}
+              value={filters.sectionId || undefined}
               onValueChange={(value) => updateFilter('sectionId', value)}
               disabled={loading || dataLoading || !filters.classId}
             >
@@ -225,8 +225,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
               <SelectContent>
-                {sections.map((section) => (
-                  <SelectItem key={section.id} value={section.id}>
+                {sections.map((section, index) => (
+                  <SelectItem key={section.id || `section-${index}`} value={section.id}>
                     {section.name}
                   </SelectItem>
                 ))}
@@ -236,7 +236,7 @@ export function AcademicFilters({
 
           {showDepartment && (
             <Select
-              value={filters.department}
+              value={filters.department || undefined}
               onValueChange={(value) => updateFilter('department', value)}
               disabled={loading || dataLoading}
             >
@@ -244,8 +244,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.value} value={dept.value}>
+                {departments.map((dept, index) => (
+                  <SelectItem key={dept.value || `dept-${index}`} value={dept.value}>
                     {dept.label}
                   </SelectItem>
                 ))}
@@ -255,7 +255,7 @@ export function AcademicFilters({
 
           {showStatus && (
             <Select
-              value={filters.status}
+              value={filters.status || undefined}
               onValueChange={(value) => updateFilter('status', value)}
               disabled={loading || dataLoading}
             >
@@ -263,8 +263,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
+                {statusOptions.map((status, index) => (
+                  <SelectItem key={status.value || `status-${index}`} value={status.value}>
                     {status.label}
                   </SelectItem>
                 ))}

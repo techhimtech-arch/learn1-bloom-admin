@@ -234,8 +234,8 @@ export default function SubjectManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {subjectsData?.data?.map((subject: Subject) => (
-                    <TableRow key={subject.id}>
+                  {subjectsData?.data?.map((subject: Subject, index) => (
+                    <TableRow key={subject.id || `subject-${index}`}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{subject.name}</div>
@@ -271,8 +271,8 @@ export default function SubjectManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {subject.teachers?.slice(0, 2).map((teacher) => (
-                            <div key={teacher.id} className="text-sm">
+                          {subject.teachers?.slice(0, 2).map((teacher, index) => (
+                            <div key={teacher.id || `teacher-${index}`} className="text-sm">
                               <span className="font-medium">{teacher.name}</span>
                               <Badge variant="outline" className="ml-2 text-xs">
                                 {teacher.role}

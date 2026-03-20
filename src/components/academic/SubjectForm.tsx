@@ -231,15 +231,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={year.id} value={year.id}>
+                        {academicYearsData?.data?.map((year: any, index) => (
+                          <SelectItem key={year.id || `year-${index}`} value={year.id}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
@@ -256,15 +256,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
+                        {classesData?.data?.map((cls: any, index) => (
+                          <SelectItem key={cls.id || `class-${index}`} value={cls.id}>
                             {cls.name}
                           </SelectItem>
                         ))}
@@ -283,15 +283,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select department" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {departments.map((dept) => (
-                          <SelectItem key={dept.value} value={dept.value}>
+                        {departments.map((dept, index) => (
+                          <SelectItem key={dept.value || `dept-${index}`} value={dept.value}>
                             {dept.label}
                           </SelectItem>
                         ))}
