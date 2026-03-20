@@ -57,11 +57,11 @@ interface AnnouncementFilters {
 export default function AnnouncementManagement() {
   const [filters, setFilters] = useState<AnnouncementFilters>({
     search: '',
-    type: '',
-    priority: '',
-    status: '',
-    classId: '',
-    sectionId: '',
+    type: 'all',
+    priority: 'all',
+    status: 'all',
+    classId: 'all',
+    sectionId: 'all',
   });
   const [showForm, setShowForm] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -78,11 +78,11 @@ export default function AnnouncementManagement() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.search) params.append('search', filters.search);
-      if (filters.type) params.append('type', filters.type);
-      if (filters.priority) params.append('priority', filters.priority);
-      if (filters.status) params.append('status', filters.status);
-      if (filters.classId) params.append('classId', filters.classId);
-      if (filters.sectionId) params.append('sectionId', filters.sectionId);
+      if (filters.type && filters.type !== 'all') params.append('type', filters.type);
+      if (filters.priority && filters.priority !== 'all') params.append('priority', filters.priority);
+      if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+      if (filters.classId && filters.classId !== 'all') params.append('classId', filters.classId);
+      if (filters.sectionId && filters.sectionId !== 'all') params.append('sectionId', filters.sectionId);
 
       const response = await announcementApi.getAll(Object.fromEntries(params));
       return response.data;
@@ -236,7 +236,7 @@ export default function AnnouncementManagement() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="general">General</SelectItem>
                 <SelectItem value="academic">Academic</SelectItem>
                 <SelectItem value="emergency">Emergency</SelectItem>
@@ -249,7 +249,7 @@ export default function AnnouncementManagement() {
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
@@ -262,7 +262,7 @@ export default function AnnouncementManagement() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="published">Published</SelectItem>
               </SelectContent>
@@ -273,7 +273,7 @@ export default function AnnouncementManagement() {
                 <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Classes</SelectItem>
+                <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((cls: any) => (
                   <SelectItem key={cls.id} value={cls.id}>
                     {cls.name}
@@ -287,7 +287,7 @@ export default function AnnouncementManagement() {
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sections</SelectItem>
+                <SelectItem value="all">All Sections</SelectItem>
                 {sections.map((section: any) => (
                   <SelectItem key={section.id} value={section.id}>
                     {section.name}
@@ -321,7 +321,7 @@ export default function AnnouncementManagement() {
               <Send className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold">No announcements found</h3>
               <p className="text-muted-foreground mb-4">
-                {filters.search || filters.type || filters.priority || filters.status || filters.classId || filters.sectionId
+                {filters.search || (filters.type && filters.type !== 'all') || (filters.priority && filters.priority !== 'all') || (filters.status && filters.status !== 'all') || (filters.classId && filters.classId !== 'all') || (filters.sectionId && filters.sectionId !== 'all')
                   ? 'Try adjusting your filters'
                   : 'Get started by creating your first announcement'}
               </p>

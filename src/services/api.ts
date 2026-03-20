@@ -94,6 +94,10 @@ export const authApi = {
 // ── Dashboard API ─────────────────────────────────────────
 export const dashboardApi = {
   getStats: () => apiClient.get("/dashboard"),
+  getTeacherStats: () => apiClient.get("/dashboard/teacher"),
+  getParentStats: () => apiClient.get("/dashboard/parent"),
+  getStudentStats: () => apiClient.get("/dashboard/student"),
+  getAccountantStats: () => apiClient.get("/dashboard/accountant"),
 };
 
 // ── User API ──────────────────────────────────────────────

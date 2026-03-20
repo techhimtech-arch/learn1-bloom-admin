@@ -77,7 +77,23 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    dashboardApi.getStats()
+    const getDashboardStats = () => {
+      switch (user?.role) {
+        case 'teacher':
+          return dashboardApi.getTeacherStats();
+        case 'parent':
+          return dashboardApi.getParentStats();
+        case 'student':
+          return dashboardApi.getStudentStats();
+        case 'accountant':
+          return dashboardApi.getAccountantStats();
+        case 'school_admin':
+        default:
+          return dashboardApi.getStats();
+      }
+    };
+
+    getDashboardStats()
       .then(({ data: res }) => {
         const d = res.data;
         if (d) {
@@ -94,7 +110,7 @@ const Dashboard = () => {
       .catch((err) => {
         showApiError(err, 'Failed to load dashboard data');
       });
-  }, []);
+  }, [user?.role]);
 
   return (
     <div className="space-y-6">
