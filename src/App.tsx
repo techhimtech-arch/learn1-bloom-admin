@@ -65,8 +65,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             {/* Auth routes */}
             <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
