@@ -17,7 +17,28 @@ export type Permission =
   | 'manage_admissions'
   | 'manage_attendance'
   | 'manage_classes'
-  | 'view_reports';
+  | 'view_reports'
+  | 'create_announcement'
+  | 'view_announcement'
+  | 'edit_announcement'
+  | 'publish_announcement'
+  | 'delete_announcement'
+  | 'create_assignment'
+  | 'view_assignment'
+  | 'edit_assignment'
+  | 'publish_assignment'
+  | 'delete_assignment'
+  | 'generate_certificate'
+  | 'delete_certificate'
+  | 'create_exam_paper'
+  | 'edit_exam_paper'
+  | 'delete_exam_paper'
+  | 'manage_fee_structure'
+  | 'edit_fee_structure'
+  | 'delete_fee_structure'
+  | 'lock_marks'
+  | 'delete_marks'
+  | 'publish_results';
 
 interface RolePermissions {
   [key: string]: Permission[];

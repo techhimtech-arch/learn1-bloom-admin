@@ -113,7 +113,7 @@ export function BulkMarksForm({ exam, marks, onClose, onSuccess }: BulkMarksForm
     },
   });
 
-  const handleCsvUpload = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 

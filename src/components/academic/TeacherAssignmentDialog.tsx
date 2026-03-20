@@ -130,7 +130,7 @@ export function TeacherAssignmentDialog({
                     >
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={teacher.avatar} />
+                          <AvatarImage src={undefined} />
                           <AvatarFallback>
                             {teacher.name.charAt(0).toUpperCase()}
                           </AvatarFallback>

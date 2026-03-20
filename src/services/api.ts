@@ -395,6 +395,7 @@ export const studentApi = {
 
 // ── Certificate API ─────────────────────────────────────
 export const certificateApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get("/certificates", { params }),
   generate: (data: Record<string, unknown>) => apiClient.post("/certificates/generate", data),
   getStudentCertificates: (studentId: string) => apiClient.get(`/certificates/student/${studentId}`),
   getById: (id: string) => apiClient.get(`/certificates/${id}`),

@@ -52,7 +52,7 @@ const TeacherDashboard = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatWidget title="My Subjects" value={stats.mySubjects} change="Assigned to you" changeType="neutral" icon={BookOpen} iconColor="bg-primary/10 text-primary" />
         <StatWidget title="Today's Classes" value={stats.todayClasses} change="Check schedule" changeType="neutral" icon={CalendarCheck} iconColor="bg-secondary/10 text-secondary" />
-        <StatWidget title="Pending Attendance" value={stats.pendingAttendance} change="Mark today" changeType="warning" icon={ClipboardCheck} iconColor="bg-warning/10 text-warning" />
+        <StatWidget title="Pending Attendance" value={stats.pendingAttendance} change="Mark today" changeType="negative" icon={ClipboardCheck} iconColor="bg-warning/10 text-warning" />
       </div>
 
       <Card>
