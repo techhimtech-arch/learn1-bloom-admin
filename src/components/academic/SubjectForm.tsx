@@ -116,9 +116,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       });
     } else {
       // Set default academic year
-      const currentYear = academicYearsData?.data?.find((year: any) => year.isActive);
+      const currentYear = academicYears.find((year: any) => year.isActive);
       if (currentYear) {
-        form.setValue('academicYearId', currentYear.id);
+        form.setValue('academicYearId', currentYear._id || currentYear.id);
       }
     }
   }, [subject, form, academicYearsData]);
