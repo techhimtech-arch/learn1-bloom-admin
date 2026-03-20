@@ -75,7 +75,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       code: '',
       description: '',
       classId: '',
-      academicYearId: '',
+      academicSessionId: '',
       department: '',
       credits: 1,
       weeklyHours: 1,
