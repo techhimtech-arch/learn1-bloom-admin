@@ -29,9 +29,10 @@ import { toast } from 'sonner';
 
 interface StudentResult {
   id: string;
-  studentId: string;
+  studentId?: string;
   examId: string;
   totalMarks: number;
+  obtainedMarks?: number;
   maxTotalMarks: number;
   percentage: number;
   grade: string;
@@ -508,7 +509,7 @@ export default function ResultDashboard() {
 
       {showDetailModal && selectedResult && (
         <ResultDetailModal
-          result={selectedResult}
+          result={selectedResult as any}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedResult(null);

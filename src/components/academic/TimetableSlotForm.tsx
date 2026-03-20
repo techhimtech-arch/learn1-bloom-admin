@@ -150,7 +150,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
     }
 
     if (bulkMode) {
-      createMutation.mutate(bulkSlots);
+      createMutation.mutate(bulkSlots as any);
     } else {
       createMutation.mutate(data);
     }

@@ -284,8 +284,8 @@ export const examApi = {
 export const announcementApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/announcements", { params }),
   getById: (id: string) => apiClient.get(`/announcements/${id}`),
-  create: (data: Record<string, unknown>) => apiClient.post("/announcements", data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/announcements/${id}`, data),
+  create: (data: Record<string, unknown> | FormData) => apiClient.post("/announcements", data),
+  update: (id: string, data: Record<string, unknown> | FormData) => apiClient.put(`/announcements/${id}`, data),
   delete: (id: string) => apiClient.delete(`/announcements/${id}`),
   publish: (id: string) => apiClient.post(`/announcements/${id}/publish`),
   unpublish: (id: string) => apiClient.post(`/announcements/${id}/unpublish`),
@@ -329,11 +329,11 @@ export const academicCalendarApi = {
 export const assignmentApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/assignments", { params }),
   getById: (id: string) => apiClient.get(`/assignments/${id}`),
-  create: (data: Record<string, unknown>) => apiClient.post("/assignments", data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/assignments/${id}`, data),
+  create: (data: Record<string, unknown> | FormData) => apiClient.post("/assignments", data),
+  update: (id: string, data: Record<string, unknown> | FormData) => apiClient.put(`/assignments/${id}`, data),
   delete: (id: string) => apiClient.delete(`/assignments/${id}`),
   publish: (id: string) => apiClient.post(`/assignments/${id}/publish`),
-  submit: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/submit`, data),
+  submit: (id: string, data: Record<string, unknown> | FormData) => apiClient.post(`/assignments/${id}/submit`, data),
   getSubmissions: (id: string) => apiClient.get(`/assignments/${id}/submissions`),
   grade: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/grade`, data),
 };
@@ -348,7 +348,11 @@ export const notificationApi = {
 // ── Parent Portal API ───────────────────────────────────
 export const parentApi = {
   getDashboard: () => apiClient.get("/parent/dashboard"),
+  getProfile: () => apiClient.get("/parent/profile"),
   getStudent: (studentId: string) => apiClient.get(`/parent/student/${studentId}`),
+  getAttendance: (params?: Record<string, any>) => apiClient.get("/parent/attendance", { params }),
+  getFees: () => apiClient.get("/parent/fees"),
+  getResults: (params?: Record<string, any>) => apiClient.get("/parent/results", { params }),
   getStudentAttendance: (studentId: string, params?: Record<string, any>) => 
     apiClient.get(`/parent/student/${studentId}/attendance`, { params }),
   getStudentResults: (studentId: string, params?: Record<string, any>) => 
@@ -391,6 +395,7 @@ export const studentApi = {
 
 // ── Certificate API ─────────────────────────────────────
 export const certificateApi = {
+  getAll: (params?: Record<string, any>) => apiClient.get("/certificates", { params }),
   generate: (data: Record<string, unknown>) => apiClient.post("/certificates/generate", data),
   getStudentCertificates: (studentId: string) => apiClient.get(`/certificates/student/${studentId}`),
   getById: (id: string) => apiClient.get(`/certificates/${id}`),

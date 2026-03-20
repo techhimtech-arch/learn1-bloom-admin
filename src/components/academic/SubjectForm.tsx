@@ -98,6 +98,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     },
   });
 
+  const academicYears = academicYearsData?.data || [];
+  const classes = classesData?.data || [];
+
   useEffect(() => {
     if (subject) {
       form.reset({
@@ -113,9 +116,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       });
     } else {
       // Set default academic year
-      const currentYear = academicYearsData?.data?.find((year: any) => year.isActive);
+      const currentYear = academicYears.find((year: any) => year.isActive);
       if (currentYear) {
-        form.setValue('academicYearId', currentYear.id);
+        form.setValue('academicYearId', currentYear._id || currentYear.id);
       }
     }
   }, [subject, form, academicYearsData]);
@@ -231,15 +234,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={year.id} value={year.id}>
+                        {academicYears.map((year: any) => (
+                          <SelectItem key={year._id || year.id} value={year._id || year.id}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
@@ -256,15 +259,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
+                        {classes.map((cls: any) => (
+                          <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>
                             {cls.name}
                           </SelectItem>
                         ))}
