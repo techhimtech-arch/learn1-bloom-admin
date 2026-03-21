@@ -45,7 +45,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
   ],
   parent: [
-    '/', '/attendance', 'fees', '/results', '/profile', '/sessions', '/announcements',
+    '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
     '/parent/dashboard', '/parent/student/:studentId',
   ],
   student: [
