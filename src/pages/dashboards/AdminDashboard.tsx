@@ -14,10 +14,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const quickActions = [
   { label: 'Add Student', icon: UserPlus, route: '/admission' },
   { label: 'Mark Attendance', icon: CalendarCheck, route: '/attendance' },
-  { label: 'Record Fee', icon: Receipt, route: '/' },
-  { label: 'New Exam', icon: PenSquare, route: '/' },
-  { label: 'Announcement', icon: Megaphone, route: '/' },
-  { label: 'Generate Report', icon: BarChart3, route: '/' },
+  { label: 'Fee Structure', icon: Receipt, route: '/fees/structure' },
+  { label: 'Exams', icon: PenSquare, route: '/exams' },
+  { label: 'Announcements', icon: Megaphone, route: '/announcements' },
+  { label: 'Fee Reports', icon: BarChart3, route: '/fees/reports' },
 ];
 
 const COLORS = [

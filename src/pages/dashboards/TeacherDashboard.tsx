@@ -69,9 +69,9 @@ const TeacherDashboard = () => {
               <BookOpen className="h-5 w-5 text-primary" />
               <span className="text-xs">My Subjects</span>
             </Button>
-            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/students')}>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/assignments')}>
               <Users className="h-5 w-5 text-primary" />
-              <span className="text-xs">My Students</span>
+              <span className="text-xs">Assignments</span>
             </Button>
           </div>
         </CardContent>
