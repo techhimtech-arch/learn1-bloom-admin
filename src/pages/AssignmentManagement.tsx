@@ -252,7 +252,7 @@ export default function AssignmentManagement() {
                 <SelectContent>
                   <SelectItem value="">All Classes</SelectItem>
                   {classes.map((cls: any) => (
-                    <SelectItem key={cls.id} value={cls.id}>
+                    <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                       {cls.name}
                     </SelectItem>
                   ))}
@@ -268,7 +268,7 @@ export default function AssignmentManagement() {
                 <SelectContent>
                   <SelectItem value="">All Sections</SelectItem>
                   {sections.map((section: any) => (
-                    <SelectItem key={section.id} value={section.id}>
+                    <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
                       {section.name}
                     </SelectItem>
                   ))}

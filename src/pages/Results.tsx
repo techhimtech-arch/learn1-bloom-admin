@@ -301,7 +301,7 @@ export default function Results() {
               </SelectTrigger>
               <SelectContent>
                 {classesData?.data?.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+                  <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                     {cls.name}
                   </SelectItem>
                 ))}

@@ -288,7 +288,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                       </FormControl>
                       <SelectContent>
                         {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={year.id} value={year.id}>
+                          <SelectItem key={`year-${year.id || year._id}`} value={year.id || year._id}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
@@ -313,7 +313,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                       </FormControl>
                       <SelectContent>
                         {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
+                          <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                             {cls.name}
                           </SelectItem>
                         ))}
@@ -338,7 +338,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                       </FormControl>
                       <SelectContent>
                         {filteredSections.map((section: any) => (
-                          <SelectItem key={section.id} value={section.id}>
+                          <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
                             {section.name}
                           </SelectItem>
                         ))}

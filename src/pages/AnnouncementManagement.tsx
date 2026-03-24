@@ -275,7 +275,7 @@ export default function AnnouncementManagement() {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+                  <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                     {cls.name}
                   </SelectItem>
                 ))}
@@ -289,7 +289,7 @@ export default function AnnouncementManagement() {
               <SelectContent>
                 <SelectItem value="all">All Sections</SelectItem>
                 {sections.map((section: any) => (
-                  <SelectItem key={section.id} value={section.id}>
+                  <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
                     {section.name}
                   </SelectItem>
                 ))}

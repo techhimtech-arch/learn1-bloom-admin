@@ -262,7 +262,7 @@ export default function FeeReports() {
               <SelectContent>
                 <SelectItem value="">All Classes</SelectItem>
                 {classes.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+                  <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                     {cls.name}
                   </SelectItem>
                 ))}
