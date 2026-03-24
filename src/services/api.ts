@@ -425,8 +425,8 @@ export const teacherAssignmentApi = {
 
 // Class Teacher Assignment API
 export const classTeacherAssignmentApi = {
-  getAll: (params?: Record<string, any>) => apiClient.get('/class-teacher-assignments', { params }),
-  create: (data: Record<string, unknown>) => apiClient.post('/class-teacher-assignments', data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/class-teacher-assignments/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/class-teacher-assignments/${id}`),
+  getAll: (params?: Record<string, any>) => apiClient.get('/class-teacher', { params }),
+  create: (data: Record<string, unknown>) => apiClient.post('/class-teacher/assign', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/class-teacher/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/class-teacher/${id}`),
 };

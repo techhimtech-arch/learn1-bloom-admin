@@ -42,12 +42,42 @@ const TeacherAssignments = () => {
   const [ctForm, setCtForm] = useState({ teacherId: '', classId: '', sectionId: '', academicYear: '' });
 
   // Fetch data
-  const { data: teachersRes } = useQuery({ queryKey: ['teachers'], queryFn: () => userApi.getAll({ role: 'teacher', limit: 100 }) });
-  const { data: classesRes } = useQuery({ queryKey: ['classes'], queryFn: () => classApi.getAll() });
-  const { data: sectionsRes } = useQuery({ queryKey: ['sections'], queryFn: () => sectionApi.getAll() });
-  const { data: subjectsRes } = useQuery({ queryKey: ['subjects'], queryFn: () => subjectApi.getAll() });
-  const { data: assignmentsRes, isLoading: loadingAssignments } = useQuery({ queryKey: ['teacher-assignments'], queryFn: () => teacherAssignmentApi.getAll() });
-  const { data: ctAssignmentsRes, isLoading: loadingCT } = useQuery({ queryKey: ['class-teacher-assignments'], queryFn: () => classTeacherAssignmentApi.getAll() });
+  const { data: teachersRes } = useQuery({ 
+    queryKey: ['teachers'], 
+    queryFn: () => userApi.getAll({ role: 'teacher', limit: 100 }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+  const { data: classesRes } = useQuery({ 
+    queryKey: ['classes'], 
+    queryFn: () => classApi.getAll(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+  const { data: sectionsRes } = useQuery({ 
+    queryKey: ['sections'], 
+    queryFn: () => sectionApi.getAll(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+  const { data: subjectsRes } = useQuery({ 
+    queryKey: ['subjects'], 
+    queryFn: () => subjectApi.getAll(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+  const { data: assignmentsRes, isLoading: loadingAssignments } = useQuery({ 
+    queryKey: ['teacher-assignments'], 
+    queryFn: () => teacherAssignmentApi.getAll(),
+    staleTime: 3 * 60 * 1000, // 3 minutes (یہ بدل scale ہے assignments)
+    gcTime: 5 * 60 * 1000,
+  });
+  const { data: ctAssignmentsRes, isLoading: loadingCT } = useQuery({ 
+    queryKey: ['class-teacher-assignments'], 
+    queryFn: () => classTeacherAssignmentApi.getAll(),
+    staleTime: 3 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
 
   const teachers: Teacher[] = teachersRes?.data?.data?.users || teachersRes?.data?.data || [];
   const classes: ClassItem[] = classesRes?.data?.data || [];
