@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Plus, BookOpen, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 
 interface Teacher { _id: string; name: string; email: string; }
 interface ClassItem { _id: string; name: string; }
@@ -104,7 +105,7 @@ const TeacherAssignments = () => {
       setSubjectDialogOpen(false);
       setSubjectForm({ teacherId: '', classId: '', sectionId: '', subjectId: '' });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to create assignment'),
+    onError: (err: any) => handleApiError(err, 'Failed to create assignment'),
   });
 
   const createCTAssignment = useMutation({
@@ -115,7 +116,7 @@ const TeacherAssignments = () => {
       setClassTeacherDialogOpen(false);
       setCtForm({ teacherId: '', classId: '', sectionId: '', academicYear: '' });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to assign class teacher'),
+    onError: (err: any) => handleApiError(err, 'Failed to assign class teacher'),
   });
 
   const toggleActive = useMutation({
@@ -124,7 +125,7 @@ const TeacherAssignments = () => {
       toast.success('Assignment updated');
       queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
     },
-    onError: () => toast.error('Failed to update'),
+    onError: () => handleApiError(undefined, 'Failed to update'),
   });
 
   return (

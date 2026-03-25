@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { announcementApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Upload, X } from 'lucide-react';
 
 const announcementSchema = z.object({
@@ -135,7 +136,7 @@ export function AnnouncementForm({
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create announcement');
+      handleApiError(error, 'Failed to create announcement');
     },
   });
 
@@ -147,7 +148,7 @@ export function AnnouncementForm({
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update announcement');
+      handleApiError(error, 'Failed to update announcement');
     },
   });
 

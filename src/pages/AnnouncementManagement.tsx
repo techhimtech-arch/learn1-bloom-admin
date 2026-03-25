@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
@@ -113,7 +114,7 @@ export default function AnnouncementManagement() {
       setDeletingAnnouncement(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete announcement');
+      handleApiError(error, 'Failed to delete announcement');
     },
   });
 
@@ -124,7 +125,7 @@ export default function AnnouncementManagement() {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to publish announcement');
+      handleApiError(error, 'Failed to publish announcement');
     },
   });
 
@@ -135,7 +136,7 @@ export default function AnnouncementManagement() {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to unpublish announcement');
+      handleApiError(error, 'Failed to unpublish announcement');
     },
   });
 

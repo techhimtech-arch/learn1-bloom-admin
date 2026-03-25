@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { subjectApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
 
 interface Subject {
@@ -62,7 +63,7 @@ export function TeacherAssignmentDialog({
       setSelectedRole('assistant');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to assign teacher');
+      handleApiError(error, 'Failed to assign teacher');
     },
   });
 
@@ -73,7 +74,7 @@ export function TeacherAssignmentDialog({
       toast.success('Teacher removed successfully');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to remove teacher');
+      handleApiError(error, 'Failed to remove teacher');
     },
   });
 

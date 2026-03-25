@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { timetableApi, subjectApi, sectionApi, userApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 const timetableSlotSchema = z.object({
@@ -134,11 +135,11 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
       onSuccess();
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to create timetable slot';
-      if (error.response?.data?.conflicts) {
-        toast.error(`Scheduling conflict: ${message}`);
+      const response = error.response?.data;
+      if (response?.conflicts) {
+        toast.error(`Scheduling conflict: ${response.message || 'Failed to create timetable slot'}`);
       } else {
-        toast.error(message);
+        handleApiError(error, 'Failed to create timetable slot');
       }
     },
   });

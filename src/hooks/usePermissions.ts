@@ -17,7 +17,12 @@ export type Permission =
   | 'manage_admissions'
   | 'manage_attendance'
   | 'manage_classes'
-  | 'view_reports';
+  | 'view_reports'
+  | 'create_announcement'
+  | 'edit_announcement'
+  | 'delete_announcement'
+  | 'view_announcement'
+  | 'publish_announcement';
 
 interface RolePermissions {
   [key: string]: Permission[];
@@ -29,33 +34,38 @@ const rolePermissions: RolePermissions = {
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
+    'create_announcement', 'edit_announcement', 'delete_announcement', 'view_announcement', 'publish_announcement'
   ],
   admin: [
     'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+    'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
+    'create_announcement', 'edit_announcement', 'delete_announcement', 'view_announcement', 'publish_announcement'
   ],
   principal: [
     'create_subject', 'edit_subject', 'delete_subject', 'assign_teacher',
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports'
+    'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
+    'create_announcement', 'edit_announcement', 'delete_announcement', 'view_announcement', 'publish_announcement'
   ],
   teacher: [
     'edit_subject', 'create_timetable', 'edit_timetable',
     'create_calendar_event', 'edit_calendar_event',
-    'view_academic_summary', 'manage_attendance'
+    'view_academic_summary', 'manage_attendance',
+    'create_announcement', 'edit_announcement', 'view_announcement', 'publish_announcement'
   ],
   academic_coordinator: [
     'create_subject', 'edit_subject', 'assign_teacher',
     'create_timetable', 'edit_timetable', 'delete_timetable',
     'create_calendar_event', 'edit_calendar_event', 'delete_calendar_event',
     'assign_roll_numbers', 'view_academic_summary',
-    'manage_admissions', 'manage_classes'
+    'manage_admissions', 'manage_classes',
+    'create_announcement', 'edit_announcement', 'view_announcement', 'publish_announcement'
   ],
   office_staff: [
     'manage_admissions', 'manage_attendance', 'view_reports'

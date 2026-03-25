@@ -11,6 +11,7 @@ import { SubjectForm } from '@/components/academic/SubjectForm';
 import { TeacherAssignmentDialog } from '@/components/academic/TeacherAssignmentDialog';
 import { subjectApi, userApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -112,7 +113,7 @@ export default function SubjectManagement() {
       setDeletingSubject(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete subject');
+      handleApiError(error, 'Failed to delete subject');
     },
   });
 

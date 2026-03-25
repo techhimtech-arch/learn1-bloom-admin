@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { subjectApi, academicYearApi, classApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
 
 const subjectSchema = z.object({
@@ -127,7 +128,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create subject');
+      handleApiError(error, 'Failed to create subject');
     },
   });
 
@@ -139,7 +140,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update subject');
+      handleApiError(error, 'Failed to update subject');
     },
   });
 

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { examApi, academicYearApi, classApi, sectionApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
 
 const examSchema = z.object({
@@ -155,7 +156,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create exam');
+      handleApiError(error, 'Failed to create exam');
     },
   });
 
@@ -167,7 +168,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update exam');
+      handleApiError(error, 'Failed to update exam');
     },
   });
 

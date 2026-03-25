@@ -12,6 +12,7 @@ import { AcademicFilters, AcademicFiltersState } from '@/components/shared/Acade
 import { BulkRollNumberForm } from '@/components/academic/BulkRollNumberForm';
 import { rollNumberApi, classApi, sectionApi, academicYearApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -110,7 +111,7 @@ export default function RollNumberManagement() {
       refetch();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to assign roll numbers');
+      handleApiError(error, 'Failed to assign roll numbers');
     },
   });
 
@@ -122,7 +123,7 @@ export default function RollNumberManagement() {
       setShowReassignDialog(false);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to reassign roll numbers');
+      handleApiError(error, 'Failed to reassign roll numbers');
     },
   });
 
@@ -139,7 +140,7 @@ export default function RollNumberManagement() {
       }
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to validate roll numbers');
+      handleApiError(error, 'Failed to validate roll numbers');
     },
   });
 

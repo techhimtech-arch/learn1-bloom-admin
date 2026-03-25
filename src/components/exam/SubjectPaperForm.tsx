@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { examApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
 
 const subjectPaperSchema = z.object({
@@ -128,11 +129,11 @@ export function SubjectPaperForm({
       onSuccess();
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to create subject paper';
-      if (error.response?.data?.conflict) {
-        toast.error(`Conflict: ${message}`);
+      const response = error.response?.data;
+      if (response?.conflict) {
+        toast.error(`Conflict: ${response.message || 'Failed to create subject paper'}`);
       } else {
-        toast.error(message);
+        handleApiError(error, 'Failed to create subject paper');
       }
     },
   });
@@ -145,11 +146,11 @@ export function SubjectPaperForm({
       onSuccess();
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to update subject paper';
-      if (error.response?.data?.conflict) {
-        toast.error(`Conflict: ${message}`);
+      const response = error.response?.data;
+      if (response?.conflict) {
+        toast.error(`Conflict: ${response.message || 'Failed to update subject paper'}`);
       } else {
-        toast.error(message);
+        handleApiError(error, 'Failed to update subject paper');
       }
     },
   });

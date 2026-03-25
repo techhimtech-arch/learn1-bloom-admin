@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { assignmentApi } from '@/services/api';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Upload, X } from 'lucide-react';
 
 const assignmentSchema = z.object({
@@ -120,7 +121,7 @@ export function AssignmentForm({
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create assignment');
+      handleApiError(error, 'Failed to create assignment');
     },
   });
 
@@ -132,7 +133,7 @@ export function AssignmentForm({
       onSuccess();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update assignment');
+      handleApiError(error, 'Failed to update assignment');
     },
   });
 

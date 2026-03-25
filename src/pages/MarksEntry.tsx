@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface MarkEntry {
@@ -106,12 +107,7 @@ export default function MarksEntry() {
       setEditingMark(null);
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to update mark';
-      if (error.response?.data?.validation) {
-        toast.error(`Validation Error: ${message}`);
-      } else {
-        toast.error(message);
-      }
+      handleApiError(error, 'Failed to update mark');
     },
   });
 
@@ -124,12 +120,7 @@ export default function MarksEntry() {
       setMarkValues({});
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to update marks';
-      if (error.response?.data?.validation) {
-        toast.error(`Validation Error: ${message}`);
-      } else {
-        toast.error(message);
-      }
+      handleApiError(error, 'Failed to update marks');
     },
   });
 
@@ -140,7 +131,7 @@ export default function MarksEntry() {
       queryClient.invalidateQueries({ queryKey: ['exam', examId] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to lock marks');
+      handleApiError(error, 'Failed to lock marks');
     },
   });
 
@@ -151,7 +142,7 @@ export default function MarksEntry() {
       queryClient.invalidateQueries({ queryKey: ['exam', examId] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to unlock marks');
+      handleApiError(error, 'Failed to unlock marks');
     },
   });
 
@@ -163,7 +154,7 @@ export default function MarksEntry() {
       setDeletingMark(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete mark');
+      handleApiError(error, 'Failed to delete mark');
     },
   });
 
