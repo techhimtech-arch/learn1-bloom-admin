@@ -68,14 +68,8 @@ interface Announcement {
 
 interface AnnouncementFormProps {
   announcement?: Announcement | null;
-  classes: Array<{
-    id: string;
-    name: string;
-  }>;
-  sections: Array<{
-    id: string;
-    name: string;
-  }>;
+  classes?: Array<{ id: string; name: string }>;
+  sections?: Array<{ id: string; name: string }>;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -90,21 +84,18 @@ const targetAudienceOptions = [
   { value: 'specific_sections', label: 'Specific Sections' },
 ];
 
-export function AnnouncementForm({ 
-  announcement, 
-  classes, 
-  sections, 
-  onClose, 
-  onSuccess 
+export function AnnouncementForm({
+  announcement,
+  onClose,
+  onSuccess,
 }: AnnouncementFormProps) {
   const [open, setOpen] = useState(true);
-  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
 
   const form = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
       title: '',
+      content: '',
       content: '',
       type: 'general',
       priority: 'medium',
@@ -139,7 +130,7 @@ export function AnnouncementForm({
   }, [announcement, form]);
 
   const createMutation = useMutation({
-    mutationFn: (data: FormData) => announcementApi.create(data),
+    mutationFn: (data: AnnouncementFormData) => announcementApi.create(data as unknown as Record<string, unknown>),
     onSuccess: () => {
       toast.success('Announcement created successfully');
       onSuccess();
@@ -150,8 +141,8 @@ export function AnnouncementForm({
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: FormData }) => 
-      announcementApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: AnnouncementFormData }) =>
+      announcementApi.update(id, data as unknown as Record<string, unknown>),
     onSuccess: () => {
       toast.success('Announcement updated successfully');
       onSuccess();
@@ -160,30 +151,6 @@ export function AnnouncementForm({
       handleApiError(error, 'Failed to update announcement');
     },
   });
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setAttachmentFile(file);
-      
-      // Create preview for images
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setAttachmentPreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setAttachmentPreview(null);
-      }
-    }
-  };
-
-  const removeAttachment = () => {
-    setAttachmentFile(null);
-    setAttachmentPreview(null);
-    form.setValue('attachment', undefined);
-  };
 
   const onSubmit = (data: AnnouncementFormData) => {
     // Create JSON payload with correct field names and lowercase values
@@ -258,10 +225,9 @@ export function AnnouncementForm({
             {announcement ? 'Edit Announcement' : 'New Announcement'}
           </DialogTitle>
           <DialogDescription>
-            {announcement 
+            {announcement
               ? 'Update the announcement details below.'
-              : 'Create a new announcement to share with the school community.'
-            }
+              : 'Create a new announcement to share with the school community.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -274,10 +240,7 @@ export function AnnouncementForm({
                 <FormItem>
                   <FormLabel>Title *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter announcement title"
-                      {...field}
-                    />
+                    <Input placeholder="Enter announcement title (3-200 chars)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -286,13 +249,13 @@ export function AnnouncementForm({
 
             <FormField
               control={form.control}
-              name="message"
+              name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message *</FormLabel>
+                  <FormLabel>Content *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter your announcement message"
+                      placeholder="Enter your announcement content (min 10 chars)"
                       rows={4}
                       {...field}
                     />
@@ -309,7 +272,7 @@ export function AnnouncementForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -336,7 +299,7 @@ export function AnnouncementForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -357,7 +320,7 @@ export function AnnouncementForm({
 
             <FormField
               control={form.control}
-              name="targetType"
+              name="targetAudience"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Target Audience *</FormLabel>
@@ -421,7 +384,7 @@ export function AnnouncementForm({
                               onCheckedChange={(checked) => {
                                 const currentValues = field.value || [];
                                 if (checked) {
-                                  field.onChange([...currentValues, section.id]);
+                                  field.onChange([...withoutAll, opt.value]);
                                 } else {
                                   field.onChange(currentValues.filter(id => id !== section.id));
                                 }

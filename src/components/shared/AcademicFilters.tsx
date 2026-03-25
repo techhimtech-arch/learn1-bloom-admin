@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,65 +63,66 @@ export function AcademicFilters({
     status: '',
   });
 
-  const [academicYears, setAcademicYears] = useState<any[]>([]);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [sections, setSections] = useState<any[]>([]);
-  const [dataLoading, setDataLoading] = useState(false);
+  const [defaultYearSet, setDefaultYearSet] = useState(false);
 
+  // Use React Query so cache is shared with SubjectForm and other components
+  const { data: academicYearsData, isLoading: yearsLoading } = useQuery({
+    queryKey: ['academic-years'],
+    queryFn: async () => {
+      const response = await academicYearApi.getAll();
+      return response.data;
+    },
+  });
+
+  const { data: classesData, isLoading: classesLoading } = useQuery({
+    queryKey: ['classes'],
+    queryFn: async () => {
+      const response = await classApi.getAll();
+      return response.data;
+    },
+  });
+
+  // Only fetch sections when a class is selected
+  const { data: sectionsData } = useQuery({
+    queryKey: ['sections', filters.classId],
+    queryFn: async () => {
+      const response = await sectionApi.getByClass(filters.classId);
+      return response.data;
+    },
+    enabled: !!filters.classId,
+  });
+
+  const academicYears = academicYearsData?.data || [];
+  const classes = classesData?.data || [];
+  const sections = sectionsData?.data || [];
+  const dataLoading = yearsLoading || classesLoading;
+
+  // Set default academic year once data loads
   useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (filters.classId) {
-      loadSections(filters.classId);
-    } else {
-      setSections([]);
-    }
-  }, [filters.classId]);
-
-  const loadInitialData = async () => {
-    setDataLoading(true);
-    try {
-      const [yearsRes, classesRes] = await Promise.all([
-        academicYearApi.getAll(),
-        classApi.getAll(),
-      ]);
-      
-      setAcademicYears(yearsRes.data?.data || []);
-      setClasses(classesRes.data?.data || []);
-      
-      // Set current academic year if available
-      const currentYear = yearsRes.data?.data?.find((year: any) => year.isActive);
+    if (!defaultYearSet && academicYears.length > 0) {
+      const currentYear = academicYears.find((year: any) => year.isActive);
       if (currentYear) {
-        setFilters(prev => ({ ...prev, academicYearId: currentYear.id }));
+        const yearId = currentYear._id || currentYear.id;
+        setFilters(prev => ({ ...prev, academicYearId: yearId }));
+        onFiltersChange({ ...filters, academicYearId: yearId });
       }
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-    } finally {
-      setDataLoading(false);
+      setDefaultYearSet(true);
     }
-  };
-
-  const loadSections = async (classId: string) => {
-    try {
-      const response = await sectionApi.getByClass(classId);
-      setSections(response.data?.data || []);
-    } catch (error) {
-      console.error('Error loading sections:', error);
-    }
-  };
+  }, [academicYears, defaultYearSet]);
 
   const updateFilter = (key: keyof AcademicFiltersState, value: string) => {
     const newFilters = { ...filters, [key]: value };
+    if (key === 'classId') {
+      newFilters.sectionId = '';
+    }
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const clearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters: AcademicFiltersState = {
       search: '',
-      academicYearId: academicYears.find(y => y.isActive)?.id || '',
+      academicYearId: academicYears.find((y: any) => y.isActive)?._id || academicYears.find((y: any) => y.isActive)?.id || '',
       classId: '',
       sectionId: '',
       department: '',
@@ -131,7 +133,7 @@ export function AcademicFilters({
   };
 
   const getActiveFiltersCount = () => {
-    return Object.entries(filters).filter(([key, value]) => 
+    return Object.entries(filters).filter(([key, value]) =>
       key !== 'academicYearId' && value !== ''
     ).length;
   };
@@ -187,8 +189,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Academic Year" />
               </SelectTrigger>
               <SelectContent>
-                {academicYears.map((year, index) => (
-                  <SelectItem key={year.id || `year-${index}`} value={year.id}>
+                {academicYears.map((year: any, index: number) => (
+                  <SelectItem key={year._id || year.id || `year-${index}`} value={year._id || year.id}>
                     {year.name} {year.isActive && '(Current)'}
                   </SelectItem>
                 ))}
@@ -206,8 +208,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((cls, index) => (
-                  <SelectItem key={cls.id || `class-${index}`} value={cls.id}>
+                {classes.map((cls: any, index: number) => (
+                  <SelectItem key={cls._id || cls.id || `class-${index}`} value={cls._id || cls.id}>
                     {cls.name}
                   </SelectItem>
                 ))}
@@ -225,8 +227,8 @@ export function AcademicFilters({
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
               <SelectContent>
-                {sections.map((section, index) => (
-                  <SelectItem key={section.id || `section-${index}`} value={section.id}>
+                {sections.map((section: any, index: number) => (
+                  <SelectItem key={section._id || section.id || `section-${index}`} value={section._id || section.id}>
                     {section.name}
                   </SelectItem>
                 ))}

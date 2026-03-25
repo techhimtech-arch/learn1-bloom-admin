@@ -27,7 +27,7 @@ const subjectSchema = z.object({
   code: z.string().min(1, 'Subject code is required'),
   description: z.string().optional(),
   classId: z.string().min(1, 'Class is required'),
-  academicYearId: z.string().min(1, 'Academic year is required'),
+  academicSessionId: z.string().min(1, 'Academic session is required'),
   department: z.string().min(1, 'Department is required'),
   credits: z.number().min(1).max(10),
   weeklyHours: z.number().min(1).max(40),
@@ -42,7 +42,7 @@ interface Subject {
   code: string;
   description?: string;
   classId: string;
-  academicYearId: string;
+  academicSessionId: string;
   department: string;
   credits: number;
   weeklyHours: number;
@@ -56,13 +56,14 @@ interface SubjectFormProps {
 }
 
 const departments = [
-  { value: 'science', label: 'Science' },
-  { value: 'commerce', label: 'Commerce' },
-  { value: 'arts', label: 'Arts' },
-  { value: 'mathematics', label: 'Mathematics' },
-  { value: 'computer', label: 'Computer Science' },
-  { value: 'languages', label: 'Languages' },
-  { value: 'physical', label: 'Physical Education' },
+  { value: 'SCIENCE', label: 'Science' },
+  { value: 'COMMERCE', label: 'Commerce' },
+  { value: 'ARTS', label: 'Arts' },
+  { value: 'MATHEMATICS', label: 'Mathematics' },
+  { value: 'COMPUTER_SCIENCE', label: 'Computer Science' },
+  { value: 'LANGUAGE', label: 'Language' },
+  { value: 'PHYSICAL_EDUCATION', label: 'Physical Education' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
@@ -75,7 +76,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       code: '',
       description: '',
       classId: '',
-      academicYearId: '',
+      academicSessionId: '',
       department: '',
       credits: 1,
       weeklyHours: 1,
@@ -99,6 +100,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     },
   });
 
+  const academicYears = academicYearsData?.data || [];
+  const classes = classesData?.data || [];
+
   useEffect(() => {
     if (subject) {
       form.reset({
@@ -106,7 +110,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
         code: subject.code,
         description: subject.description || '',
         classId: subject.classId,
-        academicYearId: subject.academicYearId,
+        academicSessionId: subject.academicSessionId,
         department: subject.department,
         credits: subject.credits,
         weeklyHours: subject.weeklyHours,
@@ -114,9 +118,9 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       });
     } else {
       // Set default academic year
-      const currentYear = academicYearsData?.data?.find((year: any) => year.isActive);
+      const currentYear = academicYears.find((year: any) => year.isActive);
       if (currentYear) {
-        form.setValue('academicYearId', currentYear.id);
+        form.setValue('academicSessionId', currentYear._id || currentYear.id);
       }
     }
   }, [subject, form, academicYearsData]);
@@ -228,19 +232,19 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="academicYearId"
+                name="academicSessionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value as string}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={year.id} value={year.id}>
+                        {academicYears.map((year: any) => (
+                          <SelectItem key={year._id || year.id} value={year._id || year.id}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
@@ -257,15 +261,15 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
+                        {classes.map((cls: any) => (
+                          <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>
                             {cls.name}
                           </SelectItem>
                         ))}

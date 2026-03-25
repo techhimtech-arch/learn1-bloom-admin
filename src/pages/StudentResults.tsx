@@ -23,8 +23,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentResult {
   id: string;
+  studentId?: string;
   examId: string;
   totalMarks: number;
+  obtainedMarks?: number;
   maxTotalMarks: number;
   percentage: number;
   grade: string;
@@ -355,7 +357,7 @@ export default function StudentResults() {
 
       {showDetailModal && selectedResult && (
         <ResultDetailModal
-          result={selectedResult}
+          result={selectedResult as any}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedResult(null);

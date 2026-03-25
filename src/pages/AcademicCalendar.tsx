@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Filter, Cloc
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AcademicCalendarForm } from '@/components/academic/AcademicCalendarForm';
 import { academicCalendarApi } from '@/services/api';

@@ -43,7 +43,7 @@ interface Subject {
   isOptional: boolean;
   status: 'active' | 'inactive' | 'archived';
   classId: string;
-  academicYearId: string;
+  academicSessionId: string;
   teachers?: Array<{
     id: string;
     name: string;
@@ -97,12 +97,14 @@ export default function SubjectManagement() {
     },
   });
 
+  // Only fetch teachers when the assignment dialog is open
   const { data: teachersData } = useQuery({
     queryKey: ['teachers'],
     queryFn: async () => {
       const response = await userApi.getAll({ role: 'teacher' });
       return response.data;
     },
+    enabled: showTeacherDialog,
   });
 
   const deleteMutation = useMutation({
