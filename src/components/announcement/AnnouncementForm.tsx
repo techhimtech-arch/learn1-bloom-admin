@@ -23,22 +23,26 @@ import { Loader2, Upload, X } from 'lucide-react';
 
 const announcementSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  message: z.string().min(1, 'Message is required'),
-  type: z.enum(['general', 'academic', 'emergency', 'event']),
+  content: z.string().min(1, 'Content is required'),
+  type: z.enum(['general', 'academic', 'sports', 'events', 'emergency', 'examination', 'holiday']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  targetType: z.enum(['all', 'class', 'section', 'role']),
-  targetIds: z.array(z.string()).optional(),
+  targetAudience: z.array(z.string()).min(1, 'Target audience is required'),
+  targetClasses: z.array(z.object({ classId: z.string(), className: z.string() })).optional(),
+  targetSections: z.array(z.object({ sectionId: z.string(), sectionName: z.string() })).optional(),
   publishDate: z.string().min(1, 'Publish date is required'),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   attachment: z.any().optional(),
 }).refine((data) => {
-  if (data.targetType !== 'all' && (!data.targetIds || data.targetIds.length === 0)) {
+  if (data.targetAudience.includes('specific_classes') && (!data.targetClasses || data.targetClasses.length === 0)) {
+    return false;
+  }
+  if (data.targetAudience.includes('specific_sections') && (!data.targetSections || data.targetSections.length === 0)) {
     return false;
   }
   return true;
 }, {
-  message: 'Please select at least one target',
-  path: ['targetIds'],
+  message: 'Please select specific targets',
+  path: ['targetClasses'],
 }).refine((data) => {
   return new Date(data.expiryDate) > new Date(data.publishDate);
 }, {
@@ -51,11 +55,12 @@ type AnnouncementFormData = z.infer<typeof announcementSchema>;
 interface Announcement {
   id: string;
   title: string;
-  message: string;
-  type: 'general' | 'academic' | 'emergency' | 'event';
+  content: string;
+  type: 'general' | 'academic' | 'sports' | 'events' | 'emergency' | 'examination' | 'holiday';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  targetType: 'all' | 'class' | 'section' | 'role';
-  targetIds?: string[];
+  targetAudience: string[];
+  targetClasses?: Array<{ classId: string; className: string }>;
+  targetSections?: Array<{ sectionId: string; sectionName: string }>;
   publishDate: string;
   expiryDate: string;
   attachmentUrl?: string;
@@ -75,12 +80,14 @@ interface AnnouncementFormProps {
   onSuccess: () => void;
 }
 
-const roleOptions = [
-  { value: 'school_admin', label: 'School Admin' },
-  { value: 'teacher', label: 'Teacher' },
-  { value: 'student', label: 'Student' },
-  { value: 'parent', label: 'Parent' },
-  { value: 'accountant', label: 'Accountant' },
+const targetAudienceOptions = [
+  { value: 'all', label: 'Everyone' },
+  { value: 'students', label: 'All Students' },
+  { value: 'teachers', label: 'All Teachers' },
+  { value: 'parents', label: 'All Parents' },
+  { value: 'admin', label: 'Admin Only' },
+  { value: 'specific_classes', label: 'Specific Classes' },
+  { value: 'specific_sections', label: 'Specific Sections' },
 ];
 
 export function AnnouncementForm({ 
@@ -98,11 +105,12 @@ export function AnnouncementForm({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
       title: '',
-      message: '',
+      content: '',
       type: 'general',
       priority: 'medium',
-      targetType: 'all',
-      targetIds: [],
+      targetAudience: ['all'],
+      targetClasses: [],
+      targetSections: [],
       publishDate: new Date().toISOString().split('T')[0],
       expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       attachment: undefined,
@@ -113,11 +121,12 @@ export function AnnouncementForm({
     if (announcement) {
       form.reset({
         title: announcement.title,
-        message: announcement.message,
+        content: announcement.content,
         type: announcement.type,
         priority: announcement.priority,
-        targetType: announcement.targetType,
-        targetIds: announcement.targetIds || [],
+        targetAudience: announcement.targetAudience,
+        targetClasses: announcement.targetClasses || [],
+        targetSections: announcement.targetSections || [],
         publishDate: announcement.publishDate.split('T')[0],
         expiryDate: announcement.expiryDate.split('T')[0],
         attachment: undefined,
@@ -177,33 +186,50 @@ export function AnnouncementForm({
   };
 
   const onSubmit = (data: AnnouncementFormData) => {
-    const formData = new FormData();
+    // Create JSON payload with correct field names and lowercase values
+    const payload: any = {
+      title: data.title,
+      content: data.content, // Keep as 'content' not 'message'
+      type: data.type,
+      priority: data.priority,
+      targetAudience: data.targetAudience, // Send as array
+      publishDate: data.publishDate,
+      expiryDate: data.expiryDate,
+    };
     
-    // Append form fields
-    formData.append('title', data.title);
-    formData.append('message', data.message);
-    formData.append('type', data.type);
-    formData.append('priority', data.priority);
-    formData.append('targetType', data.targetType);
-    formData.append('publishDate', data.publishDate);
-    formData.append('expiryDate', data.expiryDate);
-    
-    // Append target IDs if not "all"
-    if (data.targetType !== 'all' && data.targetIds) {
-      data.targetIds.forEach(id => {
-        formData.append('targetIds[]', id);
-      });
+    // Add specific targets if needed
+    if (data.targetAudience.includes('specific_classes') && data.targetClasses) {
+      payload.targetClasses = data.targetClasses;
     }
     
-    // Append attachment if exists
+    if (data.targetAudience.includes('specific_sections') && data.targetSections) {
+      payload.targetSections = data.targetSections;
+    }
+    
+    // Use FormData only if there's an attachment
     if (attachmentFile) {
+      const formData = new FormData();
+      Object.keys(payload).forEach(key => {
+        if (Array.isArray(payload[key])) {
+          formData.append(key, JSON.stringify(payload[key]));
+        } else {
+          formData.append(key, payload[key]);
+        }
+      });
       formData.append('attachment', attachmentFile);
-    }
-
-    if (announcement) {
-      updateMutation.mutate({ id: announcement.id, data: formData });
+      
+      if (announcement) {
+        updateMutation.mutate({ id: announcement.id, data: formData });
+      } else {
+        createMutation.mutate(formData);
+      }
     } else {
-      createMutation.mutate(formData);
+      // Send as JSON if no attachment
+      if (announcement) {
+        updateMutation.mutate({ id: announcement.id, data: payload });
+      } else {
+        createMutation.mutate(payload);
+      }
     }
   };
 
@@ -215,11 +241,14 @@ export function AnnouncementForm({
   };
 
   const targetTypeOptions = [
-    { value: 'all', label: 'All Users' },
-    { value: 'class', label: 'Specific Classes' },
-    { value: 'section', label: 'Specific Sections' },
-    { value: 'role', label: 'Specific Roles' },
-  ];
+  { value: 'ALL', label: 'Everyone' },
+  { value: 'STUDENT', label: 'All Students' },
+  { value: 'TEACHER', label: 'All Teachers' },
+  { value: 'PARENT', label: 'All Parents' },
+  { value: 'ADMIN', label: 'Admin Only' },
+  { value: 'CLASS', label: 'Specific Classes' },
+  { value: 'SECTION', label: 'Specific Sections' },
+];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -287,10 +316,13 @@ export function AnnouncementForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="academic">Academic</SelectItem>
-                        <SelectItem value="emergency">Emergency</SelectItem>
-                        <SelectItem value="event">Event</SelectItem>
+                        <SelectItem value="GENERAL">General</SelectItem>
+                        <SelectItem value="ACADEMIC">Academic</SelectItem>
+                        <SelectItem value="SPORTS">Sports</SelectItem>
+                        <SelectItem value="EVENTS">Events</SelectItem>
+                        <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                        <SelectItem value="EXAM">Examination</SelectItem>
+                        <SelectItem value="HOLIDAY">Holiday</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -311,10 +343,10 @@ export function AnnouncementForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="LOW">Low</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="HIGH">High</SelectItem>
+                        <SelectItem value="URGENT">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -352,7 +384,7 @@ export function AnnouncementForm({
               )}
             />
 
-            {form.watch('targetType') !== 'all' && (
+            {form.watch('targetType') !== 'ALL' && (
               <FormField
                 control={form.control}
                 name="targetIds"
@@ -361,7 +393,7 @@ export function AnnouncementForm({
                     <FormLabel>Specific Targets *</FormLabel>
                     <FormControl>
                       <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
-                        {form.watch('targetType') === 'class' && classes.map((cls) => (
+                        {form.watch('targetType') === 'CLASS' && classes.map((cls) => (
                           <div key={cls.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`class-${cls.id}`}
@@ -381,7 +413,7 @@ export function AnnouncementForm({
                           </div>
                         ))}
                         
-                        {form.watch('targetType') === 'section' && sections.map((section) => (
+                        {form.watch('targetType') === 'SECTION' && sections.map((section) => (
                           <div key={section.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`section-${section.id}`}
@@ -397,26 +429,6 @@ export function AnnouncementForm({
                             />
                             <label htmlFor={`section-${section.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                               {section.name}
-                            </label>
-                          </div>
-                        ))}
-                        
-                        {form.watch('targetType') === 'role' && roleOptions.map((role) => (
-                          <div key={role.value} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`role-${role.value}`}
-                              checked={field.value?.includes(role.value) || false}
-                              onCheckedChange={(checked) => {
-                                const currentValues = field.value || [];
-                                if (checked) {
-                                  field.onChange([...currentValues, role.value]);
-                                } else {
-                                  field.onChange(currentValues.filter(id => id !== role.value));
-                                }
-                              }}
-                            />
-                            <label htmlFor={`role-${role.value}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                              {role.label}
                             </label>
                           </div>
                         ))}

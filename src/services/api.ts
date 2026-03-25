@@ -284,8 +284,12 @@ export const examApi = {
 export const announcementApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/announcements", { params }),
   getById: (id: string) => apiClient.get(`/announcements/${id}`),
-  create: (data: Record<string, unknown>) => apiClient.post("/announcements", data),
-  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/announcements/${id}`, data),
+  create: (data: FormData | Record<string, unknown>) => apiClient.post("/announcements", data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+  }),
+  update: (id: string, data: FormData | Record<string, unknown>) => apiClient.put(`/announcements/${id}`, data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+  }),
   delete: (id: string) => apiClient.delete(`/announcements/${id}`),
   publish: (id: string) => apiClient.post(`/announcements/${id}/publish`),
   unpublish: (id: string) => apiClient.post(`/announcements/${id}/unpublish`),
