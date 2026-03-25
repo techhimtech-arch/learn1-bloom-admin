@@ -28,14 +28,16 @@ import { format } from 'date-fns';
 interface Announcement {
   id: string;
   title: string;
-  message: string;
-  type: 'general' | 'academic' | 'emergency' | 'event';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  targetType: 'all' | 'class' | 'section' | 'role';
+  content?: string;
+  message?: string;
+  type: string;
+  priority: string;
+  targetAudience?: string[];
+  targetType?: string;
   targetIds?: string[];
-  publishDate: string;
-  expiryDate: string;
-  status: 'draft' | 'published';
+  publishDate?: string;
+  expiryDate?: string;
+  status?: 'draft' | 'published';
   attachmentUrl?: string;
   createdAt: string;
   updatedAt: string;
@@ -239,8 +241,11 @@ export default function AnnouncementManagement() {
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="general">General</SelectItem>
                 <SelectItem value="academic">Academic</SelectItem>
+                <SelectItem value="sports">Sports</SelectItem>
+                <SelectItem value="events">Events</SelectItem>
                 <SelectItem value="emergency">Emergency</SelectItem>
-                <SelectItem value="event">Event</SelectItem>
+                <SelectItem value="examination">Examination</SelectItem>
+                <SelectItem value="holiday">Holiday</SelectItem>
               </SelectContent>
             </Select>
 
@@ -354,7 +359,7 @@ export default function AnnouncementManagement() {
                         <div>
                           <div className="font-medium">{announcement.title}</div>
                           <div className="text-sm text-muted-foreground line-clamp-2">
-                            {announcement.message}
+                            {announcement.content || announcement.message}
                           </div>
                         </div>
                       </TableCell>
@@ -370,10 +375,12 @@ export default function AnnouncementManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {announcement.targetType === 'all' ? (
+                          {announcement.targetAudience?.includes('all') || announcement.targetType === 'all' ? (
                             <span className="font-medium">All Users</span>
                           ) : (
-                            <span>{announcement.targetIds?.length || 0} target(s)</span>
+                            <span className="capitalize">
+                              {announcement.targetAudience?.join(', ') || `${announcement.targetIds?.length || 0} target(s)`}
+                            </span>
                           )}
                         </div>
                       </TableCell>
