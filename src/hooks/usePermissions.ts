@@ -129,7 +129,10 @@ export function usePermissions() {
       calendar_event: 'create_calendar_event',
       user: 'manage_users',
       admission: 'manage_admissions',
-      class: 'manage_classes'
+      class: 'manage_classes',
+      exam: 'create_exam_paper',
+      announcement: 'create_announcement',
+      assignment: 'create_assignment'
     };
     return hasPermission(permissionMap[resource] as Permission);
   };
@@ -142,7 +145,12 @@ export function usePermissions() {
       user: 'manage_users',
       admission: 'manage_admissions',
       class: 'manage_classes',
-      attendance: 'manage_attendance'
+      attendance: 'manage_attendance',
+      exam: 'edit_exam_paper',
+      announcement: 'edit_announcement',
+      assignment: 'edit_assignment',
+      fee_structure: 'edit_fee_structure',
+      certificate: 'generate_certificate'
     };
     return hasPermission(permissionMap[resource] as Permission);
   };
@@ -152,7 +160,13 @@ export function usePermissions() {
       subject: 'delete_subject',
       timetable: 'delete_timetable',
       calendar_event: 'delete_calendar_event',
-      user: 'manage_users'
+      user: 'manage_users',
+      exam: 'delete_exam_paper',
+      announcement: 'delete_announcement',
+      assignment: 'delete_assignment',
+      fee_structure: 'delete_fee_structure',
+      certificate: 'delete_certificate',
+      marks: 'delete_marks'
     };
     return hasPermission(permissionMap[resource] as Permission);
   };

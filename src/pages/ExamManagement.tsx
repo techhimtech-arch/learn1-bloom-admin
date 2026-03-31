@@ -84,6 +84,8 @@ export default function ExamManagement() {
     },
   });
 
+  const exams = Array.isArray(examsData) ? examsData : examsData?.data || [];
+
   const deleteMutation = useMutation({
     mutationFn: examApi.delete,
     onSuccess: () => {
@@ -162,7 +164,7 @@ export default function ExamManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Exams ({examsData?.data?.length || 0})
+            Exams ({exams.length || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -174,7 +176,7 @@ export default function ExamManagement() {
                 </div>
               ))}
             </div>
-          ) : examsData?.data?.length === 0 ? (
+          ) : exams.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold">No exams found</h3>
@@ -209,7 +211,7 @@ export default function ExamManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {examsData?.data?.map((exam: Exam) => (
+                  {exams.map((exam: Exam) => (
                     <TableRow key={exam.id}>
                       <TableCell>
                         <div className="font-medium">{exam.name}</div>
