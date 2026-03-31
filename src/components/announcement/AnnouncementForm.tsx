@@ -24,9 +24,18 @@ import { Loader2, Upload, X } from 'lucide-react';
 const announcementSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
-  type: z.enum(['general', 'academic', 'sports', 'events', 'emergency', 'examination', 'holiday']),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
-  targetAudience: z.array(z.string()).min(1, 'Target audience is required'),
+  type: z.string().transform(val => val.toLowerCase()).refine((val) => ['general', 'academic', 'sports', 'events', 'emergency', 'examination', 'holiday'].includes(val), {
+    message: 'Invalid type. Must be one of: general, academic, sports, events, emergency, examination, holiday'
+  }),
+  priority: z.string().transform(val => val.toLowerCase()).refine((val) => ['low', 'medium', 'high', 'urgent'].includes(val), {
+    message: 'Invalid priority. Must be one of: low, medium, high, urgent'
+  }),
+  targetAudience: z.union([
+    z.array(z.string()),
+    z.string().transform(val => [val])
+  ]).refine((val) => Array.isArray(val) && val.length > 0, {
+    message: 'Target audience is required'
+  }),
   targetClasses: z.array(z.object({ classId: z.string(), className: z.string() })).optional(),
   targetSections: z.array(z.object({ sectionId: z.string(), sectionName: z.string() })).optional(),
   publishDate: z.string().min(1, 'Publish date is required'),
@@ -90,12 +99,13 @@ export function AnnouncementForm({
   onSuccess,
 }: AnnouncementFormProps) {
   const [open, setOpen] = useState(true);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
 
   const form = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
       title: '',
-      content: '',
       content: '',
       type: 'general',
       priority: 'medium',
@@ -128,6 +138,29 @@ export function AnnouncementForm({
       }
     }
   }, [announcement, form]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setAttachmentFile(file);
+      
+      // Create preview for images
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAttachmentPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setAttachmentPreview(null);
+      }
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachmentFile(null);
+    setAttachmentPreview(null);
+  };
 
   const createMutation = useMutation({
     mutationFn: (data: AnnouncementFormData) => announcementApi.create(data as unknown as Record<string, unknown>),
@@ -208,13 +241,13 @@ export function AnnouncementForm({
   };
 
   const targetTypeOptions = [
-  { value: 'ALL', label: 'Everyone' },
-  { value: 'STUDENT', label: 'All Students' },
-  { value: 'TEACHER', label: 'All Teachers' },
-  { value: 'PARENT', label: 'All Parents' },
-  { value: 'ADMIN', label: 'Admin Only' },
-  { value: 'CLASS', label: 'Specific Classes' },
-  { value: 'SECTION', label: 'Specific Sections' },
+  { value: 'all', label: 'Everyone' },
+  { value: 'student', label: 'All Students' },
+  { value: 'teacher', label: 'All Teachers' },
+  { value: 'parent', label: 'All Parents' },
+  { value: 'admin', label: 'Admin Only' },
+  { value: 'class', label: 'Specific Classes' },
+  { value: 'section', label: 'Specific Sections' },
 ];
 
   return (
@@ -328,7 +361,7 @@ export function AnnouncementForm({
                     field.onChange(value);
                     // Clear target IDs when targetType changes
                     form.setValue('targetIds', []);
-                  }} defaultValue={field.value}>
+                  }} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select target audience" />
@@ -347,7 +380,7 @@ export function AnnouncementForm({
               )}
             />
 
-            {form.watch('targetType') !== 'ALL' && (
+            {form.watch('targetType') !== 'all' && (
               <FormField
                 control={form.control}
                 name="targetIds"
@@ -356,7 +389,7 @@ export function AnnouncementForm({
                     <FormLabel>Specific Targets *</FormLabel>
                     <FormControl>
                       <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
-                        {form.watch('targetType') === 'CLASS' && classes.map((cls) => (
+                        {form.watch('targetType') === 'class' && classes.map((cls) => (
                           <div key={cls.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`class-${cls.id}`}
@@ -376,7 +409,7 @@ export function AnnouncementForm({
                           </div>
                         ))}
                         
-                        {form.watch('targetType') === 'SECTION' && sections.map((section) => (
+                        {form.watch('targetType') === 'section' && sections.map((section) => (
                           <div key={section.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`section-${section.id}`}
