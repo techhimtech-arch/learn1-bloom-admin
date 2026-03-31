@@ -385,7 +385,7 @@ export default function ResultDashboard() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pass">Pass</SelectItem>
                 <SelectItem value="fail">Fail</SelectItem>
               </SelectContent>
@@ -396,7 +396,7 @@ export default function ResultDashboard() {
                 <SelectValue placeholder="Grade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Grades</SelectItem>
+                  <SelectItem value="all">All Grades</SelectItem>
                 <SelectItem value="A+">A+</SelectItem>
                 <SelectItem value="A">A</SelectItem>
                 <SelectItem value="B+">B+</SelectItem>

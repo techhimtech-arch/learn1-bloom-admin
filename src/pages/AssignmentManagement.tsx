@@ -250,7 +250,7 @@ export default function AssignmentManagement() {
                   <SelectValue placeholder="Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="all">All Classes</SelectItem>
                   {classes.map((cls: any) => (
                     <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                       {cls.name}
@@ -266,7 +266,7 @@ export default function AssignmentManagement() {
                   <SelectValue placeholder="Section" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sections</SelectItem>
+                  <SelectItem value="all">All Sections</SelectItem>
                   {sections.map((section: any) => (
                     <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
                       {section.name}
@@ -281,7 +281,7 @@ export default function AssignmentManagement() {
                 <SelectValue placeholder="Subject" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Subjects</SelectItem>
+                <SelectItem value="all">All Subjects</SelectItem>
                 {subjects.map((subject: any) => (
                   <SelectItem key={subject.id} value={subject.id}>
                     {subject.name}
@@ -295,7 +295,7 @@ export default function AssignmentManagement() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="published">Published</SelectItem>
                 <SelectItem value="closed">Closed</SelectItem>

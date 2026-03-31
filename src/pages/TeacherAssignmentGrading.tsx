@@ -345,7 +345,7 @@ export default function TeacherAssignmentGrading() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="submitted">Submitted</SelectItem>
                 <SelectItem value="graded">Graded</SelectItem>
               </SelectContent>

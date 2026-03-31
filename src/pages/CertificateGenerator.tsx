@@ -215,7 +215,7 @@ export default function CertificateGenerator() {
                 <SelectValue placeholder="Certificate Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 {certificateTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
@@ -229,7 +229,7 @@ export default function CertificateGenerator() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="generated">Generated</SelectItem>
                 <SelectItem value="downloaded">Downloaded</SelectItem>
                 <SelectItem value="printed">Printed</SelectItem>
@@ -241,7 +241,7 @@ export default function CertificateGenerator() {
                 <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Classes</SelectItem>
+                <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((cls: any) => (
                   <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                     {cls.name}

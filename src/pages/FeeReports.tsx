@@ -244,7 +244,7 @@ export default function FeeReports() {
                 <SelectValue placeholder="Academic Year" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Years</SelectItem>
+                <SelectItem value="all">All Years</SelectItem>
                 {academicYears.map((year: any) => (
                   <SelectItem key={year.id} value={year.id}>
                     {year.name}
@@ -260,7 +260,7 @@ export default function FeeReports() {
                 <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Classes</SelectItem>
+                <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((cls: any) => (
                   <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                     {cls.name}
@@ -278,7 +278,7 @@ export default function FeeReports() {
                 <SelectValue placeholder="Section" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sections</SelectItem>
+                <SelectItem value="all">All Sections</SelectItem>
                 {sections
                   .filter((section: any) => !filters.classId || section.classId === filters.classId)
                   .map((section: any) => (
@@ -294,7 +294,7 @@ export default function FeeReports() {
                 <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="partial">Partial</SelectItem>
                 <SelectItem value="unpaid">Unpaid</SelectItem>

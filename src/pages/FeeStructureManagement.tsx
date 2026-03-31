@@ -175,7 +175,7 @@ export default function FeeStructureManagement() {
                 <SelectValue placeholder="Frequency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Frequencies</SelectItem>
+                <SelectItem value="all">All Frequencies</SelectItem>
                 <SelectItem value="monthly">Monthly</SelectItem>
                 <SelectItem value="quarterly">Quarterly</SelectItem>
                 <SelectItem value="half-yearly">Half-Yearly</SelectItem>
@@ -189,7 +189,7 @@ export default function FeeStructureManagement() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="true">Mandatory</SelectItem>
                 <SelectItem value="false">Optional</SelectItem>
               </SelectContent>
@@ -200,8 +200,7 @@ export default function FeeStructureManagement() {
                 <SelectValue placeholder="Applicable To" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
-                <SelectItem value="all">All Students</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="class">Specific Classes</SelectItem>
                 <SelectItem value="section">Specific Sections</SelectItem>
               </SelectContent>
