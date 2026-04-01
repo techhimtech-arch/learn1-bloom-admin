@@ -72,7 +72,9 @@ export const StudentAnnouncements = () => {
         }
         
         const response = await announcementApi.getAll(params);
-        return response.data || [];
+        // Handle nested data structure
+        const data = response.data;
+        return (Array.isArray(data) ? data : data?.data || []) as Announcement[];
       } catch (error) {
         console.error('Failed to fetch announcements:', error);
         return [];
@@ -82,7 +84,9 @@ export const StudentAnnouncements = () => {
   });
 
   useEffect(() => {
-    let filtered = announcements;
+    // Ensure announcements is always an array
+    const announcementsArray = Array.isArray(announcements) ? announcements : [];
+    let filtered = announcementsArray;
 
     if (filter !== 'all') {
       filtered = filtered.filter(a => {

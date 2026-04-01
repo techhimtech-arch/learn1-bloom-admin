@@ -77,7 +77,9 @@ export const StudentParentAnnouncements = () => {
         }
 
         const response = await announcementApi.getAll(Object.fromEntries(params));
-        return response.data || [];
+        // Handle nested data structure
+        const data = response.data;
+        return (Array.isArray(data) ? data : data?.data || []) as Announcement[];
       } catch (error) {
         console.error('Failed to fetch announcements:', error);
         return [];
@@ -88,7 +90,9 @@ export const StudentParentAnnouncements = () => {
 
   // Filter announcements based on search and type
   useEffect(() => {
-    let filtered = announcements;
+    // Ensure announcements is always an array
+    const announcementsArray = Array.isArray(announcements) ? announcements : [];
+    let filtered = announcementsArray;
 
     if (filter !== 'all') {
       filtered = filtered.filter((a: Announcement) => a.type?.toLowerCase() === filter.toLowerCase());
@@ -106,8 +110,8 @@ export const StudentParentAnnouncements = () => {
     setFilteredAnnouncements(filtered);
   }, [announcements, filter, searchTerm]);
 
-  const unreadCount = announcements.filter((a: Announcement) => a.readStatus === 'unread').length;
-  const highPriorityCount = announcements.filter((a: Announcement) => a.priority?.toLowerCase() === 'high').length;
+  const unreadCount = (Array.isArray(announcements) ? announcements : []).filter((a: Announcement) => a.readStatus === 'unread').length;
+  const highPriorityCount = (Array.isArray(announcements) ? announcements : []).filter((a: Announcement) => a.priority?.toLowerCase() === 'high').length;
 
   if (isLoading) {
     return (
