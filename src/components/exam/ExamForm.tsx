@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { examApi, academicYearApi, classApi, sectionApi } from '@/services/api';
@@ -24,11 +25,15 @@ const examSchema = z.object({
   examType: z.string().min(1, 'Exam type is required'),
   classId: z.string().min(1, 'Class is required'),
   sectionId: z.string().min(1, 'Section is required'),
-  academicYearId: z.string().min(1, 'Academic year is required'),
+  sessionId: z.string().min(1, 'Session is required'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
   status: z.enum(['draft', 'scheduled', 'completed', 'published']).default('draft'),
-}).refine((data) => new Date(data.startDate) <= new Date(data.endDate), {
+  description: z.string().optional(),
+  instructions: z.string().optional(),
+  passingPercentage: z.number().min(0).max(100).optional(),
+  duration: z.number().min(1).optional(),
+}).refine((data) => new Date(data.startDate) < new Date(data.endDate), {
   message: 'End date must be after start date',
   path: ['endDate'],
 });
@@ -41,10 +46,14 @@ interface Exam {
   examType: string;
   classId: string;
   sectionId: string;
-  academicYearId: string;
+  sessionId: string;
   startDate: string;
   endDate: string;
   status: 'draft' | 'scheduled' | 'completed' | 'published';
+  description?: string;
+  instructions?: string;
+  passingPercentage?: number;
+  duration?: number;
 }
 
 interface ExamFormProps {
@@ -54,12 +63,13 @@ interface ExamFormProps {
 }
 
 const examTypes = [
-  { value: 'midterm', label: 'Midterm Exam' },
-  { value: 'final', label: 'Final Exam' },
-  { value: 'quiz', label: 'Quiz' },
-  { value: 'practical', label: 'Practical Exam' },
-  { value: 'assignment', label: 'Assignment' },
-  { value: 'test', label: 'Unit Test' },
+  { value: 'UNIT_TEST', label: 'Unit Test' },
+  { value: 'MID_TERM', label: 'Midterm Exam' },
+  { value: 'FINAL_TERM', label: 'Final Exam' },
+  { value: 'QUIZ', label: 'Quiz' },
+  { value: 'PRACTICAL', label: 'Practical Exam' },
+  { value: 'VIVA', label: 'Viva Exam' },
+  { value: 'ASSIGNMENT', label: 'Assignment' },
 ];
 
 const statusOptions = [
@@ -79,10 +89,14 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       examType: '',
       classId: '',
       sectionId: '',
-      academicYearId: '',
+      sessionId: '',
       startDate: '',
       endDate: '',
       status: 'draft',
+      description: '',
+      instructions: '',
+      passingPercentage: 50,
+      duration: 60,
     },
   });
 
@@ -128,16 +142,20 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
         examType: exam.examType,
         classId: exam.classId,
         sectionId: exam.sectionId,
-        academicYearId: exam.academicYearId,
+        sessionId: exam.sessionId,
         startDate: exam.startDate,
         endDate: exam.endDate,
         status: exam.status,
+        description: exam.description,
+        instructions: exam.instructions,
+        passingPercentage: exam.passingPercentage || 50,
+        duration: exam.duration || 60,
       });
     } else {
-      // Set default academic year
+      // Set default session
       const currentYear = academicYearsData?.data?.find((year: any) => year.isActive);
       if (currentYear) {
-        form.setValue('academicYearId', currentYear.id);
+        form.setValue('sessionId', currentYear.id || currentYear._id);
       }
     }
   }, [exam, form, academicYearsData]);
@@ -173,10 +191,26 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   });
 
   const onSubmit = (data: ExamFormData) => {
+    // Format dates to ISO8601 and ensure endDate > startDate
+    const startDateTime = new Date(data.startDate);
+    const endDateTime = new Date(data.endDate);
+    
+    if (endDateTime <= startDateTime) {
+      toast.error('End date must be after start date');
+      return;
+    }
+
+    const payload = {
+      ...data,
+      sessionId: data.sessionId,
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+    };
+
     if (exam) {
-      updateMutation.mutate({ id: exam.id, data });
+      updateMutation.mutate({ id: exam.id, data: payload });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(payload);
     }
   };
 
@@ -277,14 +311,14 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="academicYearId"
+                name="sessionId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Academic Year *</FormLabel>
+                    <FormLabel>Session *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select academic year" />
+                          <SelectValue placeholder="Select session" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -386,6 +420,85 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                 )}
               />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="passingPercentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Passing Percentage (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="e.g., 50"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration (minutes)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="e.g., 60"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="instructions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instructions</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Exam instructions (optional)" 
+                      rows={3}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Exam description (optional)" 
+                      rows={3}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={handleClose}>

@@ -26,7 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { showApiSuccess, showApiError, getApiFieldErrors } from '@/lib/api-toast';
-import { Plus, Edit, Trash2, Shield, Search, ChevronLeft, ChevronRight, Users, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Search, ChevronLeft, ChevronRight, Users, Loader2, Key } from 'lucide-react';
 import { userApi } from '@/services/api';
 
 interface UserData {
@@ -91,6 +91,11 @@ const UserManagement = () => {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<UserData | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<UserData | null>(null);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [resetPasswordErrors, setResetPasswordErrors] = useState<Record<string, string>>({});
 
   // Form state
   const [form, setForm] = useState({
@@ -238,6 +243,60 @@ const UserManagement = () => {
   const getRoleCount = (role: string) => {
     if (!stats) return 0;
     return stats.roleBreakdown.find(r => r.role === role)?.count || 0;
+  };
+
+  // Password Reset Handlers
+  const validateResetPassword = () => {
+    const errors: Record<string, string> = {};
+    const pwd = resetPasswordForm.newPassword;
+    
+    if (!pwd) {
+      errors.newPassword = 'Password is required';
+    } else if (pwd.length < 6) {
+      errors.newPassword = 'Password must be at least 6 characters';
+    } else if (pwd.length > 128) {
+      errors.newPassword = 'Password must be at most 128 characters';
+    } else if (!/[A-Z]/.test(pwd)) {
+      errors.newPassword = 'Password must contain at least one uppercase letter';
+    } else if (!/[a-z]/.test(pwd)) {
+      errors.newPassword = 'Password must contain at least one lowercase letter';
+    } else if (!/\d/.test(pwd)) {
+      errors.newPassword = 'Password must contain at least one number';
+    }
+    
+    if (!resetPasswordForm.confirmPassword) {
+      errors.confirmPassword = 'Please confirm the password';
+    } else if (resetPasswordForm.confirmPassword !== pwd) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    setResetPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleResetPassword = async () => {
+    if (!validateResetPassword() || !resetPasswordTarget) return;
+    
+    setResettingPassword(true);
+    try {
+      const res = await userApi.adminResetPassword(resetPasswordTarget._id, resetPasswordForm.newPassword);
+      showApiSuccess(res, 'Password reset successfully. Please inform the user of their new password.');
+      setResetPasswordDialogOpen(false);
+      setResetPasswordTarget(null);
+      setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+      setResetPasswordErrors({});
+    } catch (err: any) {
+      showApiError(err, 'Failed to reset password');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
+  const openResetPasswordDialog = (user: UserData) => {
+    setResetPasswordTarget(user);
+    setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+    setResetPasswordErrors({});
+    setResetPasswordDialogOpen(true);
   };
 
   const selectClasses =
@@ -446,6 +505,14 @@ const UserManagement = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => openResetPasswordDialog(user)}
+                        title="Reset User Password"
+                      >
+                        <Key className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => openEdit(user)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -492,6 +559,96 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={(open) => {
+        setResetPasswordDialogOpen(open);
+        if (!open) {
+          setResetPasswordTarget(null);
+          setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+          setResetPasswordErrors({});
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset User Password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            {resetPasswordTarget && (
+              <div className="bg-muted/50 p-3 rounded-md border border-border">
+                <p className="text-sm text-muted-foreground">User:</p>
+                <p className="font-semibold text-foreground">
+                  {resetPasswordTarget.firstName} {resetPasswordTarget.lastName}
+                </p>
+                <p className="text-sm text-muted-foreground">{resetPasswordTarget.email}</p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">
+                New Password <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={resetPasswordForm.newPassword}
+                onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, newPassword: e.target.value })}
+                placeholder="Min 6 chars: uppercase, lowercase, number"
+                maxLength={128}
+              />
+              {resetPasswordErrors.newPassword && (
+                <p className="text-xs text-destructive">{resetPasswordErrors.newPassword}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                • At least 6 characters<br/>
+                • One uppercase letter (A-Z)<br/>
+                • One lowercase letter (a-z)<br/>
+                • One number (0-9)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">
+                Confirm Password <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={resetPasswordForm.confirmPassword}
+                onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, confirmPassword: e.target.value })}
+                placeholder="Re-enter the password"
+                maxLength={128}
+              />
+              {resetPasswordErrors.confirmPassword && (
+                <p className="text-xs text-destructive">{resetPasswordErrors.confirmPassword}</p>
+              )}
+            </div>
+
+            <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md border border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-900 dark:text-amber-200">
+                ⚠️ Make sure to inform the user of their new password through a secure channel (email, SMS, or in-person).
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setResetPasswordDialogOpen(false)}
+              disabled={resettingPassword}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleResetPassword}
+              disabled={resettingPassword}
+            >
+              {resettingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reset Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

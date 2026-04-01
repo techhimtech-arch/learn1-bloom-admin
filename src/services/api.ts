@@ -145,6 +145,8 @@ export const userApi = {
     });
   },
   delete: (id: string) => apiClient.delete(`/users/${id}`),
+  adminResetPassword: (userId: string, newPassword: string) =>
+    apiClient.patch(`/users/${userId}/reset-password`, { newPassword }),
 };
 
 // ── Academic Year API ─────────────────────────────────────
