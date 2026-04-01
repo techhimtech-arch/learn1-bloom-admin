@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,17 +8,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bell, Paperclip, Search, Trash2, AlertTriangle, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { announcementApi } from '@/services/api';
 
 interface Announcement {
+  id?: string;
   _id: string;
   title: string;
-  content: string;
-  type: 'school' | 'class' | 'subject' | 'exam' | 'event';
-  priority: 'high' | 'medium' | 'low';
-  postedBy: string;
-  postedDate: string;
-  readStatus: 'read' | 'unread';
+  content?: string;
+  message?: string;
+  type?: 'school' | 'class' | 'subject' | 'exam' | 'event' | string;
+  priority?: 'high' | 'medium' | 'low' | string;
+  postedBy?: string;
+  createdBy?: { name: string };
+  postedDate?: string;
+  createdAt?: string;
+  readStatus?: 'read' | 'unread' | string;
   attachment?: string;
+  attachmentUrl?: string;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -41,82 +49,70 @@ const getTypeIcon = (type: string) => {
 };
 
 export const StudentAnnouncements = () => {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const { user } = useAuth();
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    // Simulate API call
-    setAnnouncements([
-      {
-        _id: '1',
-        title: 'School Annual Day Celebration',
-        content: 'The annual day celebration will be held on April 20, 2026. All students are expected to participate. Rehearsals will start from next week.',
-        type: 'event',
-        priority: 'high',
-        postedBy: 'Principal',
-        postedDate: '2026-04-01',
-        readStatus: 'unread',
-      },
-      {
-        _id: '2',
-        title: 'Mid-Term Exam Schedule Released',
-        content: 'The mid-term exam schedule for all classes has been released. Please check the notice board for details.',
-        type: 'exam',
-        priority: 'high',
-        postedBy: 'Academic Department',
-        postedDate: '2026-04-02',
-        readStatus: 'unread',
-      },
-      {
-        _id: '3',
-        title: 'Class 10 Mathematics Doubt Session',
-        content: 'A doubt clearing session will be conducted on Saturday at 10:00 AM. Bring your questions related to Chapter 5.',
-        type: 'class',
-        priority: 'medium',
-        postedBy: 'Mr. Sharma',
-        postedDate: '2026-03-28',
-        readStatus: 'read',
-      },
-      {
-        _id: '4',
-        title: 'Holiday Notice - Holi Celebration',
-        content: 'School will remain closed from March 25 to March 27 for Holi celebration.',
-        type: 'school',
-        priority: 'medium',
-        postedBy: 'Admin',
-        postedDate: '2026-03-20',
-        readStatus: 'read',
-      },
-    ]);
-    setLoading(false);
-  }, []);
+  // Fetch announcements relevant to student/parent
+  const { data: announcements = [], isLoading } = useQuery({
+    queryKey: ['announcements-portal', user?.id],
+    queryFn: async () => {
+      try {
+        const params = {
+          status: 'published',
+          limit: 50,
+        };
+        
+        // Add role-based filtering if backend supports it
+        if (user?.role === 'student') {
+          (params as any).targetAudience = 'student';
+        } else if (user?.role === 'parent') {
+          (params as any).targetAudience = 'parent';
+        }
+        
+        const response = await announcementApi.getAll(params);
+        return response.data || [];
+      } catch (error) {
+        console.error('Failed to fetch announcements:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.id,
+  });
 
   useEffect(() => {
     let filtered = announcements;
 
     if (filter !== 'all') {
-      filtered = filtered.filter(a =>
-        filter === 'unread' ? a.readStatus === 'unread' : a.type === filter
-      );
+      filtered = filtered.filter(a => {
+        const aType = (a.type || '').toLowerCase();
+        return filter === 'unread' 
+          ? a.readStatus?.toLowerCase() === 'unread' 
+          : aType === filter.toLowerCase();
+      });
     }
 
     if (searchTerm) {
       filtered = filtered.filter(a =>
-        a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.content.toLowerCase().includes(searchTerm.toLowerCase())
+        (a.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (a.content?.toLowerCase() || a.message?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
     }
 
     setFilteredAnnouncements(filtered);
   }, [announcements, filter, searchTerm]);
 
-  const unreadCount = announcements.filter(a => a.readStatus === 'unread').length;
+  const unreadCount = announcements.filter(a => a.readStatus?.toLowerCase() === 'unread').length;
 
-  if (loading) {
-    return <Skeleton className="h-96" />;
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <Skeleton key={i} className="h-32" />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -162,33 +158,40 @@ export const StudentAnnouncements = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredAnnouncements.map(announcement => (
+          filteredAnnouncements.map(announcement => {
+            const postedBy = announcement.createdBy?.name || announcement.postedBy || 'Admin';
+            const date = announcement.createdAt || announcement.postedDate || new Date().toISOString();
+            const priority = (announcement.priority || 'medium').toLowerCase();
+            const type = (announcement.type || 'general').toLowerCase();
+            const isUnread = announcement.readStatus?.toLowerCase() === 'unread';
+            
+            return (
             <Card
               key={announcement._id}
               className={`hover:shadow-md transition-shadow ${
-                announcement.readStatus === 'unread' ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''
+                isUnread ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''
               }`}
             >
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 flex-1">
-                      <span className="text-2xl">{getTypeIcon(announcement.type)}</span>
+                      <span className="text-2xl">{getTypeIcon(type)}</span>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-base">{announcement.title}</h3>
-                          {announcement.readStatus === 'unread' && (
+                          {isUnread && (
                             <Badge className="bg-blue-500">New</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {announcement.content}
+                          {announcement.content || announcement.message || 'No description provided'}
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Badge className={`${getPriorityColor(announcement.priority)}`}>
-                        {announcement.priority}
+                      <Badge className={`${getPriorityColor(priority)}`}>
+                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
                       </Badge>
                     </div>
                   </div>
@@ -196,13 +199,13 @@ export const StudentAnnouncements = () => {
                   <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                     <div className="space-y-1">
                       <p>
-                        <strong>By:</strong> {announcement.postedBy}
+                        <strong>By:</strong> {postedBy}
                       </p>
                       <p>
-                        <strong>Date:</strong> {new Date(announcement.postedDate).toLocaleDateString()}
+                        <strong>Date:</strong> {new Date(date).toLocaleDateString()}
                       </p>
                     </div>
-                    {announcement.attachment && (
+                    {(announcement.attachment || announcement.attachmentUrl) && (
                       <Button size="sm" variant="outline">
                         <Paperclip className="h-4 w-4 mr-1" />
                         Download
@@ -210,7 +213,7 @@ export const StudentAnnouncements = () => {
                     )}
                   </div>
 
-                  {announcement.priority === 'high' && (
+                  {priority === 'high' && (
                     <Alert className="bg-orange-50 border-orange-200">
                       <AlertTriangle className="h-4 w-4 text-orange-600" />
                       <AlertDescription className="text-orange-800 text-xs">
@@ -221,7 +224,8 @@ export const StudentAnnouncements = () => {
                 </div>
               </CardContent>
             </Card>
-          ))
+          );
+          })
         )}
       </div>
     </div>

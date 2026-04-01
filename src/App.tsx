@@ -31,7 +31,7 @@ import MarksEntry from "@/pages/MarksEntry";
 import ResultDashboard from "@/pages/ResultDashboard";
 import StudentResults from "@/pages/StudentResults";
 import TeacherExamDashboard from "@/pages/TeacherExamDashboard";
-import AnnouncementManagement from "@/pages/AnnouncementManagement";
+import AnnouncementsPage from "@/pages/Announcements";
 import AssignmentManagement from "@/pages/AssignmentManagement";
 import StudentAssignmentSubmission from "@/pages/StudentAssignmentSubmission";
 import TeacherAssignmentGrading from "@/pages/TeacherAssignmentGrading";
@@ -98,7 +98,7 @@ const App = () => (
               <Route path="/exams/:examId/results" element={<ResultDashboard />} />
               
               {/* Announcement Routes */}
-              <Route path="/announcements" element={<AnnouncementManagement />} />
+              <Route path="/announcements" element={<AnnouncementsPage />} />
               
               {/* Assignment Routes */}
               <Route path="/assignments" element={<AssignmentManagement />} />
