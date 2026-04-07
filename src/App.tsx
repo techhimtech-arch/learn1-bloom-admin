@@ -41,6 +41,12 @@ import FeeReports from "@/pages/FeeReports";
 import ParentDashboard from "@/pages/ParentDashboard";
 import ParentStudentDetail from "@/pages/ParentStudentDetail";
 import CertificateGenerator from "@/pages/CertificateGenerator";
+import StudentAttendance from "@/pages/StudentAttendance";
+import StudentStudyMaterials from "@/pages/StudentStudyMaterials";
+import StudentCertificates from "@/pages/StudentCertificates";
+import StudentAssignmentsView from "@/pages/StudentAssignmentsView";
+import StudentAnnouncementsView from "@/pages/StudentAnnouncementsView";
+import StudentTimetableView from "@/pages/StudentTimetableView";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,7 +124,18 @@ const App = () => (
               {/* Certificate Routes */}
               <Route path="/certificates" element={<CertificateGenerator />} />
               
-              {/* Student Routes */}
+              {/* Student Portal Routes */}
+              <Route path="/student/dashboard" element={<Dashboard />} />
+              <Route path="/student/attendance" element={<StudentAttendance />} />
+              <Route path="/student/results" element={<StudentResults />} />
+              <Route path="/student/fees" element={<StudentFeeManagement />} />
+              <Route path="/student/materials" element={<StudentStudyMaterials />} />
+              <Route path="/student/assignments" element={<StudentAssignmentsView />} />
+              <Route path="/student/announcements" element={<StudentAnnouncementsView />} />
+              <Route path="/student/timetable" element={<StudentTimetableView />} />
+              <Route path="/student/certificates" element={<StudentCertificates />} />
+              
+              {/* Student Results Routes */}
               <Route path="/results" element={<StudentResults />} />
             </Route>
 

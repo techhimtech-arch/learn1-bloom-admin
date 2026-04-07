@@ -50,6 +50,8 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   ],
   student: [
     '/', '/attendance', '/profile', '/sessions', '/results', '/announcements', '/assignments',
+    '/student/dashboard', '/student/attendance', '/student/results', '/student/fees',
+    '/student/materials', '/student/assignments', '/student/announcements', '/student/timetable', '/student/certificates',
   ],
 };
 
@@ -70,6 +72,15 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
   { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
+  // Student Portal Routes
+  { title: 'My Attendance', url: '/student/attendance', icon: ClipboardCheck },
+  { title: 'My Results', url: '/student/results', icon: TrendingUp },
+  { title: 'My Fees', url: '/student/fees', icon: DollarSign },
+  { title: 'Study Materials', url: '/student/materials', icon: BookOpen },
+  { title: 'My Assignments', url: '/student/assignments', icon: Edit },
+  { title: 'Announcements', url: '/student/announcements', icon: Bell },
+  { title: 'My Timetable', url: '/student/timetable', icon: CalendarDays },
+  { title: 'My Certificates', url: '/student/certificates', icon: Award },
 ];
 
 // Account nav items — always visible
