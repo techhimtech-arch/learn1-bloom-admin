@@ -24,8 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { assignmentApi } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { studentPortalApi } from '@/services/api';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -50,24 +49,23 @@ interface StudyMaterial {
 }
 
 const StudentStudyMaterials = () => {
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedMaterial, setSelectedMaterial] = useState<StudyMaterial | null>(
     null
   );
 
-  // Fetch study materials (using assignments as materials source)
+  // Fetch study materials from new studentPortalApi
   const {
     data: materialsData,
     isLoading,
     error,
   } = useQuery<StudyMaterial[]>({
-    queryKey: ['study-materials', user?.id],
+    queryKey: ['study-materials'],
     queryFn: async () => {
       try {
-        // Fetch all assignments which can serve as study materials
-        const response = await assignmentApi.getAll({ type: 'material' });
+        // Fetch study materials using new API
+        const response = await studentPortalApi.getStudyMaterials();
         const materials = response.data?.data || [];
         return materials.map((item: Record<string, unknown>) => ({
           _id: item._id as string,
@@ -75,11 +73,11 @@ const StudentStudyMaterials = () => {
           subject: (item.subject as string) || 'General',
           chapter: item.chapter as string | undefined,
           description: item.description as string,
-          fileUrl: (item.fileUrl as string) || (item.attachments as Array<{url: string}>)?.[0]?.url,
+          fileUrl: item.fileUrl as string,
           fileSize: item.fileSize as string | undefined,
-          uploadedDate: (item.createdAt as string) || new Date().toISOString(),
+          uploadedDate: (item.uploadedDate as string) || new Date().toISOString(),
           uploadedBy: (item.uploadedBy as string) || 'School',
-          type: 'pdf' as const,
+          type: (item.type as 'pdf' | 'doc' | 'video' | 'image' | 'other') || 'pdf',
         }));
       } catch (err) {
         console.error('Failed to fetch materials:', err);

@@ -29,8 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { attendanceApi } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { studentPortalApi } from '@/services/api';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
 
 interface AttendanceRecord {
@@ -50,7 +49,6 @@ interface AttendanceStats {
 }
 
 const StudentAttendance = () => {
-  const { user } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState<string>(
     format(new Date(), 'yyyy-MM')
   );
@@ -63,13 +61,13 @@ const StudentAttendance = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['student-attendance', user?.id, selectedMonth],
+    queryKey: ['student-attendance', selectedMonth],
     queryFn: async () => {
-      if (!user?.id) return { data: [] };
       try {
-        const response = await attendanceApi.getByStudent(user.id);
-        // Filter by selected month
-        const allRecords = response.data?.data || [];
+        const response = await studentPortalApi.getAttendance();
+        const attendanceResponse = response.data?.data || {};
+        // New API returns dailyAttendance array and monthlySummary
+        const allRecords = attendanceResponse.dailyAttendance || [];
         const filtered = allRecords.filter((record: AttendanceRecord) => {
           const recordDate = format(new Date(record.date), 'yyyy-MM');
           return recordDate === selectedMonth;
@@ -80,7 +78,6 @@ const StudentAttendance = () => {
         return [];
       }
     },
-    enabled: !!user?.id,
   });
 
   // Calculate statistics

@@ -408,6 +408,36 @@ export const certificateApi = {
   delete: (id: string) => apiClient.delete(`/certificates/${id}`),
 };
 
+// ── Student Utility API (Student Portal) ─────────────────────────────────────
+export const studentPortalApi = {
+  // Dashboard
+  getDashboard: () => apiClient.get("/students/dashboard"),
+
+  // Attendance
+  getAttendance: () => apiClient.get("/students/attendance"),
+
+  // Exam Results
+  getExamResults: () => apiClient.get("/students/exam-results"),
+
+  // Fees
+  getFees: () => apiClient.get("/students/fees"),
+
+  // Study Materials
+  getStudyMaterials: () => apiClient.get("/students/study-materials"),
+
+  // Assignments
+  getAssignments: () => apiClient.get("/students/assignments"),
+
+  // Announcements
+  getAnnouncements: () => apiClient.get("/students/announcements"),
+
+  // Timetable
+  getTimetable: () => apiClient.get("/students/timetable"),
+
+  // Certificates
+  getCertificates: () => apiClient.get("/students/certificates"),
+};
+
 // Roll Number API
 export const rollNumberApi = {
   bulkAssign: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/bulk-assign', data),

@@ -21,11 +21,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FeePaymentForm } from '@/components/fee/FeePaymentForm';
-import { feeApi } from '@/services/api';
+import { studentPortalApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentFee {
   id: string;
@@ -67,9 +66,6 @@ interface FeeFilters {
 }
 
 export default function StudentFeeManagement() {
-  const { user } = useAuth();
-  const { studentId } = useParams<{ studentId: string }>();
-  const navigate = useNavigate();
   const [filters, setFilters] = useState<FeeFilters>({
     status: '',
     feeType: '',
@@ -82,34 +78,15 @@ export default function StudentFeeManagement() {
   const queryClient = useQueryClient();
 
   const {
-    data: studentData,
-    isLoading: studentLoading,
+    data: feeData,
+    isLoading: feeLoading,
   } = useQuery({
-    queryKey: ['student', studentId],
+    queryKey: ['student-fees', filters],
     queryFn: async () => {
-      if (!studentId) return { data: null };
-      const response = await feeApi.getStudentFees(studentId);
+      const response = await studentPortalApi.getFees();
+      // New API returns { fees: [...], summary: {...} }
       return response.data;
     },
-    enabled: !!studentId,
-  });
-
-  const {
-    data: paymentsData,
-    isLoading: paymentsLoading,
-  } = useQuery({
-    queryKey: ['student-payments', studentId, filters],
-    queryFn: async () => {
-      if (!studentId) return { data: [] };
-      const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.feeType) params.append('feeType', filters.feeType);
-      if (filters.search) params.append('search', filters.search);
-
-      const response = await feeApi.getPayments(Object.fromEntries(params));
-      return response.data;
-    },
-    enabled: !!studentId,
   });
 
   const payMutation = useMutation({

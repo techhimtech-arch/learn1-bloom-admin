@@ -34,8 +34,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { assignmentApi } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { studentPortalApi } from '@/services/api';
 import { format, isPast } from 'date-fns';
 import {
   Dialog,
@@ -64,7 +63,6 @@ interface Assignment {
 }
 
 const StudentAssignmentsView = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -77,20 +75,23 @@ const StudentAssignmentsView = () => {
     isLoading,
     error,
   } = useQuery<Assignment[]>({
-    queryKey: ['student-assignments', user?.id, filterStatus],
+    queryKey: ['student-assignments', filterStatus],
     queryFn: async () => {
       try {
-        const response = await assignmentApi.getAll({
-          assignedTo: user?.id,
-          status: filterStatus === 'all' ? undefined : filterStatus,
-        });
-        return response.data?.data || [];
+        const response = await studentPortalApi.getAssignments();
+        const assignmentResponse = response.data?.data || {};
+        // New API returns { pendingAssignments: [...], submittedAssignments: [...] }
+        const pending = assignmentResponse.pendingAssignments || [];
+        const submitted = assignmentResponse.submittedAssignments || [];
+        const all = [...pending, ...submitted];
+        
+        if (filterStatus === 'all') return all;
+        return all.filter(a => a.status === filterStatus);
       } catch (err) {
         console.error('Failed to fetch assignments:', err);
         return [];
       }
     },
-    enabled: !!user?.id,
   });
 
   const filteredAssignments = (assignments || []).filter((assignment) =>

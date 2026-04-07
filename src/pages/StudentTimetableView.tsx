@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timetableApi, subjectApi } from '@/services/api';
+import { studentPortalApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday } from 'date-fns';
 
@@ -63,20 +63,27 @@ const StudentTimetableView = () => {
     isLoading,
     error,
   } = useQuery<TimetableData>({
-    queryKey: ['student-timetable', user?.id],
+    queryKey: ['student-timetable'],
     queryFn: async () => {
       try {
-        // Try to fetch timetable for student's class/section
-        // Since User type doesn't have classId/sectionId, we'll fetch all and return first available
-        // In production, this should be enhanced to get the actual student class info
-        const response = await timetableApi.getByClass('default-class', 'default-section');
-        return response.data?.data || null;
+        // Fetch timetable for logged-in student using new API
+        const response = await studentPortalApi.getTimetable();
+        const timetableData = response.data?.data || {};
+        // New API returns { dailyTimetable: [...], weeklySchedule: "..." }
+        // Convert to TimetableData format
+        const dailyTimetable = timetableData.dailyTimetable || [];
+        return {
+          _id: 'student-timetable',
+          classId: '',
+          sectionId: '',
+          academicYear: new Date().getFullYear().toString(),
+          days: dailyTimetable,
+        };
       } catch (err) {
         console.error('Failed to fetch timetable:', err);
         return null;
       }
     },
-    enabled: !!user?.id,
   });
 
   const formatTime = (time: string) => {

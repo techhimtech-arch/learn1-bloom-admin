@@ -16,10 +16,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ResultDetailModal } from '@/components/exam/ResultDetailModal';
-import { examApi } from '@/services/api';
+import { studentPortalApi } from '@/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentResult {
   id: string;
@@ -59,7 +58,6 @@ interface ResultFilters {
 }
 
 export default function StudentResults() {
-  const { user } = useAuth();
   const [filters, setFilters] = useState<ResultFilters>({
     search: '',
     examType: '',
@@ -74,22 +72,15 @@ export default function StudentResults() {
     isLoading: resultsLoading,
     refetch,
   } = useQuery({
-    queryKey: ['student-results', user?.id, filters],
+    queryKey: ['student-results', filters],
     queryFn: async () => {
-      if (!user?.id) return { data: [] };
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.examType) params.append('examType', filters.examType);
-      if (filters.status) params.append('status', filters.status);
-      if (filters.grade) params.append('grade', filters.grade);
-
-      const response = await examApi.getStudentResults(user.id, Object.fromEntries(params));
+      const response = await studentPortalApi.getExamResults();
+      // New API returns { results: [...], overallPerformance: {...} }
       return response.data;
     },
-    enabled: !!user?.id,
   });
 
-  const results = resultsData?.data || [];
+  const results = resultsData?.data?.results || [];
 
   const getGradeColor = (grade: string) => {
     const colors: Record<string, string> = {

@@ -24,8 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { announcementApi } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { studentPortalApi } from '@/services/api';
 import { format, isPast } from 'date-fns';
 import {
   Dialog,
@@ -53,7 +52,6 @@ interface Announcement {
 }
 
 const StudentAnnouncementsView = () => {
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
@@ -65,13 +63,10 @@ const StudentAnnouncementsView = () => {
     isLoading,
     error,
   } = useQuery<Announcement[]>({
-    queryKey: ['student-announcements', user?.id],
+    queryKey: ['student-announcements'],
     queryFn: async () => {
       try {
-        const response = await announcementApi.getAll({
-          audience: ['all', 'student'],
-          published: true,
-        });
+        const response = await studentPortalApi.getAnnouncements();
         return response.data?.data || [];
       } catch (err) {
         console.error('Failed to fetch announcements:', err);

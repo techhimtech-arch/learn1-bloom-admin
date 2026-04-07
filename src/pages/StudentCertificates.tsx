@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { certificateApi } from '@/services/api';
+import { studentPortalApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import {
@@ -50,18 +50,16 @@ const StudentCertificates = () => {
     isLoading,
     error,
   } = useQuery<Certificate[]>({
-    queryKey: ['student-certificates', user?.id],
+    queryKey: ['student-certificates'],
     queryFn: async () => {
-      if (!user?.id) return [];
       try {
-        const response = await certificateApi.getStudentCertificates(user.id);
+        const response = await studentPortalApi.getCertificates();
         return response.data?.data || [];
       } catch (err) {
         console.error('Failed to fetch certificates:', err);
         return [];
       }
     },
-    enabled: !!user?.id,
   });
 
   const handleDownload = (certificate: Certificate) => {
