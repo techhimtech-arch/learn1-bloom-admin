@@ -59,7 +59,7 @@ const TeacherStudents = () => {
     staleTime: 3 * 60 * 1000,
   });
 
-  const classes = (classesData as any)?.data?.subjectAssignments || [];
+  const classes = (classesData as any)?.data?.data?.subjectAssignments || [];
   const students = (studentsData as any)?.data?.data || [];
 
   // Debug: log classes data
