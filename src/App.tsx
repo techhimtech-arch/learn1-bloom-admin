@@ -49,6 +49,12 @@ import StudentAssignmentsView from "@/pages/StudentAssignmentsView";
 import StudentAnnouncementsView from "@/pages/StudentAnnouncementsView";
 import StudentTimetableView from "@/pages/StudentTimetableView";
 import TeacherAttendance from "@/pages/TeacherAttendance";
+import TeacherDashboard from "@/pages/dashboards/TeacherDashboard";
+import TeacherProfile from "@/pages/teacher/TeacherProfile";
+import TeacherStudents from "@/pages/teacher/TeacherStudents";
+import TeacherExams from "@/pages/teacher/TeacherExams";
+import TeacherResults from "@/pages/teacher/TeacherResults";
+import TeacherAssignments from "@/pages/teacher/TeacherAssignments";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,6 +149,12 @@ const App = () => (
               
               {/* Teacher Routes */}
               <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/teacher/profile" element={<TeacherProfile />} />
+              <Route path="/teacher/students" element={<TeacherStudents />} />
+              <Route path="/teacher/exams" element={<TeacherExams />} />
+              <Route path="/teacher/results" element={<TeacherResults />} />
+              <Route path="/teacher/assignments" element={<TeacherAssignments />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

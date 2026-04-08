@@ -407,8 +407,19 @@ export const teacherApi = {
   markAttendance: (data: Record<string, unknown>) => apiClient.post("/teacher/attendance/mark", data),
   updateAttendance: (data: Record<string, unknown>) => apiClient.put("/teacher/attendance/update", data),
   
+  // Profile Management
+  updateProfile: (data: Record<string, unknown>) => apiClient.patch("/teacher/profile", data),
+  
+  // Assignments
+  getAssignments: (params?: Record<string, any>) => apiClient.get("/teacher/assignments", { params }),
+  createAssignment: (data: Record<string, unknown>) => apiClient.post("/teacher/assignments", data),
+  getAssignmentSubmissions: (assignmentId: string) => apiClient.get(`/teacher/assignments/${assignmentId}/submissions`),
+  gradeSubmission: (submissionId: string, data: Record<string, unknown>) => apiClient.post(`/teacher/assignments/${submissionId}/grade`, data),
+  
   // Exams & Results
   getExams: (params?: Record<string, any>) => apiClient.get("/teacher/exams", { params }),
+  createExam: (data: Record<string, unknown>) => apiClient.post("/teacher/exams", data),
+  updateExam: (examId: string, data: Record<string, unknown>) => apiClient.put(`/teacher/exams/${examId}`, data),
   getResults: (params?: Record<string, any>) => apiClient.get("/teacher/results", { params }),
   addResults: (data: Record<string, unknown>) => apiClient.post("/teacher/results/add", data),
   updateResults: (data: Record<string, unknown>) => apiClient.put("/teacher/results/update", data),
