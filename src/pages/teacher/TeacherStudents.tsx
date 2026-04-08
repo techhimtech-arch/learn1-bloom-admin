@@ -42,7 +42,7 @@ const TeacherStudents = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Get teacher classes
-  const { data: classesData, isLoading: classesLoading } = useQuery({
+  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery({
     queryKey: ['teacher-classes'],
     queryFn: () => teacherApi.getClasses(),
     staleTime: 5 * 60 * 1000,
@@ -51,16 +51,21 @@ const TeacherStudents = () => {
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass, selectedSection],
-    queryFn: () => {
+    queryFn: async () => {
       if (!selectedClass || !selectedSection) return { data: { data: [] } };
-      return teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
+      return await teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,
     staleTime: 3 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.subjectAssignments as ClassAssignment[] || [];
-  const students = studentsData?.data?.data as Student[] || [];
+  const classes = (classesData as any)?.data?.subjectAssignments || [];
+  const students = (studentsData as any)?.data?.data || [];
+
+  // Debug: log classes data
+  console.log('Classes data:', classesData);
+  console.log('Extracted classes:', classes);
+  console.log('Classes length:', classes.length);
 
   // Filter students based on search term
   const filteredStudents = students.filter(student => 
@@ -70,12 +75,39 @@ const TeacherStudents = () => {
   );
 
   // Get unique classes for dropdown
-  const uniqueClasses = Array.from(
-    new Map(classes.map(cls => [cls.classId._id, cls.classId])).values()
-  );
+  const uniqueClasses = classes.map(cls => {
+    const classId = cls.classId?._id || cls.classId;
+    const className = cls.classId?.name || cls.classId;
+    return { _id: classId, name: className };
+  });
+
+  console.log('Unique classes:', uniqueClasses);
 
   // Get sections for selected class
-  const sectionsForClass = classes.filter(cls => cls.classId._id === selectedClass);
+  const sectionsForClass = classes.filter(cls => (cls.classId?._id || cls.classId) === selectedClass);
+
+  if (classesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <p className="text-sm text-muted-foreground mt-2">Loading classes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (classesError) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="h-8 w-8 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold">Error loading classes</h3>
+          <p className="text-muted-foreground">{classesError.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -102,7 +134,7 @@ const TeacherStudents = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {uniqueClasses.map((cls) => (
-                    <SelectItem key={cls._id} value={cls._id}>
+                    <SelectItem key={cls._id} value={String(cls._id)}>
                       {cls.name}
                     </SelectItem>
                   ))}
@@ -121,8 +153,8 @@ const TeacherStudents = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {sectionsForClass.map((cls) => (
-                    <SelectItem key={cls._id} value={cls.sectionId._id}>
-                      {cls.sectionId.name}
+                    <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
+                      {cls.sectionId?.name || cls.sectionId}
                     </SelectItem>
                   ))}
                 </SelectContent>

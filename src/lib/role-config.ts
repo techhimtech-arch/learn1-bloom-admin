@@ -39,7 +39,9 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   ],
   teacher: [
     '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams', 
-    '/assignments', '/results',
+    '/assignments', '/results', '/teacher/attendance', '/teacher/dashboard',
+    '/teacher/profile', '/teacher/students', '/teacher/exams', 
+    '/teacher/results', '/teacher/assignments',
   ],
   accountant: [
     '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
@@ -73,6 +75,14 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
   { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
+  // Teacher Portal Routes
+  { title: 'Teacher Dashboard', url: '/teacher/dashboard', icon: LayoutDashboard },
+  { title: 'My Students', url: '/teacher/students', icon: Users },
+  { title: 'Teacher Attendance', url: '/teacher/attendance', icon: ClipboardCheck },
+  { title: 'My Profile', url: '/teacher/profile', icon: User },
+  { title: 'Teacher Exams', url: '/teacher/exams', icon: FileText },
+  { title: 'Teacher Results', url: '/teacher/results', icon: Award },
+  { title: 'Teacher Assignments', url: '/teacher/assignments', icon: Edit },
   // Student Portal Routes
   { title: 'My Attendance', url: '/student/attendance', icon: ClipboardCheck },
   { title: 'My Results', url: '/student/results', icon: TrendingUp },

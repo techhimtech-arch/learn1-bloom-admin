@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, BookOpen, ClipboardCheck, Users, Award, User, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import StatWidget from '@/components/shared/StatWidget';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';

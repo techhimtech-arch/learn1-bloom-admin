@@ -84,9 +84,9 @@ const TeacherAttendance = () => {
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass, selectedSection],
-    queryFn: () => {
+    queryFn: async () => {
       if (!selectedClass || !selectedSection) return { data: { data: [] } };
-      return teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
+      return await teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,
     staleTime: 3 * 60 * 1000,
@@ -94,10 +94,10 @@ const TeacherAttendance = () => {
 
   // Get attendance history
   const { data: attendanceHistory, isLoading: historyLoading } = useQuery({
-    queryKey: ['teacher-attendance', selectedClass, selectedSection],
-    queryFn: () => {
-      if (!selectedClass || !selectedSection) return { data: { data: [] } };
-      return teacherApi.getAttendance({ 
+    queryKey: ['teacher-attendance-history', selectedClass, selectedSection, selectedDate],
+    queryFn: async () => {
+      if (!selectedClass || !selectedSection || !selectedDate) return { data: { data: [] } };
+      return await teacherApi.getAttendance({
         classId: selectedClass, 
         sectionId: selectedSection,
         startDate: format(new Date(new Date().setDate(new Date().getDate() - 30)), 'yyyy-MM-dd'),
@@ -108,12 +108,45 @@ const TeacherAttendance = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.data as ClassAssignment[] || [];
-  const students = studentsData?.data?.data as Student[] || [];
-  const attendanceHistoryData = attendanceHistory?.data?.data as AttendanceRecord[] || [];
+  const classes = Array.isArray((classesData as any)?.data?.subjectAssignments) ? (classesData as any).data.subjectAssignments as ClassAssignment[] : 
+                Array.isArray((classesData as any)?.data?.data) ? (classesData as any).data.data as ClassAssignment[] : [];
+  const students = (studentsData as any)?.data?.data as Student[] || [];
+  const attendanceHistoryData = (attendanceHistory as any)?.data?.data as AttendanceRecord[] || [];
+
+  // Store teacher profile data in localStorage for use across components
+  useEffect(() => {
+    if (classesData?.data?.classTeacherAssignment || classesData?.data?.subjectAssignments) {
+      localStorage.setItem('teacherProfile', JSON.stringify(classesData.data));
+    }
+  }, [classesData]);
+
+  // Helper functions to safely extract data
+  const getUniqueClasses = () => {
+    const classMap = new Map();
+    classes.forEach(cls => {
+      const classId = cls.classId?._id || cls.classId;
+      const className = cls.classId?.name || cls.classId;
+      if (classId && !classMap.has(classId)) {
+        classMap.set(classId, { _id: classId, name: className });
+      }
+    });
+    return Array.from(classMap.values());
+  };
+
+  const getClassName = (classId: string) => {
+    const cls = classes.find(c => (c.classId?._id || c.classId) === classId);
+    return cls?.classId?.name || cls?.classId || 'Unknown';
+  };
+
+  const getSectionName = (classId: string, sectionId: string) => {
+    const cls = classes.find(c => (c.classId?._id || c.classId) === classId && 
+                                       (c.sectionId?._id || c.sectionId) === sectionId);
+    return cls?.sectionId?.name || cls?.sectionId || 'Unknown';
+  };
 
   // Find class teacher assignment
-  const classTeacherAssignment = classes.find(c => c.classId?._id === selectedClass && c.sectionId?._id === selectedSection);
+  const classTeacherAssignment = classes.find(c => (c.classId?._id || c.classId) === selectedClass && 
+                                                     (c.sectionId?._id || c.sectionId) === selectedSection);
 
   // Mutations
   const markAttendanceMutation = useMutation({
@@ -246,9 +279,9 @@ const TeacherAttendance = () => {
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes.map((cls) => (
-                    <SelectItem key={cls._id} value={cls.classId?._id || cls.classId}>
-                      {cls.classId?.name || cls.classId}
+                  {getUniqueClasses().map((cls) => (
+                    <SelectItem key={cls._id} value={String(cls._id)}>
+                      {cls.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -266,9 +299,9 @@ const TeacherAttendance = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {classes
-                    .filter(cls => cls.classId?._id === selectedClass)
+                    .filter(cls => (cls.classId?._id || cls.classId) === selectedClass)
                     .map((cls) => (
-                      <SelectItem key={cls._id} value={cls.sectionId?._id || cls.sectionId}>
+                      <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
                         {cls.sectionId?.name || cls.sectionId}
                       </SelectItem>
                     ))}

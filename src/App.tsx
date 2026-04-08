@@ -21,7 +21,7 @@ import SubjectManagement from "@/pages/SubjectManagement";
 import TimetableManagement from "@/pages/TimetableManagement";
 import AcademicCalendar from "@/pages/AcademicCalendar";
 import RollNumberManagement from "@/pages/RollNumberManagement";
-import TeacherAssignments from "@/pages/TeacherAssignments";
+import TeacherAssignmentManagement from "@/pages/TeacherAssignments";
 import Profile from "@/pages/Profile";
 import SessionManagement from "@/pages/SessionManagement";
 import Unauthorized from "@/pages/Unauthorized";
@@ -97,7 +97,7 @@ const App = () => (
               <Route path="/enrollment" element={<Enrollment />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/subjects" element={<SubjectManagement />} />
-              <Route path="/teacher-assignments" element={<TeacherAssignments />} />
+              <Route path="/teacher-assignments" element={<TeacherAssignmentManagement />} />
               <Route path="/attendance" element={<AttendanceManagement />} />
               <Route path="/academic-years" element={<AcademicYearManagement />} />
               <Route path="/timetable" element={<TimetableManagement />} />
