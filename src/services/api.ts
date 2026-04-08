@@ -353,9 +353,27 @@ export const notificationApi = {
 
 // ── Parent Portal API ───────────────────────────────────
 export const parentApi = {
+  // Dashboard APIs
   getDashboard: () => apiClient.get("/parent/dashboard"),
+  getStudents: () => apiClient.get("/parent/students"),
   getProfile: () => apiClient.get("/parent/profile"),
+  
+  // Get specific student details (for header info)
   getStudent: (studentId: string) => apiClient.get(`/parent/student/${studentId}`),
+  
+  // Child-specific data endpoints (with hasAccess verification)
+  getChildAttendance: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/children/${studentId}/attendance`, { params }),
+  getChildFees: (studentId: string) => 
+    apiClient.get(`/parent/children/${studentId}/fees`),
+  getChildResults: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/children/${studentId}/results`, { params }),
+  getChildAnnouncements: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/children/${studentId}/announcements`, { params }),
+  getChildTimetable: (studentId: string) => 
+    apiClient.get(`/parent/children/${studentId}/timetable`),
+  
+  // Legacy endpoints (deprecated but keeping for compatibility)
   getAttendance: (params?: Record<string, any>) => apiClient.get("/parent/attendance", { params }),
   getFees: () => apiClient.get("/parent/fees"),
   getResults: (params?: Record<string, any>) => apiClient.get("/parent/results", { params }),

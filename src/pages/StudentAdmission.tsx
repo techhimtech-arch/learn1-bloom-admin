@@ -167,8 +167,12 @@ const StudentAdmission = () => {
   const admittedColumns: Column<any>[] = [
     { key: 'firstName', label: 'Name', render: (_: any, row: any) => `${row.firstName || ''} ${row.lastName || ''}`.trim() },
     { key: 'admissionNumber', label: 'Adm No.', render: (_: any, row: any) => row.admissionNumber || '-' },
+    { key: 'email', label: 'Email', render: (_: any, row: any) => row.userId?.email || row.email || '-' },
+    { key: 'phone', label: 'Phone', render: (_: any, row: any) => row.phone || '-' },
     { key: 'gender', label: 'Gender' },
+    { key: 'bloodGroup', label: 'Blood Group', render: (_: any, row: any) => row.bloodGroup || '-' },
     { key: 'currentEnrollment', label: 'Class', render: (_: any, row: any) => row.currentEnrollment?.classId?.name || '-' },
+    { key: 'address', label: 'Address', render: (_: any, row: any) => row.address || '-' },
     { key: 'status', label: 'Status', render: (v: string) => (
       <Badge variant={v === 'completed' ? 'default' : 'secondary'}>{v}</Badge>
     )},
