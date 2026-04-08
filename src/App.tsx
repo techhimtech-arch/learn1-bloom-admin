@@ -48,6 +48,7 @@ import StudentCertificates from "@/pages/StudentCertificates";
 import StudentAssignmentsView from "@/pages/StudentAssignmentsView";
 import StudentAnnouncementsView from "@/pages/StudentAnnouncementsView";
 import StudentTimetableView from "@/pages/StudentTimetableView";
+import TeacherAttendance from "@/pages/TeacherAttendance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -139,6 +140,9 @@ const App = () => (
               
               {/* Student Results Routes */}
               <Route path="/results" element={<StudentResults />} />
+              
+              {/* Teacher Routes */}
+              <Route path="/teacher/attendance" element={<TeacherAttendance />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, BookOpen, ClipboardCheck, Users } from 'lucide-react';
+import { CalendarCheck, BookOpen, ClipboardCheck, Users, Award, User, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatWidget from '@/components/shared/StatWidget';
@@ -24,15 +24,18 @@ const TeacherDashboard = () => {
         // Fetch teacher dashboard data
         const { data: dashboardData } = await teacherApi.getDashboard();
         
-        // Fetch teacher classes
-        const { data: classesData } = await teacherApi.getClasses();
+        // Fetch teacher profile for assignments
+        const { data: profileData } = await teacherApi.getProfile();
         
-        // Update stats with real data
+        // Calculate stats from real data
+        const profile = profileData?.data;
+        const dashboard = dashboardData?.data;
+        
         setStats({
-          mySubjects: classesData?.data?.length || 0,
-          todayClasses: dashboardData?.data?.todayClasses || 0,
-          pendingAttendance: dashboardData?.data?.pendingAttendance || 0,
-          totalStudents: dashboardData?.data?.totalStudents || 0,
+          mySubjects: profile?.subjectAssignments?.length || 0,
+          todayClasses: dashboard?.todayClasses || 0,
+          pendingAttendance: dashboard?.pendingAttendance || 0,
+          totalStudents: dashboard?.totalStudents || 0,
         });
       } catch (error) {
         showApiError(error, 'Failed to load teacher dashboard data');
@@ -61,16 +64,28 @@ const TeacherDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/attendance')}>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/attendance')}>
               <ClipboardCheck className="h-5 w-5 text-primary" />
               <span className="text-xs">Mark Attendance</span>
             </Button>
-            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/subjects')}>
-              <BookOpen className="h-5 w-5 text-primary" />
-              <span className="text-xs">My Subjects</span>
-            </Button>
-            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/assignments')}>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/students')}>
               <Users className="h-5 w-5 text-primary" />
+              <span className="text-xs">My Students</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/results')}>
+              <Award className="h-5 w-5 text-primary" />
+              <span className="text-xs">Enter Results</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/profile')}>
+              <User className="h-5 w-5 text-primary" />
+              <span className="text-xs">My Profile</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/exams')}>
+              <FileText className="h-5 w-5 text-primary" />
+              <span className="text-xs">Exams</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4" onClick={() => navigate('/teacher/assignments')}>
+              <BookOpen className="h-5 w-5 text-primary" />
               <span className="text-xs">Assignments</span>
             </Button>
           </div>
