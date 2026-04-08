@@ -11,6 +11,7 @@ import Register from "@/pages/auth/Register";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
+import Enrollment from "@/pages/Enrollment";
 import UserManagement from "@/pages/UserManagement";
 import StudentAdmission from "@/pages/StudentAdmission";
 import ClassManagement from "@/pages/ClassManagement";
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/admission" element={<StudentAdmission />} />
+              <Route path="/enrollment" element={<Enrollment />} />
               <Route path="/classes" element={<ClassManagement />} />
               <Route path="/subjects" element={<SubjectManagement />} />
               <Route path="/teacher-assignments" element={<TeacherAssignments />} />

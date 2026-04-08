@@ -149,6 +149,12 @@ export const userApi = {
     apiClient.patch(`/users/${userId}/reset-password`, { newPassword }),
 };
 
+// ── School API ────────────────────────────────────────────
+export const schoolApi = {
+  getAll: () => apiClient.get("/school"),
+  getById: (id: string) => apiClient.get(`/school/${id}`),
+};
+
 // ── Academic Year API ─────────────────────────────────────
 export const academicYearApi = {
   getAll: (params?: { isActive?: boolean }) => apiClient.get("/academic-years", { params }),
@@ -454,6 +460,50 @@ export const studentPortalApi = {
 
   // Certificates
   getCertificates: () => apiClient.get("/students/certificates"),
+};
+
+// ── Enrollment API ──────────────────────────────────────
+export const enrollmentApi = {
+  // Get class enrollments
+  getClassEnrollments: (params: { academicYearId: string; classId: string; sectionId: string }) =>
+    apiClient.get("/enrollments/class", { params }),
+
+  // Get current enrollment for a student
+  getCurrentEnrollment: (studentId: string) =>
+    apiClient.get(`/enrollments/student/${studentId}/current`),
+
+  // Get enrollment history for a student
+  getEnrollmentHistory: (studentId: string) =>
+    apiClient.get(`/enrollments/student/${studentId}/history`),
+
+  // Create new enrollment
+  create: (data: {
+    studentId: string;
+    academicYearId: string;
+    classId: string;
+    sectionId: string;
+    schoolId: string;
+    rollNumber: string;
+  }) => apiClient.post("/enrollments", data),
+
+  // Promote student
+  promote: (data: {
+    studentId: string;
+    currentEnrollmentId: string;
+    newClassId: string;
+    newSectionId: string;
+    newRollNumber: string;
+  }) => apiClient.post("/enrollments/promote", data),
+
+  // Bulk enroll students
+  bulkEnroll: (data: { enrollments: Array<{
+    studentId: string;
+    academicYearId: string;
+    classId: string;
+    sectionId: string;
+    schoolId: string;
+    rollNumber: string;
+  }> }) => apiClient.post("/enrollments/bulk", data),
 };
 
 // Roll Number API
