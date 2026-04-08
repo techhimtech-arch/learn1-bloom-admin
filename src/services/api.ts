@@ -399,19 +399,19 @@ export const teacherApi = {
   getProfile: () => apiClient.get("/teacher/profile"),
   
   // Classes & Students
-  getClasses: () => apiClient.get("/teacher/classes"),
-  getStudents: () => apiClient.get("/teacher/students"),
+  getClasses: (params?: Record<string, any>) => apiClient.get("/teacher/classes", { params }),
+  getStudents: (params?: Record<string, any>) => apiClient.get("/teacher/students", { params }),
   
   // Attendance Management
   getAttendance: (params?: Record<string, any>) => apiClient.get("/teacher/attendance", { params }),
   markAttendance: (data: Record<string, unknown>) => apiClient.post("/teacher/attendance/mark", data),
-  updateAttendance: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher/attendance/update/${id}`, data),
+  updateAttendance: (data: Record<string, unknown>) => apiClient.put("/teacher/attendance/update", data),
   
   // Exams & Results
   getExams: (params?: Record<string, any>) => apiClient.get("/teacher/exams", { params }),
   getResults: (params?: Record<string, any>) => apiClient.get("/teacher/results", { params }),
   addResults: (data: Record<string, unknown>) => apiClient.post("/teacher/results/add", data),
-  updateResults: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher/results/update/${id}`, data),
+  updateResults: (data: Record<string, unknown>) => apiClient.put("/teacher/results/update", data),
 };
 
 // ── Student API ─────────────────────────────────────────
