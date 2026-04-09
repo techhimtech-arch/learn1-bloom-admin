@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import Joyride, { STATUS, EVENTS, ACTIONS } from 'react-joyride';
+import { Joyride, STATUS, EVENTS, ACTIONS } from 'react-joyride';
 import { adminTourSteps, getStepRoute } from './adminTourSteps';
 import { useNavigate, useLocation } from 'react-router-dom';
 
