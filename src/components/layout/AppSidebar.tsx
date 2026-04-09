@@ -10,10 +10,11 @@ import {
   CalendarDays,
   School,
   ClipboardCheck,
+  PlayCircle,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
-import { getNavItemsForRole, ACCOUNT_NAV_ITEMS, ROLE_LABELS } from '@/lib/role-config';
+import { getNavItemsForRole, ACCOUNT_NAV_ITEMS, ROLE_LABELS, canTakeTour } from '@/lib/role-config';
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +27,22 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+
+const getTourAttribute = (title: string) => {
+  const tourMap: Record<string, string> = {
+    'Dashboard': 'dashboard',
+    'User Management': 'users',
+    'Student Admission': 'admissions',
+    'Academic Years': 'academic-year',
+    'Class Management': 'classes',
+    'Subject Management': 'subjects',
+    'Exam Management': 'exams',
+    'Announcements': 'announcements',
+    'Fee Structure': 'fees',
+    'My Profile': 'profile',
+  };
+  return tourMap[title] || '';
+};
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -69,21 +86,25 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-sidebar-muted">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === '/'}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {navItems.map((item) => {
+                const tourAttr = getTourAttribute(item.title);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === '/'}
+                        className="hover:bg-sidebar-accent"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                        {...(tourAttr && { 'data-tour': tourAttr })}
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -93,20 +114,40 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-sidebar-muted">Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {ACCOUNT_NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
+              {ACCOUNT_NAV_ITEMS.map((item) => {
+                const tourAttr = getTourAttribute(item.title);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="hover:bg-sidebar-accent"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                        {...(tourAttr && { 'data-tour': tourAttr })}
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+              
+              {/* Take Tour Option */}
+              {canTakeTour(user?.role || '') && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => {
+                      const event = new CustomEvent('startTour', { detail: { role: user?.role } });
+                      window.dispatchEvent(event);
+                    }}
+                    className="hover:bg-sidebar-accent cursor-pointer"
+                  >
+                    <PlayCircle className="mr-2 h-4 w-4 text-primary" />
+                    {!collapsed && <span className="text-primary">Take a Tour</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

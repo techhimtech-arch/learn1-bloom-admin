@@ -18,6 +18,7 @@ import {
   DollarSign,
   FileCheck,
   UsersRound,
+  PlayCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -123,4 +124,25 @@ export const ROLE_LABELS: Record<string, string> = {
   accountant: 'Accountant',
   parent: 'Parent',
   student: 'Student',
+};
+
+// Tour configuration
+export const TOUR_ROLES: AppRole[] = ['school_admin', 'teacher', 'parent', 'student'];
+
+export const getTourStepsForRole = (role: string) => {
+  const tourStepsMap: Record<AppRole, string> = {
+    school_admin: 'adminTourSteps',
+    teacher: 'teacherTourSteps',
+    parent: 'parentTourSteps',
+    student: 'studentTourSteps',
+  };
+  return tourStepsMap[role as AppRole] || null;
+};
+
+export const canTakeTour = (role: string): boolean => {
+  return TOUR_ROLES.includes(role as AppRole);
+};
+
+export const getTourLocalStorageKey = (role: string): string => {
+  return `${role}TourCompleted`;
 };

@@ -6,12 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Lock, Camera, Loader2, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Camera, Loader2, Save, Eye, EyeOff, PlayCircle } from 'lucide-react';
 import { userApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';
-import { ROLE_LABELS } from '@/lib/role-config';
+import { ROLE_LABELS, canTakeTour, getTourLocalStorageKey } from '@/lib/role-config';
 
 interface ProfileData {
   _id: string;
@@ -28,7 +28,11 @@ interface ProfileData {
   updatedBy?: { name: string } | string;
 }
 
-const Profile = () => {
+interface ProfileProps {
+  setRunTour?: (run: boolean) => void;
+}
+
+const Profile = ({ setRunTour }: ProfileProps) => {
   const { user: authUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -229,6 +233,9 @@ const Profile = () => {
         <TabsList>
           <TabsTrigger value="edit" className="gap-1.5"><User className="h-4 w-4" /> Edit Profile</TabsTrigger>
           <TabsTrigger value="password" className="gap-1.5"><Lock className="h-4 w-4" /> Change Password</TabsTrigger>
+          {canTakeTour(authUser?.role || '') && (
+            <TabsTrigger value="tour" className="gap-1.5"><PlayCircle className="h-4 w-4" /> Tour Settings</TabsTrigger>
+          )}
         </TabsList>
 
         {/* Edit Profile Tab */}
@@ -309,6 +316,61 @@ const Profile = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tour Settings Tab */}
+        {canTakeTour(authUser?.role || '') && (
+          <TabsContent value="tour">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <PlayCircle className="h-5 w-5" />
+                  Tour Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Take a guided tour of your {ROLE_LABELS[authUser?.role || 'User'] || 'User'} portal to learn about all the features and modules available to you.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => {
+                        const tourKey = getTourLocalStorageKey(authUser?.role || '');
+                        localStorage.removeItem(tourKey);
+                        setRunTour?.(true);
+                      }}
+                      className="gap-2"
+                    >
+                      <PlayCircle className="h-4 w-4" />
+                      Restart Tour
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const tourKey = getTourLocalStorageKey(authUser?.role || '');
+                        localStorage.setItem(tourKey, 'true');
+                        toast({
+                          title: 'Tour Disabled',
+                          description: 'The tour will not show automatically on login.',
+                        });
+                      }}
+                    >
+                      Disable Auto-Tour
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Note:</strong> You can always restart the tour from this page or by clicking "Take a Tour" in the sidebar menu.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
