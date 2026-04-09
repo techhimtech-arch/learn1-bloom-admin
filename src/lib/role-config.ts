@@ -133,6 +133,7 @@ export const getTourStepsForRole = (role: string) => {
   const tourStepsMap: Record<AppRole, string> = {
     school_admin: 'adminTourSteps',
     teacher: 'teacherTourSteps',
+    accountant: 'accountantTourSteps',
     parent: 'parentTourSteps',
     student: 'studentTourSteps',
   };
