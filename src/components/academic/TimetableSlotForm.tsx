@@ -238,7 +238,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                         </FormControl>
                         <SelectContent>
                           {classes.map((cls) => (
-                            <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
+                            <SelectItem key={`class-${cls.id}`} value={cls.id}>
                               {cls.name}
                             </SelectItem>
                           ))}

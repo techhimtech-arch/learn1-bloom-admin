@@ -21,7 +21,7 @@ import {
   Star
 } from 'lucide-react';
 import { teacherApi } from '@/services/api';
-import { showApiError, showSuccess } from '@/lib/api-toast';
+import { showApiError, showApiSuccess as showSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -103,8 +103,8 @@ const TeacherResults = () => {
   // Get exams
   const { data: examsData, isLoading: examsLoading } = useQuery({
     queryKey: ['teacher-exams', selectedClass, selectedSection],
-    queryFn: () => {
-      if (!selectedClass || !selectedSection) return { data: { data: [] } };
+    queryFn: async () => {
+      if (!selectedClass || !selectedSection) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
       return teacherApi.getExams({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,
@@ -114,8 +114,8 @@ const TeacherResults = () => {
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass, selectedSection],
-    queryFn: () => {
-      if (!selectedClass || !selectedSection) return { data: { data: [] } };
+    queryFn: async () => {
+      if (!selectedClass || !selectedSection) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
       return teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,

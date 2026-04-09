@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, MapPin, Users, FileText, Download } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, FileText, Download, BookOpen } from 'lucide-react';
 
 interface Period {
   periodNumber: number;
