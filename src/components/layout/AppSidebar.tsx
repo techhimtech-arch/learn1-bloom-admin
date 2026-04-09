@@ -33,29 +33,37 @@ const getTourAttribute = (title: string) => {
     'Dashboard': 'dashboard',
     'User Management': 'users',
     'Student Admission': 'admissions',
+    'Student Enrollment': 'admissions',
     'Academic Years': 'academic-year',
     'Class Management': 'classes',
     'Subject Management': 'subjects',
+    'Teacher Assignments': 'teachers',
     'Exam Management': 'exams',
     'Announcements': 'announcements',
+    'Assignments': 'announcements',
     'Fee Structure': 'fees',
+    'Fee Reports': 'fees',
+    'Certificates': 'fees',
+    'Parent Portal': 'dashboard',
+    'Attendance': 'attendance',
+    'Teacher Dashboard': 'dashboard',
+    'My Students': 'dashboard',
+    'Teacher Attendance': 'attendance',
     'My Profile': 'profile',
+    'Teacher Exams': 'exams',
+    'Teacher Results': 'exams',
+    'Teacher Assignments': 'exams',
+    'My Attendance': 'attendance',
+    'My Results': 'exams',
+    'My Fees': 'fees',
+    'Study Materials': 'subjects',
+    'My Assignments': 'subjects',
+    'Announcements': 'announcements',
+    'My Timetable': 'dashboard',
+    'My Certificates': 'fees',
   };
   return tourMap[title] || '';
 };
-
-const navItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'User Management', url: '/users', icon: Users },
-  { title: 'Student Admission', url: '/admission', icon: GraduationCap },
-  { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },
-  { title: 'Class Management', url: '/classes', icon: School },
-  { title: 'Subject Management', url: '/subjects', icon: BookOpen },
-  { title: 'Timetable', url: '/timetable', icon: Clock },
-  { title: 'Academic Calendar', url: '/academic-calendar', icon: CalendarIcon },
-  { title: 'Roll Numbers', url: '/roll-numbers', icon: Hash },
-  { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
-];
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -88,6 +96,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => {
                 const tourAttr = getTourAttribute(item.title);
+                console.log('?? Sidebar Item:', { title: item.title, tourAttr, url: item.url });
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
@@ -133,11 +142,12 @@ export function AppSidebar() {
                 );
               })}
               
-              {/* Take Tour Option */}
-              {canTakeTour(user?.role || '') && (
+              {/* Take Tour Option - Temporarily Disabled */}
+              {/* {canTakeTour(user?.role || '') && (
                 <SidebarMenuItem>
                   <SidebarMenuButton 
                     onClick={() => {
+                      console.log('?? Take Tour Clicked:', { role: user?.role });
                       const event = new CustomEvent('startTour', { detail: { role: user?.role } });
                       window.dispatchEvent(event);
                     }}
@@ -147,7 +157,7 @@ export function AppSidebar() {
                     {!collapsed && <span className="text-primary">Take a Tour</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              )}
+              )} */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

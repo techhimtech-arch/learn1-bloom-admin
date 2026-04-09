@@ -31,12 +31,6 @@ export const adminTourSteps = [
     placement: 'right',
   },
   {
-    id: 'sections',
-    target: '[data-tour="sections"]',
-    content: '<h3>Sections</h3><p>Create and manage different sections within classes for better organization.</p>',
-    placement: 'right',
-  },
-  {
     id: 'subjects',
     target: '[data-tour="subjects"]',
     content: '<h3>Subjects</h3><p>Configure subjects, assign teachers, and manage curriculum details.</p>',
@@ -51,7 +45,7 @@ export const adminTourSteps = [
   {
     id: 'teachers',
     target: '[data-tour="teachers"]',
-    content: '<h3>Teachers</h3><p>Manage teacher profiles, assignments, schedules, and performance tracking.</p>',
+    content: '<h3>Teacher Assignments</h3><p>Manage teacher profiles, assignments, schedules, and performance tracking.</p>',
     placement: 'right',
   },
   {
@@ -93,13 +87,13 @@ export const getStepRoute = (stepId) => {
     users: '/users',
     'academic-year': '/academic-years',
     classes: '/classes',
-    sections: '/sections',
     subjects: '/subjects',
     admissions: '/admission',
     teachers: '/teacher-assignments',
     fees: '/fees/structure',
     exams: '/exams',
     announcements: '/announcements',
+    profile: '/profile',
   };
   return routeMap[stepId] || null;
 };

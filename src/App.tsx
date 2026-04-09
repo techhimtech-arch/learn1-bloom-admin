@@ -85,20 +85,25 @@ const AppContent = () => {
   const [runTour, setRunTour] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.role && canTakeTour(user.role)) {
-      const tourKey = getTourLocalStorageKey(user.role);
-      const tourCompleted = localStorage.getItem(tourKey);
-      if (!tourCompleted) {
-        setShowWelcomeModal(true);
-      }
-    }
+    // Tour temporarily disabled
+    // if (!loading && isAuthenticated && user?.role && canTakeTour(user.role)) {
+    //   const tourKey = getTourLocalStorageKey(user.role);
+    //   const tourCompleted = localStorage.getItem(tourKey);
+    //   if (!tourCompleted) {
+    //     setShowWelcomeModal(true);
+    //   }
+    // }
   }, [isAuthenticated, user, loading]);
 
   useEffect(() => {
     const handleStartTourEvent = (event: CustomEvent) => {
+      console.log('🎬 Start Tour Event Received:', event.detail);
       const tourKey = getTourLocalStorageKey(event.detail.role);
+      console.log('🔑 Tour Key:', tourKey);
       localStorage.removeItem(tourKey);
+      console.log('🗑️ Removed from localStorage');
       setRunTour(true);
+      console.log('▶️ Set runTour to true');
     };
 
     window.addEventListener('startTour', handleStartTourEvent as EventListener);
@@ -106,15 +111,19 @@ const AppContent = () => {
   }, []);
 
   const handleStartTour = () => {
+    console.log('🎯 Welcome Modal: Start Tour Clicked');
     setShowWelcomeModal(false);
     setRunTour(true);
+    console.log('▶️ Tour started from welcome modal');
   };
 
   const handleSkipTour = () => {
+    console.log('⏭️ Welcome Modal: Skip Tour Clicked');
     setShowWelcomeModal(false);
     if (user?.role) {
       const tourKey = getTourLocalStorageKey(user.role);
       localStorage.setItem(tourKey, 'true');
+      console.log('💾 Tour completion saved to localStorage:', tourKey);
     }
   };
 
@@ -221,10 +230,10 @@ const AppContent = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Tour Component */}
-      {user?.role && canTakeTour(user.role) && (
+      {/* Tour Component - Temporarily Disabled */}
+      {/* {user?.role && canTakeTour(user.role) && (
         <AdminTour runTour={runTour} setRunTour={setRunTour} />
-      )}
+      )} */}
     </>
   );
 };
@@ -234,7 +243,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <AppContent />
         </AuthProvider>
