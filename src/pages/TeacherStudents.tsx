@@ -18,12 +18,14 @@ import {
   GraduationCap,
   Eye,
   Download,
+  Award,
   UserCheck
 } from 'lucide-react';
 import { teacherApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 
 interface Student {
   _id: string;

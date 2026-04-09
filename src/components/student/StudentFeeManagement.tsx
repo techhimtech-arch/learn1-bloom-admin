@@ -474,7 +474,7 @@ export const StudentFeeManagement = () => {
                         <td className="py-2">{comp.name}</td>
                         <td className="text-right">₹{comp.amount.toLocaleString()}</td>
                         <td className="text-right">
-                          <Badge className={getStatusColor(comp.status)} variant="secondary" className="text-xs">
+                          <Badge className={`${getStatusColor(comp.status)} text-xs`} variant="secondary">
                             {comp.status}
                           </Badge>
                         </td>

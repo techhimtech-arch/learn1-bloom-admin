@@ -29,11 +29,11 @@ import { format } from 'date-fns';
 interface Announcement {
   id: string;
   title: string;
-  content?: string;
+  content: string;
   message?: string;
   type: string;
   priority: string;
-  targetAudience?: string[];
+  targetAudience: string[];
   targetType?: string;
   targetIds?: string[];
   publishDate?: string;
