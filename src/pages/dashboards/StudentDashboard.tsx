@@ -94,7 +94,7 @@ const StudentDashboard = () => {
           title="Notifications"
           value={`${stats?.announcements?.unread || 0}`}
           change="Unread"
-          changeType={stats?.announcements?.unread ? 'warning' : 'positive'}
+          changeType={stats?.announcements?.unread ? 'negative' : 'positive'}
           icon={Bell}
           iconColor="bg-orange-500/10 text-orange-600"
         />
@@ -124,20 +124,20 @@ const StudentDashboard = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Class</span>
-                    <span className="font-semibold">{user?.classId || 'Not Assigned'}</span>
+                    <span className="font-semibold">{(user as any)?.classId || 'Not Assigned'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Section</span>
-                    <span className="font-semibold">{user?.sectionId || 'Not Assigned'}</span>
+                    <span className="font-semibold">{(user as any)?.sectionId || 'Not Assigned'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Roll Number</span>
-                    <span className="font-semibold">{user?.rollNumber || '—'}</span>
+                    <span className="font-semibold">{(user as any)?.rollNumber || '—'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={user?.isActive ? 'default' : 'secondary'}>
-                      {user?.isActive ? 'Active' : 'Inactive'}
+                    <Badge variant={(user as any)?.isActive ? 'default' : 'secondary'}>
+                      {(user as any)?.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
                 </div>

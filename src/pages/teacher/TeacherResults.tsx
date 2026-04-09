@@ -88,10 +88,10 @@ const TeacherResults = () => {
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass],
-    queryFn: () => {
-      if (!selectedClass) return { data: { data: [] } };
+    queryFn: async () => {
+      if (!selectedClass) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
       const classData = classes?.find(cls => cls.classId._id === selectedClass);
-      if (!classData) return { data: { data: [] } };
+      if (!classData) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
       return teacherApi.getStudents({ classId: selectedClass, sectionId: classData.sectionId._id });
     },
     enabled: !!selectedClass,
@@ -106,10 +106,10 @@ const TeacherResults = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.subjectAssignments as ClassAssignment[] || [];
-  const exams = examsData?.data?.data as Exam[] || [];
-  const students = studentsData?.data?.data as Student[] || [];
-  const results = resultsDataQuery?.data?.data as Result[] || [];
+  const classes = (classesData as any)?.data?.subjectAssignments as ClassAssignment[] || [];
+  const exams = (examsData as any)?.data?.data as Exam[] || [];
+  const students = (studentsData as any)?.data?.data as Student[] || [];
+  const results = (resultsDataQuery as any)?.data?.data as Result[] || [];
 
   // Get unique classes for dropdown
   const uniqueClasses = Array.from(

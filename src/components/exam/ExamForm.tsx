@@ -46,7 +46,7 @@ interface Exam {
   examType: string;
   classId: string;
   sectionId: string;
-  sessionId: string;
+  sessionId?: string;
   startDate: string;
   endDate: string;
   status: 'draft' | 'scheduled' | 'completed' | 'published';
