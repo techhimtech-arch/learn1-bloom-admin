@@ -18,6 +18,7 @@ import {
   GraduationCap,
   Eye,
   Download,
+  Award,
   UserCheck
 } from 'lucide-react';
 import { teacherApi } from '@/services/api';

@@ -125,18 +125,18 @@ const TeacherResults = () => {
   // Get results
   const { data: resultsData, isLoading: resultsLoading } = useQuery({
     queryKey: ['teacher-results', selectedExam],
-    queryFn: () => {
-      if (!selectedExam) return { data: { data: [] } };
+    queryFn: async () => {
+      if (!selectedExam) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
       return teacherApi.getResults({ examId: selectedExam });
     },
     enabled: !!selectedExam,
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.data as SubjectAssignment[] || [];
-  const exams = examsData?.data?.data as Exam[] || [];
-  const students = studentsData?.data?.data as Student[] || [];
-  const results = resultsData?.data?.data as Result[] || [];
+  const classes = (classesData as any)?.data?.data as SubjectAssignment[] || [];
+  const exams = (examsData as any)?.data?.data as Exam[] || [];
+  const students = (studentsData as any)?.data?.data as Student[] || [];
+  const results = (resultsData as any)?.data?.data as Result[] || [];
 
   // Find selected exam details
   const selectedExamDetails = exams.find(exam => exam._id === selectedExam);
@@ -340,8 +340,8 @@ const TeacherResults = () => {
                   {classes
                     .filter(cls => cls.classId?._id === selectedClass)
                     .map((cls) => (
-                      <SelectItem key={cls._id} value={cls.sectionId?._id || cls.sectionId}>
-                        {cls.sectionId?.name || cls.sectionId}
+                      <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
+                        {typeof cls.sectionId === 'object' ? cls.sectionId?.name : cls.sectionId}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -388,7 +388,7 @@ const TeacherResults = () => {
                         {selectedExamDetails && (
                           <span>
                             Entering results for {selectedExamDetails.subjectId?.name} - 
-                            {selectedExamDetails.classId?.name} {selectedExamDetails.sectionId?.name} 
+                            {selectedExamDetails.classId?.name} {(selectedExamDetails as any).sectionId?.name} 
                             (Max Marks: {selectedExamDetails.totalMarks})
                           </span>
                         )}

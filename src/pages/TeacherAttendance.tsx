@@ -302,7 +302,7 @@ const TeacherAttendance = () => {
                     .filter(cls => (cls.classId?._id || cls.classId) === selectedClass)
                     .map((cls) => (
                       <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
-                        {cls.sectionId?.name || cls.sectionId}
+                        {typeof cls.sectionId === 'object' ? cls.sectionId?.name : String(cls.sectionId)}
                       </SelectItem>
                     ))}
                 </SelectContent>

@@ -30,6 +30,7 @@ interface Exam {
   examType: string;
   classId: string;
   sectionId: string;
+  sessionId?: string;
   academicYearId: string;
   startDate: string;
   endDate: string;
