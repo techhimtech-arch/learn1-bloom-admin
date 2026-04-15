@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatWidget from '@/components/shared/StatWidget';
-import { dashboardApi } from '@/services/api';
+import { dashboardApi, academicApi, academicYearApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const quickActions = [
   { label: 'Add Student', icon: UserPlus, route: '/admission' },
@@ -27,18 +27,63 @@ const COLORS = [
   'hsl(0, 72%, 51%)',
 ];
 
-const mockAttendanceChart = [
-  { day: 'Mon', present: 1150, absent: 50 },
-  { day: 'Tue', present: 1120, absent: 80 },
-  { day: 'Wed', present: 1180, absent: 20 },
-  { day: 'Thu', present: 1100, absent: 100 },
-  { day: 'Fri', present: 1140, absent: 60 },
-];
+// Types for API responses
+interface RecentActivity {
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  data: any;
+}
 
-const mockFeeChart = [
-  { name: 'Collected', value: 2500000 },
-  { name: 'Pending', value: 500000 },
-];
+interface AttendanceAnalytics {
+  monthlyTrends: Array<{
+    month: string;
+    totalStudents: number;
+    presentStudents: number;
+    absentStudents: number;
+    attendancePercentage: number;
+  }>;
+  classWiseTrends: Array<{
+    className: string;
+    attendancePercentage: number;
+  }>;
+}
+
+interface FeeAnalytics {
+  monthlyTrends: Array<{
+    month: string;
+    totalCollected: number;
+    paymentCount: number;
+  }>;
+  paymentMethods: Array<{
+    paymentMethod: string;
+    totalAmount: number;
+    count: number;
+    percentage: number;
+  }>;
+}
+
+interface AcademicSummary {
+  overview: {
+    totalClasses: number;
+    totalSections: number;
+    totalSubjects: number;
+    totalEnrollments: number;
+    totalTeachers: number;
+  };
+  classWiseStats: Array<{
+    className: string;
+    totalStudents: number;
+    maleStudents: number;
+    femaleStudents: number;
+  }>;
+  subjectDistribution: Record<string, number>;
+  topTeachers: Array<{
+    teacherName: string;
+    studentCount: number;
+  }>;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -50,25 +95,65 @@ const AdminDashboard = () => {
     pendingFees: '₹0',
     upcomingExams: 0,
   });
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [attendanceAnalytics, setAttendanceAnalytics] = useState<AttendanceAnalytics | null>(null);
+  const [feeAnalytics, setFeeAnalytics] = useState<FeeAnalytics | null>(null);
+  const [academicSummary, setAcademicSummary] = useState<AcademicSummary | null>(null);
+  const [currentAcademicSession, setCurrentAcademicSession] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dashboardApi.getStats()
-      .then(({ data: res }) => {
-        const d = res.data;
-        if (d) {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        
+        // Get current academic session first
+        const academicSessionRes = await academicYearApi.getCurrent();
+        const sessionId = academicSessionRes.data.data?._id;
+        setCurrentAcademicSession(sessionId);
+        
+        // Fetch all dashboard data in parallel
+        const [
+          statsRes,
+          activitiesRes,
+          attendanceRes,
+          feeRes,
+          academicRes
+        ] = await Promise.all([
+          dashboardApi.getStats(),
+          dashboardApi.getRecentActivities(10),
+          dashboardApi.getAttendanceAnalytics(6),
+          dashboardApi.getFeeAnalytics(6),
+          sessionId ? academicApi.getSummary(sessionId) : Promise.resolve({ data: { data: null } })
+        ]);
+        
+        // Update stats
+        const statsData = statsRes.data.data;
+        if (statsData) {
           setStats({
-            totalStudents: d.stats?.totalStudents ?? 0,
-            totalTeachers: d.stats?.totalTeachers ?? 0,
-            totalClasses: d.stats?.totalClasses ?? 0,
-            attendancePercentage: d.attendance?.attendancePercentage ?? 0,
-            pendingFees: `₹${Number(d.fees?.totalPendingFees ?? 0).toLocaleString('en-IN')}`,
-            upcomingExams: d.exams?.totalExams ?? 0,
+            totalStudents: statsData.stats?.totalStudents ?? 0,
+            totalTeachers: statsData.stats?.totalTeachers ?? 0,
+            totalClasses: statsData.stats?.totalClasses ?? 0,
+            attendancePercentage: statsData.attendance?.attendancePercentage ?? 0,
+            pendingFees: `₹${Number(statsData.fees?.totalPendingFees ?? 0).toLocaleString('en-IN')}`,
+            upcomingExams: statsData.exams?.totalExams ?? 0,
           });
         }
-      })
-      .catch((err) => {
+        
+        // Update other data
+        setRecentActivities(activitiesRes.data.data || []);
+        setAttendanceAnalytics(attendanceRes.data.data);
+        setFeeAnalytics(feeRes.data.data);
+        setAcademicSummary(academicRes.data.data);
+        
+      } catch (err) {
         showApiError(err, 'Failed to load dashboard data');
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
   }, []);
 
   return (
@@ -111,19 +196,24 @@ const AdminDashboard = () => {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Weekly Attendance</CardTitle>
+            <CardTitle className="text-lg">Attendance Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={mockAttendanceChart}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" fontSize={12} stroke="hsl(var(--muted-foreground))" />
-                <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                <Bar dataKey="present" fill="hsl(160, 60%, 45%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="absent" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {attendanceAnalytics ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={attendanceAnalytics.monthlyTrends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <Line type="monotone" dataKey="attendancePercentage" stroke="hsl(160, 60%, 45%)" strokeWidth={2} dot={{ fill: 'hsl(160, 60%, 45%)' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                {loading ? 'Loading...' : 'No attendance data available'}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -132,19 +222,86 @@ const AdminDashboard = () => {
             <CardTitle className="text-lg">Fee Collection</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={mockFeeChart} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                  {mockFeeChart.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
-              </PieChart>
-            </ResponsiveContainer>
+            {feeAnalytics ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie 
+                    data={feeAnalytics.paymentMethods} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={100} 
+                    dataKey="totalAmount" 
+                    label={({ paymentMethod, percent }) => `${paymentMethod} ${(percent * 100).toFixed(0)}%`} 
+                    labelLine={false}
+                  >
+                    {feeAnalytics.paymentMethods.map((_, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                {loading ? 'Loading...' : 'No fee data available'}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Academic Summary Charts */}
+      {academicSummary && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Class-wise Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={academicSummary.classWiseStats}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="className" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <Bar dataKey="totalStudents" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Subject Distribution</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center">
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie 
+                    data={Object.entries(academicSummary.subjectDistribution).map(([subject, count]) => ({
+                      name: subject,
+                      value: count
+                    }))} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={100} 
+                    dataKey="value" 
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} 
+                    labelLine={false}
+                  >
+                    {Object.entries(academicSummary.subjectDistribution).map((_, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -152,20 +309,46 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[
-              { text: 'New student Priya Sharma admitted to Class 10-A', time: '2 mins ago', color: 'bg-primary' },
-              { text: 'Attendance marked for Class 8-B', time: '15 mins ago', color: 'bg-success' },
-              { text: 'Fee payment received from Rahul Kumar - ₹5,000', time: '1 hour ago', color: 'bg-warning' },
-              { text: 'Mid-term exam schedule published', time: '3 hours ago', color: 'bg-secondary' },
-            ].map((activity, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50">
-                <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${activity.color}`} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-foreground">{activity.text}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
-                </div>
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity, i) => {
+                const getActivityColor = (type: string) => {
+                  switch (type) {
+                    case 'student_registration': return 'bg-primary';
+                    case 'fee_payment': return 'bg-success';
+                    case 'exam_result': return 'bg-warning';
+                    case 'announcement': return 'bg-secondary';
+                    default: return 'bg-muted';
+                  }
+                };
+                
+                const formatTime = (timestamp: string) => {
+                  const date = new Date(timestamp);
+                  const now = new Date();
+                  const diffMs = now.getTime() - date.getTime();
+                  const diffMins = Math.floor(diffMs / 60000);
+                  
+                  if (diffMins < 60) return `${diffMins} mins ago`;
+                  const diffHours = Math.floor(diffMins / 60);
+                  if (diffHours < 24) return `${diffHours} hours ago`;
+                  const diffDays = Math.floor(diffHours / 24);
+                  return `${diffDays} days ago`;
+                };
+                
+                return (
+                  <div key={i} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50">
+                    <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${getActivityColor(activity.type)}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-foreground">{activity.description}</p>
+                      <p className="text-xs text-muted-foreground">{formatTime(activity.timestamp)}</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center text-muted-foreground py-4">
+                {loading ? 'Loading...' : 'No recent activities'}
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>

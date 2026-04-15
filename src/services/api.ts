@@ -98,6 +98,10 @@ export const dashboardApi = {
   getParentStats: () => apiClient.get("/parent/dashboard"),
   getStudentStats: () => apiClient.get("/student/dashboard"),
   getAccountantStats: () => apiClient.get("/accountant/dashboard"),
+  getRecentActivities: (limit?: number) => apiClient.get("/dashboard/recent-activities", { params: { limit } }),
+  getAttendanceAnalytics: (months?: number) => apiClient.get("/dashboard/attendance-analytics", { params: { months } }),
+  getFeeAnalytics: (months?: number) => apiClient.get("/dashboard/fee-analytics", { params: { months } }),
+  getAcademicSummary: () => apiClient.get("/dashboard/academic-summary"),
 };
 
 // ── User API ──────────────────────────────────────────────
@@ -530,9 +534,9 @@ export const rollNumberApi = {
 
 // Academic Summary API
 export const academicApi = {
-  getSummary: () => apiClient.get('/academic/summary'),
-  getClassStats: (classId: string) => apiClient.get(`/academic/class-stats/${classId}`),
-  getEnrollmentTrends: () => apiClient.get('/academic/enrollment-trends'),
+  getSummary: (academicSessionId: string) => apiClient.get('/academic/summary', { params: { academicSessionId } }),
+  getClassStats: (classId: string, academicSessionId: string) => apiClient.get(`/academic/class-stats/${classId}`, { params: { academicSessionId } }),
+  getEnrollmentTrends: (academicSessionId: string, years?: number) => apiClient.get('/academic/enrollment-trends', { params: { academicSessionId, years } }),
 };
 
 // Teacher Assignment API
