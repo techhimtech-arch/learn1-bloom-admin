@@ -85,14 +85,13 @@ const AppContent = () => {
   const [runTour, setRunTour] = useState(false);
 
   useEffect(() => {
-    // Tour temporarily disabled
-    // if (!loading && isAuthenticated && user?.role && canTakeTour(user.role)) {
-    //   const tourKey = getTourLocalStorageKey(user.role);
-    //   const tourCompleted = localStorage.getItem(tourKey);
-    //   if (!tourCompleted) {
-    //     setShowWelcomeModal(true);
-    //   }
-    // }
+    if (!loading && isAuthenticated && user?.role && canTakeTour(user.role)) {
+      const tourKey = getTourLocalStorageKey(user.role);
+      const tourCompleted = localStorage.getItem(tourKey);
+      if (!tourCompleted) {
+        setShowWelcomeModal(true);
+      }
+    }
   }, [isAuthenticated, user, loading]);
 
   useEffect(() => {
@@ -111,20 +110,15 @@ const AppContent = () => {
   }, []);
 
   const handleStartTour = () => {
-    console.log('🎯 Welcome Modal: Start Tour Clicked');
+    console.log('🎯 Welcome Modal: View Instructions Clicked');
     setShowWelcomeModal(false);
-    setRunTour(true);
-    console.log('▶️ Tour started from welcome modal');
   };
 
   const handleSkipTour = () => {
-    console.log('⏭️ Welcome Modal: Skip Tour Clicked');
+    console.log('❌ Welcome Modal: Skip Instructions Clicked');
+    const tourKey = getTourLocalStorageKey(user?.role || '');
+    localStorage.setItem(tourKey, 'true');
     setShowWelcomeModal(false);
-    if (user?.role) {
-      const tourKey = getTourLocalStorageKey(user.role);
-      localStorage.setItem(tourKey, 'true');
-      console.log('💾 Tour completion saved to localStorage:', tourKey);
-    }
   };
 
   return (
@@ -208,23 +202,67 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* Welcome Modal for First-time Users */}
+      {/* Tour Instructions Modal */}
       <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              Welcome {ROLE_LABELS[user?.role || 'User']} — Take a Tour?
+            <DialogTitle className="text-xl font-semibold text-center">
+              🎯 Welcome to Admin Dashboard — Quick Tour Guide
             </DialogTitle>
-            <DialogDescription className="text-base mt-2">
-              Let us guide you through the key features of your portal. This will only take a few minutes.
+            <DialogDescription className="text-base mt-2 text-center">
+              Here's a step-by-step guide to help you navigate through your school management system
             </DialogDescription>
           </DialogHeader>
+          
+          <div className="mt-6 space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-2">📋 Key Dashboard Features</h3>
+              <ul className="space-y-2 text-sm text-blue-800">
+                <li><strong>Dashboard:</strong> Monitor overall school activity, view statistics, and track important metrics</li>
+                <li><strong>User Management:</strong> Create and manage teachers, parents, and admin accounts</li>
+                <li><strong>Student Admission:</strong> Handle student applications and enrollment processes</li>
+                <li><strong>Academic Years:</strong> Set up academic years, terms, and calendar dates</li>
+                <li><strong>Class Management:</strong> Manage class schedules and room assignments</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="font-semibold text-green-900 mb-2">📚 Academic Management</h3>
+              <ul className="space-y-2 text-sm text-green-800">
+                <li><strong>Subjects:</strong> Configure subjects and assign teachers</li>
+                <li><strong>Teacher Assignments:</strong> Manage teacher profiles and schedules</li>
+                <li><strong>Exams:</strong> Create exam schedules and manage results</li>
+                <li><strong>Announcements:</strong> Send notifications to students and staff</li>
+                <li><strong>Assignments:</strong> Create and manage student assignments</li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="font-semibold text-purple-900 mb-2">💰 Financial & Administrative</h3>
+              <ul className="space-y-2 text-sm text-purple-800">
+                <li><strong>Fee Structure:</strong> Set up fee structures and payment plans</li>
+                <li><strong>Fee Reports:</strong> Track payments and generate financial reports</li>
+                <li><strong>Certificates:</strong> Generate student certificates</li>
+                <li><strong>Attendance:</strong> Manage student and staff attendance</li>
+                <li><strong>Profile Settings:</strong> Access your profile and restart this guide anytime</li>
+              </ul>
+            </div>
+
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h3 className="font-semibold text-yellow-900 mb-2">🚀 Quick Start Tips</h3>
+              <ul className="space-y-2 text-sm text-yellow-800">
+                <li>• Use the left sidebar to navigate between different sections</li>
+                <li>• Each section has its own management tools and features</li>
+                <li>• Look for "Add New" buttons to create new records</li>
+                <li>• Use filters and search to find specific information quickly</li>
+                <li>• Check your profile for additional settings and options</li>
+              </ul>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 mt-6">
             <Button variant="outline" onClick={handleSkipTour}>
-              Skip
-            </Button>
-            <Button onClick={handleStartTour}>
-              Start Tour
+              Got it, thanks!
             </Button>
           </div>
         </DialogContent>

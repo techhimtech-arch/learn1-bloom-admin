@@ -259,7 +259,7 @@ export function AssignmentForm({
                       </FormControl>
                       <SelectContent>
                         {subjects.map((subject) => (
-                          <SelectItem key={`subject-${subject.id}`} value={subject.id}>
+                          <SelectItem key={`subject-${subject.id || subject._id}`} value={subject.id || subject._id}>
                             {subject.name} ({subject.code})
                           </SelectItem>
                         ))}
@@ -306,7 +306,7 @@ export function AssignmentForm({
                       </FormControl>
                       <SelectContent>
                         {classes.map((cls) => (
-                          <SelectItem key={`class-${cls.id}`} value={cls.id}>
+                          <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
                             {cls.name}
                           </SelectItem>
                         ))}
@@ -331,7 +331,7 @@ export function AssignmentForm({
                       </FormControl>
                       <SelectContent>
                         {sections.map((section) => (
-                          <SelectItem key={`section-${section.id}`} value={section.id}>
+                          <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
                             {section.name}
                           </SelectItem>
                         ))}

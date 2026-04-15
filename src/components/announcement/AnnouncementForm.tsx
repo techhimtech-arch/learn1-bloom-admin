@@ -27,6 +27,8 @@ const announcementSchema = z.object({
   type: z.enum(['general', 'academic', 'sports', 'events', 'emergency', 'examination', 'holiday']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']),
   targetAudience: z.array(z.string()).min(1, 'Select at least one target audience'),
+  publishDate: z.string().optional(),
+  expiryDate: z.string().optional(),
 });
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
@@ -76,6 +78,8 @@ export function AnnouncementForm({
       type: 'general',
       priority: 'medium',
       targetAudience: ['all'],
+      publishDate: new Date().toISOString().split('T')[0],
+      expiryDate: '',
     },
   });
 
@@ -87,6 +91,8 @@ export function AnnouncementForm({
         type: announcement.type as AnnouncementFormData['type'],
         priority: announcement.priority as AnnouncementFormData['priority'],
         targetAudience: announcement.targetAudience || ['all'],
+        publishDate: announcement.publishDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+        expiryDate: announcement.expiryDate?.split('T')[0] || '',
       });
     }
   }, [announcement, form]);
@@ -121,6 +127,8 @@ export function AnnouncementForm({
       type: data.type,
       priority: data.priority,
       targetAudience: data.targetAudience,
+      publishDate: data.publishDate,
+      expiryDate: data.expiryDate,
     };
 
     if (announcement) {
@@ -279,6 +287,42 @@ export function AnnouncementForm({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="publishDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Publish Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expiry Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={handleClose}>

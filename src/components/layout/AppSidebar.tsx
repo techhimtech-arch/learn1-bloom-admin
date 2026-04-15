@@ -96,8 +96,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => {
                 const tourAttr = getTourAttribute(item.title);
-                console.log('?? Sidebar Item:', { title: item.title, tourAttr, url: item.url });
-                return (
+                                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink
