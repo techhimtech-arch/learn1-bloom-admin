@@ -33,11 +33,12 @@ interface RecentActivity {
   title: string;
   description: string;
   timestamp: string;
-  data: any;
+  data?: any;
 }
 
 interface AttendanceAnalytics {
   monthlyTrends: Array<{
+    _id: { year: number; month: number };
     month: string;
     totalStudents: number;
     presentStudents: number;
@@ -48,6 +49,11 @@ interface AttendanceAnalytics {
     className: string;
     attendancePercentage: number;
   }>;
+  period: {
+    startDate: string;
+    endDate: string;
+    months: number;
+  };
 }
 
 interface FeeAnalytics {
@@ -201,11 +207,17 @@ const AdminDashboard = () => {
           <CardContent>
             {attendanceAnalytics ? (
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={attendanceAnalytics.monthlyTrends}>
+                <LineChart data={attendanceAnalytics.monthlyTrends.map(item => ({
+                  ...item,
+                  displayMonth: new Date(item.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+                }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis dataKey="displayMonth" fontSize={12} stroke="hsl(var(--muted-foreground))" />
                   <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Attendance']}
+                  />
                   <Line type="monotone" dataKey="attendancePercentage" stroke="hsl(160, 60%, 45%)" strokeWidth={2} dot={{ fill: 'hsl(160, 60%, 45%)' }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -316,7 +328,7 @@ const AdminDashboard = () => {
                     case 'student_registration': return 'bg-primary';
                     case 'fee_payment': return 'bg-success';
                     case 'exam_result': return 'bg-warning';
-                    case 'announcement': return 'bg-secondary';
+                    case 'announcement': return 'bg-blue-500';
                     default: return 'bg-muted';
                   }
                 };
@@ -338,8 +350,9 @@ const AdminDashboard = () => {
                   <div key={i} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50">
                     <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${getActivityColor(activity.type)}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-foreground">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground">{formatTime(activity.timestamp)}</p>
+                      <p className="text-sm font-medium text-foreground">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{activity.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatTime(activity.timestamp)}</p>
                     </div>
                   </div>
                 );
