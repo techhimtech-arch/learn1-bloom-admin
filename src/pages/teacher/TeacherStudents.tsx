@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { teacherApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Student {
   _id: string;
@@ -37,16 +38,17 @@ interface ClassAssignment {
 }
 
 const TeacherStudents = () => {
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
-
-  // Get teacher classes
-  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
 
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -59,13 +61,7 @@ const TeacherStudents = () => {
     staleTime: 3 * 60 * 1000,
   });
 
-  const classes = (classesData as any)?.data?.data?.subjectAssignments || [];
   const students = (studentsData as any)?.data?.data || [];
-
-  // Debug: log classes data
-  console.log('Classes data:', classesData);
-  console.log('Extracted classes:', classes);
-  console.log('Classes length:', classes.length);
 
   // Filter students based on search term
   const filteredStudents = students.filter(student => 
@@ -74,17 +70,9 @@ const TeacherStudents = () => {
     student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Get unique classes for dropdown
-  const uniqueClasses = classes.map(cls => {
-    const classId = cls.classId?._id || cls.classId;
-    const className = cls.classId?.name || cls.classId;
-    return { _id: classId, name: className };
-  });
-
-  console.log('Unique classes:', uniqueClasses);
-
-  // Get sections for selected class
-  const sectionsForClass = classes.filter(cls => (cls.classId?._id || cls.classId) === selectedClass);
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
 
   if (classesLoading) {
     return (
@@ -92,18 +80,6 @@ const TeacherStudents = () => {
         <div className="text-center py-8">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
           <p className="text-sm text-muted-foreground mt-2">Loading classes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (classesError) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="h-8 w-8 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Error loading classes</h3>
-          <p className="text-muted-foreground">{classesError.message}</p>
         </div>
       </div>
     );

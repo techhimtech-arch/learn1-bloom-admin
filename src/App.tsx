@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { TeacherProvider } from "@/contexts/TeacherContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ROLE_LABELS, canTakeTour, getTourLocalStorageKey, getDefaultRoute } from '@/lib/role-config';
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -190,13 +191,19 @@ const AppContent = () => {
           <Route path="/results" element={<StudentResults />} />
           
           {/* Teacher Routes */}
-          <Route path="/teacher/attendance" element={<TeacherAttendance />} />
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-          <Route path="/teacher/profile" element={<TeacherProfile />} />
-          <Route path="/teacher/students" element={<TeacherStudents />} />
-          <Route path="/teacher/exams" element={<TeacherExams />} />
-          <Route path="/teacher/results" element={<TeacherResults />} />
-          <Route path="/teacher/assignments" element={<TeacherAssignments />} />
+          <Route path="/teacher/*" element={
+            <TeacherProvider>
+              <Routes>
+                <Route path="attendance" element={<TeacherAttendance />} />
+                <Route path="dashboard" element={<TeacherDashboard />} />
+                <Route path="profile" element={<TeacherProfile />} />
+                <Route path="students" element={<TeacherStudents />} />
+                <Route path="exams" element={<TeacherExams />} />
+                <Route path="results" element={<TeacherResults />} />
+                <Route path="assignments" element={<TeacherAssignments />} />
+              </Routes>
+            </TeacherProvider>
+          } />
         </Route>
 
         <Route path="*" element={<NotFound />} />

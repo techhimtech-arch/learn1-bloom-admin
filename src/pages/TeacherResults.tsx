@@ -24,6 +24,7 @@ import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess as showSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Student {
   _id: string;
@@ -80,6 +81,14 @@ interface SubjectAssignment {
 
 const TeacherResults = () => {
   const queryClient = useQueryClient();
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedExam, setSelectedExam] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
@@ -92,13 +101,6 @@ const TeacherResults = () => {
     grade: string;
     remarks: string;
   }>>([]);
-
-  // Get teacher classes and subjects
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
 
   // Get exams
   const { data: examsData, isLoading: examsLoading } = useQuery({
@@ -133,10 +135,13 @@ const TeacherResults = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = (classesData as any)?.data?.data as SubjectAssignment[] || [];
   const exams = (examsData as any)?.data?.data as Exam[] || [];
   const students = (studentsData as any)?.data?.data as Student[] || [];
   const results = (resultsData as any)?.data?.data as Result[] || [];
+
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
 
   // Find selected exam details
   const selectedExamDetails = exams.find(exam => exam._id === selectedExam);

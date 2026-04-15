@@ -24,6 +24,7 @@ import {
 import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Assignment {
   _id: string;
@@ -73,6 +74,14 @@ interface Submission {
 
 const TeacherAssignments = () => {
   const queryClient = useQueryClient();
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedAssignment, setSelectedAssignment] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -83,13 +92,6 @@ const TeacherAssignments = () => {
     dueDate: '',
     totalMarks: 100,
     instructions: ''
-  });
-
-  // Get teacher classes and subjects
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
   });
 
   // Get assignments for teacher
@@ -103,6 +105,12 @@ const TeacherAssignments = () => {
     staleTime: 3 * 60 * 1000,
   });
 
+  const assignments = assignmentsData?.data?.data as Assignment[] || [];
+
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
+
   // Get submissions for selected assignment
   const { data: submissionsData, isLoading: submissionsLoading } = useQuery({
     queryKey: ['assignment-submissions', selectedAssignment],
@@ -114,14 +122,7 @@ const TeacherAssignments = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.subjectAssignments as ClassAssignment[] || [];
-  const assignments = assignmentsData?.data?.data as Assignment[] || [];
   const submissions = submissionsData?.data?.data as Submission[] || [];
-
-  // Get unique classes for dropdown
-  const uniqueClasses = Array.from(
-    new Map(classes.map(cls => [cls.classId._id, cls.classId])).values()
-  );
 
   // Create assignment mutation
   const createAssignmentMutation = useMutation({

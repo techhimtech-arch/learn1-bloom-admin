@@ -26,6 +26,7 @@ import { showApiError } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Student {
   _id: string;
@@ -66,19 +67,20 @@ interface StudentDetail {
 }
 
 const TeacherStudents = () => {
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentDetailDialogOpen, setStudentDetailDialogOpen] = useState(false);
-
-  // Get teacher classes
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
 
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -107,10 +109,13 @@ const TeacherStudents = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.data as ClassAssignment[] || [];
   const students = studentsData?.data?.data as Student[] || [];
   const pagination = studentsData?.data?.pagination || {};
   const studentDetail = studentDetailData?.data as StudentDetail;
+
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
 
   // Filter students based on search query
   const filteredStudents = students.filter(student => 
@@ -119,20 +124,6 @@ const TeacherStudents = () => {
     student.admissionNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Get unique classes from assignments
-  const uniqueClasses = Array.from(new Set(classes.map(c => c.classId?._id))).map(classId => {
-    const classInfo = classes.find(c => c.classId?._id === classId);
-    return classInfo?.classId;
-  }).filter(Boolean);
-
-  // Get sections for selected class
-  const sectionsForClass = classes
-    .filter(c => c.classId?._id === selectedClass)
-    .map(c => c.sectionId)
-    .filter((section, index, self) => self.findIndex(s => s._id === section._id) === index);
-
-  // Handle student detail view
   const handleViewStudent = (student: Student) => {
     setSelectedStudent(student);
     setStudentDetailDialogOpen(true);

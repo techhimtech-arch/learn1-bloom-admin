@@ -22,6 +22,7 @@ import {
 import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Exam {
   _id: string;
@@ -45,6 +46,14 @@ interface ClassAssignment {
 
 const TeacherExams = () => {
   const queryClient = useQueryClient();
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -59,13 +68,6 @@ const TeacherExams = () => {
     instructions: ['']
   });
 
-  // Get teacher classes and subjects
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Get exams for teacher's classes
   const { data: examsData, isLoading: examsLoading } = useQuery({
     queryKey: ['teacher-exams', selectedClass],
@@ -74,13 +76,11 @@ const TeacherExams = () => {
     staleTime: 3 * 60 * 1000,
   });
 
-  const classes = classesData?.data?.subjectAssignments as ClassAssignment[] || [];
   const exams = examsData?.data?.data as Exam[] || [];
 
-  // Get unique classes for dropdown
-  const uniqueClasses = Array.from(
-    new Map(classes.map(cls => [cls.classId._id, cls.classId])).values()
-  );
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
 
   // Create exam mutation
   const createExamMutation = useMutation({

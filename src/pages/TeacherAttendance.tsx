@@ -24,6 +24,7 @@ import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Student {
   _id: string;
@@ -63,6 +64,14 @@ interface ClassAssignment {
 
 const TeacherAttendance = () => {
   const queryClient = useQueryClient();
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
@@ -73,13 +82,6 @@ const TeacherAttendance = () => {
     status: 'Present' | 'Absent' | 'Late' | 'Leave';
     remarks: string;
   }>>([]);
-
-  // Get teacher classes
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
 
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -108,41 +110,9 @@ const TeacherAttendance = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = Array.isArray((classesData as any)?.data?.subjectAssignments) ? (classesData as any).data.subjectAssignments as ClassAssignment[] : 
-                Array.isArray((classesData as any)?.data?.data) ? (classesData as any).data.data as ClassAssignment[] : [];
   const students = (studentsData as any)?.data?.data as Student[] || [];
   const attendanceHistoryData = (attendanceHistory as any)?.data?.data as AttendanceRecord[] || [];
 
-  // Store teacher profile data in localStorage for use across components
-  useEffect(() => {
-    if (classesData?.data?.classTeacherAssignment || classesData?.data?.subjectAssignments) {
-      localStorage.setItem('teacherProfile', JSON.stringify(classesData.data));
-    }
-  }, [classesData]);
-
-  // Helper functions to safely extract data
-  const getUniqueClasses = () => {
-    const classMap = new Map();
-    classes.forEach(cls => {
-      const classId = cls.classId?._id || cls.classId;
-      const className = cls.classId?.name || cls.classId;
-      if (classId && !classMap.has(classId)) {
-        classMap.set(classId, { _id: classId, name: className });
-      }
-    });
-    return Array.from(classMap.values());
-  };
-
-  const getClassName = (classId: string) => {
-    const cls = classes.find(c => (c.classId?._id || c.classId) === classId);
-    return cls?.classId?.name || cls?.classId || 'Unknown';
-  };
-
-  const getSectionName = (classId: string, sectionId: string) => {
-    const cls = classes.find(c => (c.classId?._id || c.classId) === classId && 
-                                       (c.sectionId?._id || c.sectionId) === sectionId);
-    return cls?.sectionId?.name || cls?.sectionId || 'Unknown';
-  };
 
   // Find class teacher assignment
   const classTeacherAssignment = classes.find(c => (c.classId?._id || c.classId) === selectedClass && 
@@ -298,13 +268,11 @@ const TeacherAttendance = () => {
                   <SelectValue placeholder="Select section" />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes
-                    .filter(cls => (cls.classId?._id || cls.classId) === selectedClass)
-                    .map((cls) => (
-                      <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
-                        {typeof cls.sectionId === 'object' ? cls.sectionId?.name : String(cls.sectionId)}
-                      </SelectItem>
-                    ))}
+                  {getSectionsForClass(selectedClass).map((section) => (
+                    <SelectItem key={section._id} value={String(section._id)}>
+                      {section.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

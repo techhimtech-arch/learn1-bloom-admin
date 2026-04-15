@@ -23,6 +23,7 @@ import {
 import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
+import { useTeacherContext } from '@/contexts/TeacherContext';
 
 interface Student {
   _id: string;
@@ -60,6 +61,14 @@ interface ClassAssignment {
 
 const TeacherResults = () => {
   const queryClient = useQueryClient();
+  const { 
+    classesLoading, 
+    classes, 
+    getUniqueClasses, 
+    getClassName, 
+    getSectionName, 
+    getSectionsForClass 
+  } = useTeacherContext();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedExam, setSelectedExam] = useState<string>('');
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
@@ -70,13 +79,6 @@ const TeacherResults = () => {
     remarks: string;
   }>>([]);
 
-  // Get teacher classes and subjects
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['teacher-classes'],
-    queryFn: () => teacherApi.getClasses(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Get exams for teacher's classes
   const { data: examsData, isLoading: examsLoading } = useQuery({
     queryKey: ['teacher-exams', selectedClass],
@@ -85,18 +87,22 @@ const TeacherResults = () => {
     staleTime: 3 * 60 * 1000,
   });
 
+  const exams = examsData?.data?.data as Exam[] || [];
+
   // Get students for selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass],
     queryFn: async () => {
       if (!selectedClass) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
-      const classData = classes?.find(cls => cls.classId._id === selectedClass);
+      const classData = classes.find(cls => (cls.classId?._id || cls.classId) === selectedClass);
       if (!classData) return { data: { data: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any };
-      return teacherApi.getStudents({ classId: selectedClass, sectionId: classData.sectionId._id });
+      return teacherApi.getStudents({ classId: selectedClass, sectionId: classData.sectionId?._id || classData.sectionId });
     },
     enabled: !!selectedClass,
     staleTime: 3 * 60 * 1000,
   });
+
+  const students = (studentsData as any)?.data?.data as Student[] || [];
 
   // Get results for selected exam
   const { data: resultsDataQuery, isLoading: resultsLoading } = useQuery({
@@ -106,15 +112,11 @@ const TeacherResults = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const classes = (classesData as any)?.data?.subjectAssignments as ClassAssignment[] || [];
-  const exams = (examsData as any)?.data?.data as Exam[] || [];
-  const students = (studentsData as any)?.data?.data as Student[] || [];
   const results = (resultsDataQuery as any)?.data?.data as Result[] || [];
 
-  // Get unique classes for dropdown
-  const uniqueClasses = Array.from(
-    new Map(classes.map(cls => [cls.classId._id, cls.classId])).values()
-  );
+  // Get unique classes and sections using optimized functions
+  const uniqueClasses = getUniqueClasses();
+  const sectionsForClass = getSectionsForClass(selectedClass);
 
   // Add results mutation
   const addResultsMutation = useMutation({
