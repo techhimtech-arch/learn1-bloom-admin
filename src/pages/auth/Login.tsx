@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDefaultRoute } from '@/lib/role-config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +24,10 @@ const Login = () => {
     try {
       await login(email, password);
       toast({ title: 'Success', description: 'Login successful' });
-      navigate('/');
+      // Get user data from localStorage after login
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const defaultRoute = getDefaultRoute(userData.role || '');
+      navigate(defaultRoute);
     } catch (err: any) {
       showApiError(err, 'Invalid email or password');
     } finally {

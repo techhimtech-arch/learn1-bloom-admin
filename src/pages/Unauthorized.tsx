@@ -2,6 +2,7 @@ import { ShieldX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDefaultRoute } from '@/lib/role-config';
 
 const Unauthorized = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Unauthorized = () => {
           </span>
         )}
       </p>
-      <Button onClick={() => navigate('/', { replace: true })}>
+      <Button onClick={() => navigate(getDefaultRoute(user?.role || ''), { replace: true })}>
         Go to Dashboard
       </Button>
     </div>

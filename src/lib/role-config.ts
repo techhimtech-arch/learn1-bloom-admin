@@ -39,10 +39,8 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/fees/structure', '/fees/reports', '/certificates',
   ],
   teacher: [
-    '/', '/attendance', '/subjects', '/profile', '/sessions', '/exams', 
-    '/assignments', '/results', '/teacher/attendance', '/teacher/dashboard',
-    '/teacher/profile', '/teacher/students', '/teacher/exams', 
-    '/teacher/results', '/teacher/assignments',
+    '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams', 
+    '/teacher/results', '/teacher/assignments', '/teacher/attendance',
   ],
   accountant: [
     '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
@@ -114,7 +112,14 @@ export function canAccessRoute(role: string, path: string): boolean {
 }
 
 export function getDefaultRoute(role: string): string {
-  return '/';
+  const defaultRoutes: Record<AppRole, string> = {
+    school_admin: '/',
+    teacher: '/teacher/dashboard',
+    accountant: '/',
+    parent: '/parent/dashboard',
+    student: '/student/dashboard',
+  };
+  return defaultRoutes[role as AppRole] || '/';
 }
 
 // Labels for display
@@ -127,7 +132,7 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 // Tour configuration
-export const TOUR_ROLES: AppRole[] = ['school_admin', 'teacher', 'parent', 'student'];
+export const TOUR_ROLES: AppRole[] = ['school_admin'];
 
 export const getTourStepsForRole = (role: string) => {
   const tourStepsMap: Record<AppRole, string> = {
