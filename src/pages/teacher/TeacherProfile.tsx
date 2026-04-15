@@ -15,7 +15,7 @@ import {
   Save,
   X
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { useAuth } from '@/contexts/AuthContext';
 

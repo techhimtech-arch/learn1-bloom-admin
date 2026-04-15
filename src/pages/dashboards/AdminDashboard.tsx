@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatWidget from '@/components/shared/StatWidget';
-import { dashboardApi, academicApi, academicYearApi } from '@/services/api';
+import { dashboardApi, academicApi, academicYearApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 

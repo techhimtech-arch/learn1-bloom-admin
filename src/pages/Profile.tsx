@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User, Lock, Camera, Loader2, Save, Eye, EyeOff, PlayCircle } from 'lucide-react';
-import { userApi } from '@/services/api';
+import { userApi } from '@/pages/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';

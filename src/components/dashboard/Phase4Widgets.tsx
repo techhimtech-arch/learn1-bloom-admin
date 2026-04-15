@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { announcementApi, assignmentApi, notificationApi } from '@/services/api';
+import { announcementApi, assignmentApi, notificationApi } from '@/pages/services/api';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 

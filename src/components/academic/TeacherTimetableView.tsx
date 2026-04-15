@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, MapPin, Users, AlertCircle } from 'lucide-react';
-import { timetableApi } from '@/services/api';
+import { timetableApi } from '@/pages/services/api';
 
 interface TeacherTimetableViewProps {
   teachers: Array<{

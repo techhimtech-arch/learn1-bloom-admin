@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ResultDetailModal } from '@/components/exam/ResultDetailModal';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
-import { examApi, classApi, sectionApi } from '@/services/api';
+import { examApi, classApi, sectionApi } from '@/pages/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';

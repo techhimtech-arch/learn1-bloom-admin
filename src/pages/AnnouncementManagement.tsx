@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { AnnouncementForm } from '@/components/announcement/AnnouncementForm';
-import { announcementApi, classApi, sectionApi } from '@/services/api';
+import { announcementApi, classApi, sectionApi } from '@/pages/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

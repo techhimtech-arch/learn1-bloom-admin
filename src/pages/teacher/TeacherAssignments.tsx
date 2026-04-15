@@ -21,7 +21,7 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { useTeacherContext } from '@/contexts/TeacherContext';

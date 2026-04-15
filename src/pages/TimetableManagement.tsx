@@ -8,7 +8,7 @@ import { AcademicFilters, AcademicFiltersState } from '@/components/shared/Acade
 import { ClassTimetableView } from '@/components/academic/ClassTimableView';
 import { TeacherTimetableView } from '@/components/academic/TeacherTimetableView';
 import { TimetableSlotForm } from '@/components/academic/TimetableSlotForm';
-import { classApi, userApi } from '@/services/api';
+import { classApi, userApi } from '@/pages/services/api';
 
 export default function TimetableManagement() {
   const [filters, setFilters] = useState<AcademicFiltersState>({

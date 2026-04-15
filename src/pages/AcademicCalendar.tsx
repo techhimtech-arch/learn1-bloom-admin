@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AcademicCalendarForm } from '@/components/academic/AcademicCalendarForm';
-import { academicCalendarApi } from '@/services/api';
+import { academicCalendarApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 
 interface CalendarEvent {

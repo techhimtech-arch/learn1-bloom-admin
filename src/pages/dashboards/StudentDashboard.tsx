@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import StatWidget from '@/components/shared/StatWidget';
 import { useAuth } from '@/contexts/AuthContext';
-import { dashboardApi } from '@/services/api';
+import { dashboardApi } from '@/pages/services/api';
 import {
   ClipboardCheck, BookOpen, FileText, Calendar, Bell, AlertCircle, 
   TrendingUp, Award, Clock, CheckCircle, AlertTriangle, Loader2

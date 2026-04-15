@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { BulkMarksForm } from '@/components/exam/BulkMarksForm';
-import { examApi } from '@/services/api';
+import { examApi } from '@/pages/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

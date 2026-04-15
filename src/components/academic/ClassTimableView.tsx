@@ -3,7 +3,7 @@ import { Clock, MapPin, User, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timetableApi } from '@/services/api';
+import { timetableApi } from '@/pages/services/api';
 
 interface ClassTimetableViewProps {
   classId: string;

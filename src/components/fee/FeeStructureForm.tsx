@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { feeApi, classApi, sectionApi } from '@/services/api';
+import { feeApi, classApi, sectionApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 

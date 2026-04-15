@@ -14,7 +14,7 @@ import {
   Calendar,
   Eye
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { useTeacherContext } from '@/contexts/TeacherContext';
 

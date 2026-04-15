@@ -9,7 +9,7 @@ import { AcademicFilters, AcademicFiltersState } from '@/components/shared/Acade
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { SubjectForm } from '@/components/academic/SubjectForm';
 import { TeacherAssignmentDialog } from '@/components/academic/TeacherAssignmentDialog';
-import { subjectApi, userApi } from '@/services/api';
+import { subjectApi, userApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';

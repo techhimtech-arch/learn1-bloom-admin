@@ -15,7 +15,7 @@ import {
   Calendar,
   Award
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import StatWidget from '@/components/shared/StatWidget';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { format } from 'date-fns';
 

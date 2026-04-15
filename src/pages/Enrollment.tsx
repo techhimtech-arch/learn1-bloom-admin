@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { enrollmentApi, classApi, sectionApi, academicYearApi, admissionApi, schoolApi } from '@/services/api';
+import { enrollmentApi, classApi, sectionApi, academicYearApi, admissionApi, schoolApi } from '@/pages/services/api';
 import { Users, UserPlus, Upload, Eye, TrendingUp } from 'lucide-react';
 
 interface ClassOption { _id: string; name: string; }

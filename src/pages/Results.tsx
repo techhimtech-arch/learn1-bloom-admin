@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { ResultDetailModal } from '@/components/exam/ResultDetailModal';
-import { examApi, classApi, sectionApi } from '@/services/api';
+import { examApi, classApi, sectionApi } from '@/pages/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

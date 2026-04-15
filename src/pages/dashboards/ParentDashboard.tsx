@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import StatWidget from '@/components/shared/StatWidget';
 import { useAuth } from '@/contexts/AuthContext';
-import { parentApi } from '@/services/api';
+import { parentApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { format } from 'date-fns';
 

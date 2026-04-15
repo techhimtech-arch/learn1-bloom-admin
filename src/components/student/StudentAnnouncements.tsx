@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bell, Paperclip, Search, Trash2, AlertTriangle, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { announcementApi } from '@/services/api';
+import { announcementApi } from '@/pages/services/api';
 
 interface Announcement {
   id?: string;

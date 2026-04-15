@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ResultDetailModal } from '@/components/exam/ResultDetailModal';
-import { studentPortalApi } from '@/services/api';
+import { studentPortalApi } from '@/pages/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 

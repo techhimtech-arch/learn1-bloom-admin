@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { examApi } from '@/services/api';
+import { examApi } from '@/pages/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';

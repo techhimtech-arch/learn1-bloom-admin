@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { academicYearApi, classApi, sectionApi } from '@/services/api';
+import { academicYearApi, classApi, sectionApi } from '@/pages/services/api';
 
 export interface AcademicFiltersProps {
   onFiltersChange: (filters: AcademicFiltersState) => void;

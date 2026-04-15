@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { AcademicFilters, AcademicFiltersState } from '@/components/shared/AcademicFilters';
 import { BulkRollNumberForm } from '@/components/academic/BulkRollNumberForm';
-import { rollNumberApi, classApi, sectionApi, academicYearApi } from '@/services/api';
+import { rollNumberApi, classApi, sectionApi, academicYearApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';

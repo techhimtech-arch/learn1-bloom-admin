@@ -14,7 +14,7 @@ import {
   AlertCircle,
   CheckCircle 
 } from 'lucide-react';
-import { academicApi } from '@/services/api';
+import { academicApi } from '@/pages/services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 export function AcademicSummaryCards() {

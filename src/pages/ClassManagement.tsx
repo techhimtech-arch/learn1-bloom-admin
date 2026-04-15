@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { classApi, sectionApi, academicYearApi } from '@/services/api';
+import { classApi, sectionApi, academicYearApi } from '@/pages/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, School, Layers, DoorOpen } from 'lucide-react';
 

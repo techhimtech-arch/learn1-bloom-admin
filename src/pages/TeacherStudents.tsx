@@ -21,7 +21,7 @@ import {
   Award,
   UserCheck
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi } from '@/pages/services/api';
 import { showApiError } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';

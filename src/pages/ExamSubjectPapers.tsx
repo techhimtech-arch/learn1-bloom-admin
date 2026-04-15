@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { SubjectPaperForm } from '@/components/exam/SubjectPaperForm';
-import { examApi, subjectApi, userApi } from '@/services/api';
+import { examApi, subjectApi, userApi } from '@/pages/services/api';
 import {
   AlertDialog,
   AlertDialogAction,
