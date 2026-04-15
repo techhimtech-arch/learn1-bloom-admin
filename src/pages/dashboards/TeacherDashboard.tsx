@@ -15,12 +15,10 @@ const TeacherDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalStudents: 0,
-    presentToday: 0,
-    absentToday: 0,
-    lateToday: 0,
+    todayAttendance: 0,
     pendingResults: 0,
     totalExams: 0,
-    completedExams: 0,
+    totalAssignments: 0,
   });
   const [profile, setProfile] = useState(null);
 
@@ -39,12 +37,10 @@ const TeacherDashboard = () => {
         
         setStats({
           totalStudents: dashboard?.totalStudents || 0,
-          presentToday: dashboard?.presentToday || 0,
-          absentToday: dashboard?.absentToday || 0,
-          lateToday: dashboard?.lateToday || 0,
+          todayAttendance: dashboard?.todayAttendance || 0,
           pendingResults: dashboard?.pendingResults || 0,
           totalExams: dashboard?.totalExams || 0,
-          completedExams: dashboard?.completedExams || 0,
+          totalAssignments: dashboard?.totalAssignments || 0,
         });
         
         setProfile(profileDataResult);
@@ -65,15 +61,13 @@ const TeacherDashboard = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatWidget title="Total Students" value={stats.totalStudents} change="Under your supervision" changeType="neutral" icon={Users} iconColor="bg-primary/10 text-primary" />
-        <StatWidget title="Present Today" value={stats.presentToday} change="Attendance marked" changeType="positive" icon={CheckCircle} iconColor="bg-green-10 text-green-600" />
-        <StatWidget title="Absent Today" value={stats.absentToday} change="Need attention" changeType="negative" icon={XCircle} iconColor="bg-red-10 text-red-600" />
-        <StatWidget title="Late Today" value={stats.lateToday} change="Late arrivals" changeType="neutral" icon={Clock} iconColor="bg-yellow-10 text-yellow-600" />
+        <StatWidget title="Today's Attendance" value={stats.todayAttendance} change="Attendance marked" changeType="positive" icon={CheckCircle} iconColor="bg-green-10 text-green-600" />
+        <StatWidget title="Pending Results" value={stats.pendingResults} change="To be graded" changeType="negative" icon={Award} iconColor="bg-warning/10 text-warning" />
+        <StatWidget title="Total Exams" value={stats.totalExams} change="This term" changeType="neutral" icon={FileText} iconColor="bg-secondary/10 text-secondary" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatWidget title="Pending Results" value={stats.pendingResults} change="To be graded" changeType="negative" icon={Award} iconColor="bg-warning/10 text-warning" />
-        <StatWidget title="Total Exams" value={stats.totalExams} change="This term" changeType="neutral" icon={FileText} iconColor="bg-secondary/10 text-secondary" />
-        <StatWidget title="Completed Exams" value={stats.completedExams} change="Evaluated" changeType="positive" icon={CheckCircle} iconColor="bg-success/10 text-success" />
+        <StatWidget title="Total Assignments" value={stats.totalAssignments} change="Active assignments" changeType="neutral" icon={BookOpen} iconColor="bg-blue-10 text-blue-600" />
       </div>
 
       <Card>
@@ -123,7 +117,7 @@ const TeacherDashboard = () => {
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-2">Class Teacher</h4>
                   <Badge variant="secondary" className="text-sm">
-                    {profile.classTeacherAssignment.classId.name} - {profile.classTeacherAssignment.sectionId.name}
+                    {profile.classTeacherAssignment.classId?.name || 'Class'} - {profile.classTeacherAssignment.sectionId?.name || 'Section'}
                   </Badge>
                 </div>
               )}
@@ -134,7 +128,7 @@ const TeacherDashboard = () => {
                 <div className="flex flex-wrap gap-2">
                   {profile.subjectAssignments?.map((assignment, index) => (
                     <Badge key={index} variant="outline" className="text-sm">
-                      {assignment.subjectId.name} ({assignment.classId.name} - {assignment.sectionId.name})
+                      {assignment.subjectId?.name || 'Subject'} ({assignment.classId?.name || 'Class'} - {assignment.sectionId?.name || 'Section'})
                     </Badge>
                   ))}
                   {(!profile.subjectAssignments || profile.subjectAssignments.length === 0) && (
