@@ -63,6 +63,17 @@ const TeacherStudents = () => {
 
   const students = (studentsData as any)?.data?.data || [];
 
+  // Debug: log classes and context data
+  console.log('=== TEACHER STUDENTS DEBUG ===');
+  console.log('Classes from context:', classes);
+  console.log('Classes length:', classes?.length);
+  console.log('Unique classes from getUniqueClasses():', getUniqueClasses());
+  console.log('Unique classes length:', getUniqueClasses()?.length);
+  console.log('Selected class:', selectedClass);
+  console.log('Selected section:', selectedSection);
+  console.log('Sections for selected class:', getSectionsForClass(selectedClass));
+  console.log('=============================');
+
   // Filter students based on search term
   const filteredStudents = students.filter(student => 
     student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -109,11 +120,21 @@ const TeacherStudents = () => {
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueClasses.map((cls) => (
-                    <SelectItem key={cls._id} value={String(cls._id)}>
-                      {cls.name}
+                  {console.log('Rendering unique classes in dropdown:', uniqueClasses)}
+                  {uniqueClasses.length === 0 ? (
+                    <SelectItem value="no-classes" disabled>
+                      No classes available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    uniqueClasses.map((cls) => {
+                      console.log('Rendering class item:', cls);
+                      return (
+                        <SelectItem key={cls._id} value={String(cls._id)}>
+                          {cls.name}
+                        </SelectItem>
+                      );
+                    })
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -128,11 +149,21 @@ const TeacherStudents = () => {
                   <SelectValue placeholder="Select section" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sectionsForClass.map((cls) => (
-                    <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
-                      {cls.sectionId?.name || cls.sectionId}
+                  {console.log('Rendering sections for class:', selectedClass, sectionsForClass)}
+                  {sectionsForClass.length === 0 ? (
+                    <SelectItem value="no-sections" disabled>
+                      {selectedClass ? 'No sections available' : 'Select a class first'}
                     </SelectItem>
-                  ))}
+                  ) : (
+                    sectionsForClass.map((section) => {
+                      console.log('Rendering section item:', section);
+                      return (
+                        <SelectItem key={section._id} value={String(section._id)}>
+                          {section.name}
+                        </SelectItem>
+                      );
+                    })
+                  )}
                 </SelectContent>
               </Select>
             </div>
