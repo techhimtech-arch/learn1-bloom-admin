@@ -75,6 +75,9 @@ export function AdminDashboardWidgets() {
       return response.data;
     },
     enabled: !!user?.id,
+    staleTime: 24000000, // Consider data fresh for 4 minutes
+    gcTime: 60000000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   const announcements = announcementsData?.data || [];
@@ -421,6 +424,9 @@ export function StudentDashboardWidgets() {
       return response.data;
     },
     enabled: !!user?.id,
+    staleTime: 240000, // Consider data fresh for 4 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   const announcements = announcementsData?.data || [];

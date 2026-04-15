@@ -25,28 +25,34 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
 interface Exam {
-  id: string;
+  _id: string;
+  id?: string;
   name: string;
   examType: string;
-  classId: string;
-  sectionId: string;
-  sessionId?: string;
-  academicYearId: string;
+  classId: {
+    _id: string;
+    name: string;
+  };
+  sectionId: {
+    _id: string;
+    name: string;
+  };
+  sessionId: {
+    _id: string;
+    name: string;
+  };
   startDate: string;
   endDate: string;
-  status: 'draft' | 'scheduled' | 'completed' | 'published';
-  class?: {
-    id: string;
-    name: string;
-  };
-  section?: {
-    id: string;
-    name: string;
-  };
-  academicYear?: {
-    id: string;
-    name: string;
-  };
+  status: 'DRAFT' | 'SCHEDULED' | 'COMPLETED' | 'PUBLISHED';
+  description?: string;
+  instructions?: string;
+  passingPercentage?: number;
+  duration?: number;
+  totalMarks?: number;
+  isActive?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function ExamManagement() {
@@ -116,13 +122,13 @@ export default function ExamManagement() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft':
+      case 'DRAFT':
         return 'bg-gray-100 text-gray-800';
-      case 'scheduled':
+      case 'SCHEDULED':
         return 'bg-blue-100 text-blue-800';
-      case 'completed':
+      case 'COMPLETED':
         return 'bg-yellow-100 text-yellow-800';
-      case 'published':
+      case 'PUBLISHED':
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -213,7 +219,7 @@ export default function ExamManagement() {
                 </TableHeader>
                 <TableBody>
                   {exams.map((exam: Exam) => (
-                    <TableRow key={exam.id}>
+                    <TableRow key={exam._id || exam.id}>
                       <TableCell>
                         <div className="font-medium">{exam.name}</div>
                       </TableCell>
@@ -222,9 +228,9 @@ export default function ExamManagement() {
                           {exam.examType}
                         </Badge>
                       </TableCell>
-                      <TableCell>{exam.class?.name || '-'}</TableCell>
-                      <TableCell>{exam.section?.name || '-'}</TableCell>
-                      <TableCell>{exam.academicYear?.name || '-'}</TableCell>
+                      <TableCell>{exam.classId?.name || '-'}</TableCell>
+                      <TableCell>{exam.sectionId?.name || '-'}</TableCell>
+                      <TableCell>{exam.sessionId?.name || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -248,7 +254,13 @@ export default function ExamManagement() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleEdit(exam)}
+                              onClick={() => handleEdit({
+                                ...exam,
+                                id: exam._id || exam.id || '',
+                                classId: exam.classId?._id || '',
+                                sectionId: exam.sectionId?._id || '',
+                                sessionId: exam.sessionId?._id || '',
+                              })}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -273,7 +285,7 @@ export default function ExamManagement() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={confirmDelete}>
+                                  <AlertDialogAction onClick={() => deleteMutation.mutate(exam._id || exam.id || '')}>
                                     Delete
                                   </AlertDialogAction>
                                 </AlertDialogFooter>

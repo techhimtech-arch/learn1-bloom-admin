@@ -28,7 +28,7 @@ const examSchema = z.object({
   sessionId: z.string().min(1, 'Session is required'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
-  status: z.enum(['draft', 'scheduled', 'completed', 'published']).default('draft'),
+  status: z.enum(['DRAFT', 'SCHEDULED', 'COMPLETED', 'PUBLISHED']).default('DRAFT'),
   description: z.string().optional(),
   instructions: z.string().optional(),
   passingPercentage: z.number().min(0).max(100).optional(),
@@ -49,7 +49,7 @@ interface Exam {
   sessionId?: string;
   startDate: string;
   endDate: string;
-  status: 'draft' | 'scheduled' | 'completed' | 'published';
+  status: 'DRAFT' | 'SCHEDULED' | 'COMPLETED' | 'PUBLISHED';
   description?: string;
   instructions?: string;
   passingPercentage?: number;
@@ -73,10 +73,10 @@ const examTypes = [
 ];
 
 const statusOptions = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'published', label: 'Published' },
+  { value: 'DRAFT', label: 'Draft' },
+  { value: 'SCHEDULED', label: 'Scheduled' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'PUBLISHED', label: 'Published' },
 ];
 
 export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
@@ -92,7 +92,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       sessionId: '',
       startDate: '',
       endDate: '',
-      status: 'draft',
+      status: 'DRAFT',
       description: '',
       instructions: '',
       passingPercentage: 50,
@@ -222,8 +222,8 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   };
 
   const filteredSections = selectedClassId 
-    ? classSectionsData?.data || []
-    : sectionsData?.data || [];
+    ? (Array.isArray(classSectionsData?.data) ? classSectionsData.data : Array.isArray(classSectionsData) ? classSectionsData : [])
+    : (Array.isArray(sectionsData?.data) ? sectionsData.data : Array.isArray(sectionsData) ? sectionsData : []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

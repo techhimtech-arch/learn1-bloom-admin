@@ -45,8 +45,10 @@ export function NotificationDropdown() {
       return response.data;
     },
     enabled: !!user?.id,
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 300000, // Refetch every 5 minutes (reduced from 1 minute)
     refetchOnWindowFocus: false,
+    staleTime: 240000, // Consider data fresh for 4 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
     retry: 2,
   });
 
