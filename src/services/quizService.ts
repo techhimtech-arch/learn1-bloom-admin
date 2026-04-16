@@ -1,0 +1,257 @@
+import axios from 'axios';
+import {
+  Quiz,
+  QuizCreateRequest,
+  QuizWithStats,
+  QuizResultsResponse,
+  QuizLeaderboardResponse,
+  SchoolLeaderboardEntry,
+  StudentQuiz,
+  QuizStartResponse,
+  QuizAnswerRequest,
+  QuizAnswerResponse,
+  QuizSubmitResponse,
+  QuizStudentResults,
+  QuizHistoryEntry,
+  QuizStatistics,
+  AdminQuiz,
+  QuizAnalytics,
+  ApiResponse,
+  PaginatedResponse,
+  QuizFilters,
+  QuizAnalyticsFilters
+} from '@/types/quiz';
+
+const BASE_URL = 'https://sms-backend-d19v.onrender.com/api/v1';
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// TEACHER QUIZ APIS
+export const teacherQuizService = {
+  // Create Quiz
+  createQuiz: async (quizData: QuizCreateRequest): Promise<ApiResponse<Quiz>> => {
+    const response = await api.post('/teacher/quizzes', quizData);
+    return response.data;
+  },
+
+  // Get Teacher's Quizzes
+  getQuizzes: async (filters: QuizFilters = {}): Promise<PaginatedResponse<Quiz>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+    const response = await api.get(`/teacher/quizzes?${params}`);
+    return response.data;
+  },
+
+  // Get Quiz Details
+  getQuizDetails: async (quizId: string): Promise<ApiResponse<QuizWithStats>> => {
+    const response = await api.get(`/teacher/quizzes/${quizId}`);
+    return response.data;
+  },
+
+  // Update Quiz
+  updateQuiz: async (quizId: string, quizData: Partial<QuizCreateRequest>): Promise<ApiResponse<Quiz>> => {
+    const response = await api.put(`/teacher/quizzes/${quizId}`, quizData);
+    return response.data;
+  },
+
+  // Publish Quiz
+  publishQuiz: async (quizId: string): Promise<ApiResponse<Quiz>> => {
+    const response = await api.post(`/teacher/quizzes/${quizId}/publish`);
+    return response.data;
+  },
+
+  // Delete Quiz
+  deleteQuiz: async (quizId: string): Promise<ApiResponse> => {
+    const response = await api.delete(`/teacher/quizzes/${quizId}`);
+    return response.data;
+  },
+
+  // Get Quiz Results
+  getQuizResults: async (quizId: string, page = 1, limit = 50): Promise<ApiResponse<QuizResultsResponse>> => {
+    const response = await api.get(`/teacher/quizzes/${quizId}/results?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  // Get Quiz Leaderboard
+  getQuizLeaderboard: async (quizId: string, limit = 10): Promise<ApiResponse<QuizLeaderboardResponse>> => {
+    const response = await api.get(`/teacher/quizzes/${quizId}/leaderboard?limit=${limit}`);
+    return response.data;
+  },
+
+  // Get School Leaderboard
+  getSchoolLeaderboard: async (limit = 20): Promise<ApiResponse<SchoolLeaderboardEntry[]>> => {
+    const response = await api.get(`/teacher/leaderboard?limit=${limit}`);
+    return response.data;
+  },
+};
+
+// STUDENT QUIZ APIS
+export const studentQuizService = {
+  // Get Available Quizzes
+  getAvailableQuizzes: async (page = 1, limit = 20): Promise<PaginatedResponse<StudentQuiz>> => {
+    const response = await api.get(`/student/quizzes?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  // Start Quiz
+  startQuiz: async (quizId: string): Promise<ApiResponse<QuizStartResponse>> => {
+    const response = await api.post(`/student/quizzes/${quizId}/start`);
+    return response.data;
+  },
+
+  // Submit Answer
+  submitAnswer: async (quizId: string, answerData: QuizAnswerRequest): Promise<ApiResponse<QuizAnswerResponse>> => {
+    const response = await api.post(`/student/quizzes/${quizId}/answer`, answerData);
+    return response.data;
+  },
+
+  // Submit Quiz
+  submitQuiz: async (quizId: string): Promise<ApiResponse<QuizSubmitResponse>> => {
+    const response = await api.post(`/student/quizzes/${quizId}/submit`);
+    return response.data;
+  },
+
+  // Get Quiz Results
+  getQuizResults: async (quizId: string): Promise<ApiResponse<QuizStudentResults>> => {
+    const response = await api.get(`/student/quizzes/${quizId}/results`);
+    return response.data;
+  },
+
+  // Get Quiz History
+  getQuizHistory: async (page = 1, limit = 20): Promise<PaginatedResponse<QuizHistoryEntry>> => {
+    const response = await api.get(`/student/quizzes/history?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  // Get Quiz Statistics
+  getQuizStatistics: async (): Promise<ApiResponse<QuizStatistics>> => {
+    const response = await api.get('/student/quizzes/stats');
+    return response.data;
+  },
+};
+
+// ADMIN QUIZ APIS
+export const adminQuizService = {
+  // Get All School Quizzes
+  getAllQuizzes: async (filters: QuizFilters = {}): Promise<PaginatedResponse<AdminQuiz>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+    const response = await api.get(`/admin/quizzes?${params}`);
+    return response.data;
+  },
+
+  // Get School Quiz Analytics
+  getQuizAnalytics: async (filters: QuizAnalyticsFilters = {}): Promise<ApiResponse<QuizAnalytics>> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+    const response = await api.get(`/admin/quizzes/analytics?${params}`);
+    return response.data;
+  },
+
+  // Delete Quiz (Admin)
+  deleteQuiz: async (quizId: string): Promise<ApiResponse> => {
+    const response = await api.delete(`/admin/quizzes/${quizId}`);
+    return response.data;
+  },
+};
+
+// Utility functions for quiz management
+export const quizUtils = {
+  // Calculate grade based on percentage
+  calculateGrade: (percentage: number): string => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C+';
+    if (percentage >= 40) return 'C';
+    if (percentage >= 33) return 'D';
+    return 'F';
+  },
+
+  // Format time remaining
+  formatTimeRemaining: (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  },
+
+  // Check if quiz is active
+  isQuizActive: (quiz: Quiz): boolean => {
+    const now = new Date();
+    const startTime = new Date(quiz.startsAt);
+    const endTime = new Date(quiz.endsAt);
+    return quiz.status === 'PUBLISHED' || quiz.status === 'ACTIVE' && 
+           now >= startTime && now <= endTime;
+  },
+
+  // Check if student can retake quiz
+  canRetakeQuiz: (quiz: StudentQuiz): boolean => {
+    return quiz.canRetake && quiz.nextAttemptAvailable && quiz.attempts < quiz.maxAttempts;
+  },
+
+  // Format quiz status
+  formatQuizStatus: (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'DRAFT': 'Draft',
+      'PUBLISHED': 'Published',
+      'ACTIVE': 'Active',
+      'ENDED': 'Ended',
+      'CANCELLED': 'Cancelled'
+    };
+    return statusMap[status] || status;
+  },
+
+  // Format quiz type
+  formatQuizType: (type: string): string => {
+    const typeMap: Record<string, string> = {
+      'MCQ': 'Multiple Choice',
+      'TRUE_FALSE': 'True/False',
+      'SHORT_ANSWER': 'Short Answer',
+      'MIXED': 'Mixed Type'
+    };
+    return typeMap[type] || type;
+  }
+};
+
+export default {
+  teacher: teacherQuizService,
+  student: studentQuizService,
+  admin: adminQuizService,
+  utils: quizUtils
+};

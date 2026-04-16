@@ -19,6 +19,7 @@ import {
   FileCheck,
   UsersRound,
   PlayCircle,
+  Brain,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,11 +37,11 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/users', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
-    '/fees/structure', '/fees/reports', '/certificates',
+    '/fees/structure', '/fees/reports', '/certificates', '/admin/quizzes',
   ],
   teacher: [
     '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams', 
-    '/teacher/results', '/teacher/assignments', '/teacher/attendance',
+    '/teacher/results', '/teacher/assignments', '/teacher/attendance', '/teacher/quizzes',
   ],
   accountant: [
     '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
@@ -52,7 +53,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   student: [
     '/', '/attendance', '/profile', '/sessions', '/results', '/announcements', '/assignments',
     '/student/dashboard', '/student/attendance', '/student/results', '/student/fees',
-    '/student/materials', '/student/assignments', '/student/announcements', '/student/timetable', '/student/certificates',
+    '/student/materials', '/student/assignments', '/student/announcements', '/student/timetable', '/student/certificates', '/student/quizzes',
   ],
 };
 
@@ -82,12 +83,15 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Teacher Exams', url: '/teacher/exams', icon: FileText },
   { title: 'Teacher Results', url: '/teacher/results', icon: Award },
   { title: 'Teacher Assignments', url: '/teacher/assignments', icon: Edit },
+  { title: 'Teacher Quizzes', url: '/teacher/quizzes', icon: Brain },
+  { title: 'Quiz Management', url: '/admin/quizzes', icon: Brain },
   // Student Portal Routes
   { title: 'My Attendance', url: '/student/attendance', icon: ClipboardCheck },
   { title: 'My Results', url: '/student/results', icon: TrendingUp },
   { title: 'My Fees', url: '/student/fees', icon: DollarSign },
   { title: 'Study Materials', url: '/student/materials', icon: BookOpen },
   { title: 'My Assignments', url: '/student/assignments', icon: Edit },
+  { title: 'Student Quizzes', url: '/student/quizzes', icon: Brain },
   { title: 'Announcements', url: '/student/announcements', icon: Bell },
   { title: 'My Timetable', url: '/student/timetable', icon: CalendarDays },
   { title: 'My Certificates', url: '/student/certificates', icon: Award },

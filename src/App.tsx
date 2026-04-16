@@ -61,6 +61,9 @@ import TeacherStudents from "@/pages/teacher/TeacherStudents";
 import TeacherExams from "@/pages/teacher/TeacherExams";
 import TeacherResults from "@/pages/teacher/TeacherResults";
 import TeacherAssignments from "@/pages/teacher/TeacherAssignments";
+import TeacherQuizzes from "@/pages/teacher/TeacherQuizzes";
+import StudentQuizzes from "@/pages/StudentQuizzes";
+import AdminQuizzes from "@/pages/admin/AdminQuizzes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -163,6 +166,10 @@ const AppContent = () => {
           <Route path="/assignments/:assignmentId/submit" element={<StudentAssignmentSubmission />} />
           <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
           
+          {/* Quiz Routes */}
+          <Route path="/student/quizzes" element={<StudentQuizzes />} />
+          <Route path="/admin/quizzes" element={<AdminQuizzes />} />
+          
           {/* Fee Management Routes */}
           <Route path="/fees/structure" element={<FeeStructureManagement />} />
           <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
@@ -201,6 +208,7 @@ const AppContent = () => {
                 <Route path="exams" element={<TeacherExams />} />
                 <Route path="results" element={<TeacherResults />} />
                 <Route path="assignments" element={<TeacherAssignments />} />
+                <Route path="quizzes" element={<TeacherQuizzes />} />
               </Routes>
             </TeacherProvider>
           } />
