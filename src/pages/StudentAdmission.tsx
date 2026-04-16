@@ -93,11 +93,44 @@ const StudentAdmission = () => {
 
   const handlePartialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Enhanced validation
+    if (!partialForm.firstName.trim() || partialForm.firstName.length < 2) {
+      showApiError({ response: { data: { message: 'First name must be at least 2 characters long' } } }, '');
+      return;
+    }
+    if (!partialForm.lastName.trim() || partialForm.lastName.length < 2) {
+      showApiError({ response: { data: { message: 'Last name must be at least 2 characters long' } } }, '');
+      return;
+    }
+    if (!partialForm.gender) {
+      showApiError({ response: { data: { message: 'Please select gender' } } }, '');
+      return;
+    }
+    if (!partialForm.dateOfBirth) {
+      showApiError({ response: { data: { message: 'Date of birth is required' } } }, '');
+      return;
+    }
+    const age = new Date().getFullYear() - new Date(partialForm.dateOfBirth).getFullYear();
+    if (age < 5 || age > 25) {
+      showApiError({ response: { data: { message: 'Age should be between 5 and 25 years' } } }, '');
+      return;
+    }
+    if (partialForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(partialForm.email)) {
+      showApiError({ response: { data: { message: 'Please enter a valid email address' } } }, '');
+      return;
+    }
+    if (partialForm.phone && !/^\d{10}$/.test(partialForm.phone.replace(/\D/g, ''))) {
+      showApiError({ response: { data: { message: 'Please enter a valid 10-digit phone number' } } }, '');
+      return;
+    }
+    
     setLoading(true);
     try {
       const res = await admissionApi.createPartial(partialForm);
       showApiSuccess(res, 'Partial admission created successfully.');
       setPartialForm({ firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', gender: '', address: '', emergencyContact: '' });
+      fetchPartial(); // Refresh the list
     } catch (err: any) {
       showApiError(err, 'Failed to create partial admission');
     }
@@ -106,6 +139,50 @@ const StudentAdmission = () => {
 
   const handleFullSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Enhanced validation
+    if (!fullForm.firstName.trim() || fullForm.firstName.length < 2) {
+      showApiError({ response: { data: { message: 'First name must be at least 2 characters long' } } }, '');
+      return;
+    }
+    if (!fullForm.lastName.trim() || fullForm.lastName.length < 2) {
+      showApiError({ response: { data: { message: 'Last name must be at least 2 characters long' } } }, '');
+      return;
+    }
+    if (!fullForm.admissionNumber.trim()) {
+      showApiError({ response: { data: { message: 'Admission number is required' } } }, '');
+      return;
+    }
+    if (!fullForm.gender) {
+      showApiError({ response: { data: { message: 'Please select gender' } } }, '');
+      return;
+    }
+    if (!fullForm.dateOfBirth) {
+      showApiError({ response: { data: { message: 'Date of birth is required' } } }, '');
+      return;
+    }
+    const age = new Date().getFullYear() - new Date(fullForm.dateOfBirth).getFullYear();
+    if (age < 5 || age > 25) {
+      showApiError({ response: { data: { message: 'Age should be between 5 and 25 years' } } }, '');
+      return;
+    }
+    if (!fullForm.academicYearId) {
+      showApiError({ response: { data: { message: 'Please select academic year' } } }, '');
+      return;
+    }
+    if (fullForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fullForm.email)) {
+      showApiError({ response: { data: { message: 'Please enter a valid email address' } } }, '');
+      return;
+    }
+    if (fullForm.password && fullForm.password.length < 6) {
+      showApiError({ response: { data: { message: 'Password must be at least 6 characters long' } } }, '');
+      return;
+    }
+    if (fullForm.emergencyContact && !/^\d{10}$/.test(fullForm.emergencyContact.replace(/\D/g, ''))) {
+      showApiError({ response: { data: { message: 'Please enter a valid 10-digit emergency contact number' } } }, '');
+      return;
+    }
+    
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...fullForm };
@@ -114,6 +191,7 @@ const StudentAdmission = () => {
       const res = await admissionApi.create(payload);
       showApiSuccess(res, 'Student admitted successfully.');
       setFullForm({ firstName: '', lastName: '', admissionNumber: '', gender: '', dateOfBirth: '', email: '', password: '', classId: '', sectionId: '', rollNumber: '', address: '', bloodGroup: '', emergencyContact: '', academicYearId: '' });
+      fetchAdmitted(); // Refresh the admitted list
     } catch (err: any) {
       showApiError(err, 'Failed to admit student');
     }
