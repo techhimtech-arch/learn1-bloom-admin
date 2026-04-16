@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Save,
   Eye,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import { teacherApi } from '@/pages/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
@@ -61,6 +62,13 @@ interface ClassAssignment {
   classId: { _id: string; name: string };
   sectionId: { _id: string; name: string };
 }
+
+const STATUS_OPTIONS: { value: 'Present' | 'Absent' | 'Late' | 'Leave'; label: string; color: string; bg: string }[] = [
+  { value: 'Present', label: 'Present', color: 'text-green-600', bg: 'border-green-200 bg-green-50' },
+  { value: 'Absent', label: 'Absent', color: 'text-red-600', bg: 'border-red-200 bg-red-50' },
+  { value: 'Late', label: 'Late', color: 'text-yellow-600', bg: 'border-yellow-200 bg-yellow-50' },
+  { value: 'Leave', label: 'Leave', color: 'text-blue-600', bg: 'border-blue-200 bg-blue-50' },
+];
 
 const TeacherAttendance = () => {
   const queryClient = useQueryClient();
@@ -154,6 +162,18 @@ const TeacherAttendance = () => {
 
   // Initialize attendance records when dialog opens
   const initializeAttendanceRecords = () => {
+    if (!students.length) return;
+    
+    const records = students.map(student => ({
+      studentId: student._id,
+      status: 'Present' as const,
+      remarks: ''
+    }));
+    setAttendanceRecords(records);
+  };
+
+  // Mark all students as present
+  const markAllPresent = () => {
     if (!students.length) return;
     
     const records = students.map(student => ({
@@ -303,65 +323,114 @@ const TeacherAttendance = () => {
                       <DialogTitle>Mark Attendance - {selectedDate}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        {classTeacherAssignment ? (
-                          <span>Marking attendance for {classTeacherAssignment.classId?.name} - {classTeacherAssignment.sectionId?.name}</span>
-                        ) : (
-                          <span className="text-red-600">You can only mark attendance for classes where you are the class teacher</span>
-                        )}
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          {classTeacherAssignment ? (
+                            <span>Marking attendance for {classTeacherAssignment.classId?.name} - {classTeacherAssignment.sectionId?.name}</span>
+                          ) : (
+                            <span className="text-red-600">You can only mark attendance for classes where you are the class teacher</span>
+                          )}
+                        </div>
+                        <Button variant="outline" onClick={markAllPresent} disabled={!classTeacherAssignment}>
+                          Mark All Present
+                        </Button>
                       </div>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Roll No</TableHead>
-                            <TableHead>Student Name</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Remarks</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {students.map((student, index) => {
-                            const record = attendanceRecords.find(r => r.studentId === student._id);
-                            return (
-                              <TableRow key={student._id}>
-                                <TableCell>{student.admissionNumber}</TableCell>
-                                <TableCell>{student.firstName} {student.lastName}</TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={record?.status || 'Present'}
-                                    onValueChange={(value) => updateAttendanceRecord(student._id, 'status', value)}
-                                  >
-                                    <SelectTrigger className="w-32">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Present">Present</SelectItem>
-                                      <SelectItem value="Absent">Absent</SelectItem>
-                                      <SelectItem value="Late">Late</SelectItem>
-                                      <SelectItem value="Leave">Leave</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    placeholder="Optional remarks"
-                                    value={record?.remarks || ''}
-                                    onChange={(e) => updateAttendanceRecord(student._id, 'remarks', e.target.value)}
-                                    className="w-48"
-                                  />
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
+                      
+                      {studentsLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                          <span className="ml-2 text-sm text-muted-foreground">Loading students...</span>
+                        </div>
+                      ) : students.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold">No students found</h3>
+                          <p className="text-muted-foreground">
+                            No students are assigned to this class and section.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="space-y-2">
+                            {/* Header */}
+                            <div className="grid grid-cols-[80px_1fr_auto] items-center gap-4 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground">
+                              <span>Adm No</span>
+                              <span>Student Name</span>
+                              <div className="flex gap-3">
+                                {STATUS_OPTIONS.map(opt => (
+                                  <span key={opt.value} className="w-16 text-center text-xs">{opt.label}</span>
+                                ))}
+                              </div>
+                            </div>
+
+                            {students.map((student) => {
+                              const record = attendanceRecords.find(r => r.studentId === student._id);
+                              const activeOpt = STATUS_OPTIONS.find(o => o.value === record?.status);
+                              return (
+                                <div
+                                  key={student._id}
+                                  className={`grid grid-cols-[80px_1fr_auto] items-center gap-4 rounded-lg border px-4 py-3 transition-colors ${activeOpt?.bg || ''}`}
+                                >
+                                  <span className="text-sm font-medium text-muted-foreground">{student.admissionNumber}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-foreground">{student.firstName} {student.lastName}</span>
+                                    {record?.status && (
+                                      <Badge variant="secondary" className={`text-xs ${activeOpt?.color || ''}`}>
+                                        {record.status}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-3">
+                                    {STATUS_OPTIONS.map(opt => (
+                                      <div key={opt.value} className="flex w-16 justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => updateAttendanceRecord(student._id, 'status', opt.value)}
+                                          className={`h-5 w-5 rounded-full border-2 transition-colors ${
+                                            record?.status === opt.value
+                                              ? `border-current ${opt.color} bg-current`
+                                              : 'border-muted-foreground/30 hover:border-muted-foreground/60'
+                                          }`}
+                                        >
+                                          {record?.status === opt.value && (
+                                            <span className="flex h-full w-full items-center justify-center text-[10px] text-background font-bold">✓</span>
+                                          )}
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>Remarks (Optional)</Label>
+                              <Textarea
+                                placeholder="Add any general remarks about today's attendance..."
+                                value={attendanceRecords.find(r => r.studentId === students[0]?._id)?.remarks || ''}
+                                onChange={(e) => {
+                                  const remarks = e.target.value;
+                                  setAttendanceRecords(prev => 
+                                    prev.map(record => ({ ...record, remarks }))
+                                  );
+                                }}
+                                className="w-full"
+                                rows={3}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setAttendanceDialogOpen(false)}>
                           Cancel
                         </Button>
                         <Button 
                           onClick={handleSubmitAttendance}
-                          disabled={markAttendanceMutation.isPending || !classTeacherAssignment}
+                          disabled={markAttendanceMutation.isPending || !classTeacherAssignment || attendanceRecords.length === 0}
                         >
                           {markAttendanceMutation.isPending ? 'Saving...' : 'Save Attendance'}
                         </Button>
