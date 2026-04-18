@@ -166,14 +166,14 @@ const TeacherQuizzes: React.FC = () => {
           className="max-w-sm"
         />
         <Select
-          value={filters.status || ''}
-          onValueChange={(value) => setFilters(prev => ({ ...prev, status: value || undefined }))}
+          value={filters.status || 'all'}
+          onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value }))}
         >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="DRAFT">Draft</SelectItem>
             <SelectItem value="PUBLISHED">Published</SelectItem>
             <SelectItem value="ACTIVE">Active</SelectItem>

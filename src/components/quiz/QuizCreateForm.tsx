@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,6 +17,7 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { teacherQuizService } from '@/services/quizService';
 import { QuizCreateRequest, QuizQuestion, Quiz } from '@/types/quiz';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
+import { subjectApi, sectionApi, teacherApi } from '@/pages/services/api';
 
 const quizFormSchema = z.object({
   title: z.string().min(1, 'Quiz title is required'),
@@ -57,30 +59,219 @@ interface QuizCreateFormProps {
   onCancel: () => void;
 }
 
-// Mock data for subjects, classes, and sections (replace with actual API calls)
-const mockSubjects = [
-  { _id: '1', name: 'Mathematics' },
-  { _id: '2', name: 'Physics' },
-  { _id: '3', name: 'Chemistry' },
-  { _id: '4', name: 'Biology' },
-  { _id: '5', name: 'English' },
-];
-
-const mockClasses = [
-  { _id: '1', name: 'Class 10' },
-  { _id: '2', name: 'Class 11' },
-  { _id: '3', name: 'Class 12' },
-];
-
-const mockSections = [
-  { _id: '1', name: 'Section A' },
-  { _id: '2', name: 'Section B' },
-  { _id: '3', name: 'Section C' },
-];
-
 const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCancel }) => {
+  // Clear bad cache on component mount
+  useEffect(() => {
+    const cached = sessionStorage.getItem('quiz_classes');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        // If cache has wrong structure, clear it
+        if (!Array.isArray(parsed) || (parsed.length > 0 && !parsed[0]._id)) {
+          console.log('🗑️ Clearing bad cache');
+          sessionStorage.removeItem('quiz_classes');
+          sessionStorage.removeItem('quiz_subjects');
+        }
+      } catch (e) {
+        sessionStorage.removeItem('quiz_classes');
+        sessionStorage.removeItem('quiz_subjects');
+      }
+    }
+  }, []);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClass, setSelectedClass] = useState<string>('');
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [loadingSections, setLoadingSections] = useState(false);
+
+  // Load subjects from sessionStorage or API
+  useEffect(() => {
+    const loadSubjects = async () => {
+      setLoadingSubjects(true);
+      console.log('🔄 Loading subjects...');
+      try {
+        // Try to get from sessionStorage first
+        const cached = sessionStorage.getItem('quiz_subjects');
+        if (cached && cached.startsWith('[') && cached.includes('_id')) {
+          const parsed = JSON.parse(cached);
+          // Validate it's actually an array of subjects
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]._id) {
+            console.log('✅ Subjects from cache:', parsed);
+            setSubjects(parsed);
+            return;
+          }
+        }
+        // Clear invalid cache
+        sessionStorage.removeItem('quiz_subjects');
+        
+        // Fetch from API
+        const response = await teacherApi.getClasses();
+          console.log('📡 Full API response:', response);
+          let data: any[] = [];
+          
+          // Navigate through nested structure: response.data.data.subjectAssignments
+          const innerData = response?.data?.data;
+          console.log('📦 Inner data:', innerData);
+          
+          if (innerData?.subjectAssignments && Array.isArray(innerData.subjectAssignments)) {
+            // Extract unique subjects from assignments
+            const subjectsSet = new Map();
+            innerData.subjectAssignments.forEach((assignment: any) => {
+              const subject = assignment.subjectId;
+              console.log('Subject from assignment:', subject);
+              if (subject && subject._id) {
+                subjectsSet.set(subject._id, subject);
+              }
+            });
+            data = Array.from(subjectsSet.values());
+            console.log('✅ Extracted subjects:', data);
+          }
+          
+        setSubjects(Array.isArray(data) ? data : []);
+        // Cache in sessionStorage
+        if (Array.isArray(data) && data.length > 0) {
+          sessionStorage.setItem('quiz_subjects', JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error('❌ Error loading subjects:', error);
+        setSubjects([]);
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+    loadSubjects();
+  }, []);
+
+  // Load classes from sessionStorage or API
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoadingClasses(true);
+      console.log('🔄 Loading classes...');
+      try {
+        // Try to get from sessionStorage first
+        const cached = sessionStorage.getItem('quiz_classes');
+        if (cached && cached.startsWith('[') && cached.includes('_id')) {
+          const parsed = JSON.parse(cached);
+          // Validate it's actually an array of classes
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]._id) {
+            console.log('✅ Classes from cache:', parsed);
+            setClasses(parsed);
+            return;
+          }
+        }
+        // Clear invalid cache
+        sessionStorage.removeItem('quiz_classes');
+        
+        // Fetch from API
+        const response = await teacherApi.getClasses();
+        console.log('📡 Classes API response:', response);
+        let data: any[] = [];
+        
+        // Navigate through nested structure: response.data.data
+        const innerData = response?.data?.data;
+        console.log('📦 Inner data:', innerData);
+        
+        if (innerData?.classTeacherAssignment?.classId) {
+          // Extract just the class object from classTeacherAssignment
+          const classObj = innerData.classTeacherAssignment.classId;
+          console.log('Class object:', classObj);
+          if (classObj && classObj._id) {
+            data = [classObj];
+            console.log('✅ Extracted class:', data);
+          }
+        }
+        
+        setClasses(Array.isArray(data) ? data : []);
+        console.log('Set classes state to:', data);
+        // Cache in sessionStorage
+        if (Array.isArray(data) && data.length > 0) {
+          sessionStorage.setItem('quiz_classes', JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error('❌ Error loading classes:', error);
+        setClasses([]);
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+    loadClasses();
+  }, []);
+
+  // Load sections based on selected class
+  useEffect(() => {
+    const loadSections = async () => {
+      if (!selectedClass) {
+        console.log('⚠️ No class selected, clearing sections');
+        setSections([]);
+        return;
+      }
+      
+      console.log('🔄 Loading sections for class:', selectedClass);
+      setLoadingSections(true);
+      try {
+        // Try to get from sessionStorage first
+        const cacheKey = `quiz_sections_${selectedClass}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          console.log('✅ Sections from cache:', parsed);
+          setSections(Array.isArray(parsed) ? parsed : []);
+        } else {
+          // Get sections from teacher classes data (which we loaded earlier)
+          let data: any[] = [];
+          
+          // We need to re-fetch to get sections for the selected class
+          try {
+            const response = await teacherApi.getClasses();
+            console.log('📡 Sections API response:', response);
+            const innerData = response?.data?.data;
+            
+            if (innerData?.subjectAssignments && Array.isArray(innerData.subjectAssignments)) {
+              // Find all unique sections for the selected class
+              const sectionsSet = new Map();
+              innerData.subjectAssignments.forEach((assignment: any) => {
+                // Check if this assignment is for the selected class
+                console.log('Assignment:', assignment.classId?._id, 'vs selected:', selectedClass);
+                if (assignment.classId?._id === selectedClass) {
+                  const section = assignment.sectionId;
+                  if (section && section._id) {
+                    sectionsSet.set(section._id, section);
+                  }
+                }
+              });
+              data = Array.from(sectionsSet.values());
+              console.log('✅ Extracted sections:', data);
+            } else if (innerData?.classTeacherAssignment?.sectionId) {
+              // Fallback to classTeacherAssignment section
+              const section = innerData.classTeacherAssignment.sectionId;
+              if (section && section._id) {
+                data = [section];
+                console.log('✅ Extracted section from classTeacherAssignment:', data);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error fetching sections:', error);
+          }
+          
+          setSections(Array.isArray(data) ? data : []);
+          // Cache in sessionStorage
+          if (Array.isArray(data) && data.length > 0) {
+            sessionStorage.setItem(cacheKey, JSON.stringify(data));
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading sections:', error);
+        setSections([]);
+      } finally {
+        setLoadingSections(false);
+      }
+    };
+    loadSections();
+  }, [selectedClass]);
 
   const form = useForm<QuizFormData>({
     resolver: zodResolver(quizFormSchema),
@@ -128,6 +319,17 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setSelectedClass(quiz.classId._id);
     }
   }, [quiz]);
+
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('=== QUIZ FORM STATE DEBUG ===');
+    console.log('Subjects:', subjects);
+    console.log('Classes:', classes);
+    console.log('Sections:', sections);
+    console.log('Selected Class:', selectedClass);
+    console.log('Loading states:', { loadingSubjects, loadingClasses, loadingSections });
+    console.log('=============================');
+  }, [subjects, classes, sections, selectedClass, loadingSubjects, loadingClasses, loadingSections]);
 
   const handleAddQuestion = () => {
     append({
@@ -240,14 +442,14 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Subject</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select subject" />
+                        <SelectTrigger disabled={loadingSubjects}>
+                          <SelectValue placeholder={loadingSubjects ? "Loading subjects..." : "Select subject"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockSubjects.map((subject) => (
+                        {Array.isArray(subjects) && subjects.map((subject: any) => (
                           <SelectItem key={subject._id} value={subject._id}>
                             {subject.name}
                           </SelectItem>
@@ -266,21 +468,33 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                   <FormItem>
                     <FormLabel>Class</FormLabel>
                     <Select onValueChange={(value) => {
+                      console.log('📍 Class selected:', value);
+                      console.log('Current classes array:', classes);
                       field.onChange(value);
                       setSelectedClass(value);
                       form.setValue('sectionId', '');
-                    }} defaultValue={field.value}>
+                    }} value={field.value || ''}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
+                        <SelectTrigger disabled={loadingClasses} onClick={() => {
+                          console.log('🖱️ Class dropdown clicked');
+                          console.log('Classes loaded:', classes);
+                          console.log('Loading state:', loadingClasses);
+                        }}>
+                          <SelectValue placeholder={loadingClasses ? "Loading classes..." : `Select class (${classes.length})`} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockClasses.map((cls) => (
-                          <SelectItem key={cls._id} value={cls._id}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
+                        {Array.isArray(classes) && classes.length > 0 ? (
+                          classes.map((cls: any) => (
+                            <SelectItem key={cls._id} value={cls._id}>
+                              {cls.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-2 text-red-500 text-sm">
+                            {loadingClasses ? "Loading..." : "No classes found"}
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -294,14 +508,14 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Section</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedClass}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select section" />
+                        <SelectTrigger disabled={!selectedClass || loadingSections}>
+                          <SelectValue placeholder={!selectedClass ? "Select class first" : loadingSections ? "Loading sections..." : "Select section"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockSections.map((section) => (
+                        {Array.isArray(sections) && sections.map((section: any) => (
                           <SelectItem key={section._id} value={section._id}>
                             {section.name}
                           </SelectItem>
