@@ -302,7 +302,7 @@ export default function ExamManagement() {
 
       {showForm && (
         <ExamForm
-          exam={editingExam}
+          exam={editingExam as any}
           onClose={() => {
             setShowForm(false);
             setEditingExam(null);

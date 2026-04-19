@@ -88,20 +88,13 @@ export const TeacherProvider = ({ children }: TeacherProviderProps) => {
   };
 
   const getClassName = (classId: string) => {
-    const cls = classes.find(c => {
-      const currentClassId = typeof c.classId === 'object' && c.classId !== null ? c.classId._id : c.classId;
-      return currentClassId === classId;
-    });
-    return typeof cls?.classId === 'object' && cls.classId !== null ? cls.classId.name : (cls?.classId as string) || 'Unknown';
+    const cls = classes.find(c => c.classId._id === classId);
+    return cls?.classId.name || 'Unknown';
   };
 
   const getSectionName = (classId: string, sectionId: string) => {
-    const cls = classes.find(c => {
-      const currentClassId = typeof c.classId === 'object' && c.classId !== null ? c.classId._id : c.classId;
-      const currentSectionId = typeof c.sectionId === 'object' && c.sectionId !== null ? c.sectionId._id : c.sectionId;
-      return currentClassId === classId && currentSectionId === sectionId;
-    });
-    return typeof cls?.sectionId === 'object' && cls.sectionId !== null ? cls.sectionId.name : (cls?.sectionId as string) || 'Unknown';
+    const cls = classes.find(c => c.classId._id === classId && c.sectionId._id === sectionId);
+    return cls?.sectionId.name || 'Unknown';
   };
 
   const getSectionsForClass = (classId: string) => {
