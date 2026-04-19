@@ -83,7 +83,8 @@ const rolePermissions: RolePermissions = {
     'edit_subject', 'create_timetable', 'edit_timetable',
     'create_calendar_event', 'edit_calendar_event',
     'view_academic_summary', 'manage_attendance',
-    'create_announcement', 'edit_announcement', 'view_announcement', 'publish_announcement'
+    'create_announcement', 'edit_announcement', 'view_announcement', 'publish_announcement',
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment'
   ],
   academic_coordinator: [
     'create_subject', 'edit_subject', 'assign_teacher',

@@ -85,8 +85,47 @@ export default function AssignmentManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [deletingAssignment, setDeletingAssignment] = useState<Assignment | null>(null);
+  const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [teacherSections, setTeacherSections] = useState<any[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<any[]>([]);
 
   const queryClient = useQueryClient();
+
+  // Load teacher's classes, sections, and subjects on mount
+  useEffect(() => {
+    if (user?.role === 'teacher') {
+      const loadTeacherData = async () => {
+        try {
+          // Load classes using teacherApi
+          const classesResponse = await fetch('http://localhost:5000/api/v1/teacher/classes', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
+          const classesData = await classesResponse.json();
+          
+          if (classesData?.data?.classTeacherAssignment?.classId) {
+            setTeacherClasses([classesData.data.classTeacherAssignment.classId]);
+            setTeacherSections([classesData.data.classTeacherAssignment.sectionId]);
+          }
+
+          // Load subjects from subjectAssignments
+          if (classesData?.data?.subjectAssignments) {
+            const uniqueSubjects = new Map();
+            classesData.data.subjectAssignments.forEach((assignment: any) => {
+              if (assignment.subjectId) {
+                uniqueSubjects.set(assignment.subjectId._id, assignment.subjectId);
+              }
+            });
+            setTeacherSubjects(Array.from(uniqueSubjects.values()));
+          }
+        } catch (error) {
+          console.error('Error loading teacher data:', error);
+        }
+      };
+      loadTeacherData();
+    }
+  }, [user?.role]);
 
   // Different query based on user role
   const {
@@ -137,6 +176,7 @@ export default function AssignmentManagement() {
       const response = await subjectApi.getAll();
       return response.data;
     },
+    enabled: user?.role === 'school_admin',
   });
 
   const deleteMutation = useMutation({
@@ -182,9 +222,9 @@ export default function AssignmentManagement() {
   };
 
   const assignments = assignmentsData?.data || [];
-  const classes = classesData?.data || [];
-  const sections = sectionsData?.data || [];
-  const subjects = subjectsData?.data || [];
+  const classes = user?.role === 'teacher' ? teacherClasses : (classesData?.data || []);
+  const sections = user?.role === 'teacher' ? teacherSections : (sectionsData?.data || []);
+  const subjects = user?.role === 'teacher' ? teacherSubjects : (subjectsData?.data || []);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {

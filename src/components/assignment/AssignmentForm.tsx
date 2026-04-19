@@ -21,13 +21,15 @@ import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Upload, X } from 'lucide-react';
 
 const assignmentSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title cannot exceed 200 characters'),
+  description: z.string().min(1, 'Description is required').max(5000, 'Description cannot exceed 5000 characters'),
   subjectId: z.string().min(1, 'Subject is required'),
   classId: z.string().min(1, 'Class is required'),
   sectionId: z.string().min(1, 'Section is required'),
   dueDate: z.string().min(1, 'Due date is required'),
   maxMarks: z.number().min(1, 'Max marks must be at least 1'),
+  allowLateSubmission: z.boolean().optional().default(false),
+  lateSubmissionPenalty: z.number().min(0).max(100, 'Penalty must be between 0-100').optional().default(0),
   attachment: z.any().optional(),
 }).refine((data) => {
   return new Date(data.dueDate) > new Date();
@@ -91,6 +93,8 @@ export function AssignmentForm({
       sectionId: '',
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       maxMarks: 100,
+      allowLateSubmission: false,
+      lateSubmissionPenalty: 0,
       attachment: undefined,
     },
   });
@@ -105,6 +109,8 @@ export function AssignmentForm({
         sectionId: assignment.sectionId,
         dueDate: assignment.dueDate.split('T')[0],
         maxMarks: assignment.maxMarks,
+        allowLateSubmission: false,
+        lateSubmissionPenalty: 0,
         attachment: undefined,
       });
       
@@ -117,11 +123,15 @@ export function AssignmentForm({
   const createMutation = useMutation({
     mutationFn: (data: FormData) => assignmentApi.create(data),
     onSuccess: () => {
+      console.log('✅ Assignment created successfully');
       toast.success('Assignment created successfully');
       onSuccess();
     },
     onError: (error: any) => {
-      handleApiError(error, 'Failed to create assignment');
+      console.error('❌ Error creating assignment:', error.response?.data || error.message);
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0]?.message || 'Failed to create assignment';
+      toast.error(message);
+      handleApiError(error, message);
     },
   });
 
@@ -129,11 +139,15 @@ export function AssignmentForm({
     mutationFn: ({ id, data }: { id: string; data: FormData }) => 
       assignmentApi.update(id, data),
     onSuccess: () => {
+      console.log('✅ Assignment updated successfully');
       toast.success('Assignment updated successfully');
       onSuccess();
     },
     onError: (error: any) => {
-      handleApiError(error, 'Failed to update assignment');
+      console.error('❌ Error updating assignment:', error.response?.data || error.message);
+      const message = error.response?.data?.message || error.response?.data?.errors?.[0]?.message || 'Failed to update assignment';
+      toast.error(message);
+      handleApiError(error, message);
     },
   });
 
@@ -162,26 +176,84 @@ export function AssignmentForm({
   };
 
   const onSubmit = (data: AssignmentFormData) => {
-    const formData = new FormData();
+    // Convert date to ISO 8601 format
+    const dueDateISO = new Date(data.dueDate).toISOString();
     
-    // Append form fields
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('subjectId', data.subjectId);
-    formData.append('classId', data.classId);
-    formData.append('sectionId', data.sectionId);
-    formData.append('dueDate', data.dueDate);
-    formData.append('maxMarks', data.maxMarks.toString());
-    
-    // Append attachment if exists
-    if (attachmentFile) {
-      formData.append('attachment', attachmentFile);
+    // Prepare payload matching API spec exactly
+    const payload: any = {
+      title: data.title,
+      description: data.description,
+      subjectId: data.subjectId,
+      classId: data.classId,
+      sectionId: data.sectionId,
+      dueDate: dueDateISO,  // ISO 8601 format: "2026-04-25T23:59:59.000Z"
+      maxMarks: data.maxMarks,  // Number, not string
+      attachments: []  // Array format as per API spec
+    };
+
+    // Add optional fields only if they have values
+    if (data.allowLateSubmission) {
+      payload.allowLateSubmission = true;  // Boolean, not string
+      if (data.lateSubmissionPenalty) {
+        payload.lateSubmissionPenalty = data.lateSubmissionPenalty;  // Number
+      }
     }
 
-    if (assignment) {
-      updateMutation.mutate({ id: assignment.id, data: formData });
+    console.log('📤 Submitting assignment with payload:', payload);
+    console.log('📋 Payload structure:', {
+      title: typeof payload.title,
+      description: typeof payload.description,
+      subjectId: typeof payload.subjectId,
+      classId: typeof payload.classId,
+      sectionId: typeof payload.sectionId,
+      dueDate: payload.dueDate,
+      maxMarks: typeof payload.maxMarks,
+      allowLateSubmission: typeof payload.allowLateSubmission,
+      lateSubmissionPenalty: typeof payload.lateSubmissionPenalty,
+    });
+
+    // If there's a file attachment, use FormData to send it
+    if (attachmentFile) {
+      const formData = new FormData();
+      // Append all fields
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          // For arrays, we'll handle specially if needed
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+      // Append file
+      formData.append('attachments', attachmentFile);
+      
+      console.log('📦 FormData with file attachment prepared');
+      
+      if (assignment) {
+        updateMutation.mutate({ id: assignment.id, data: formData });
+      } else {
+        createMutation.mutate(formData);
+      }
     } else {
-      createMutation.mutate(formData);
+      // Send as JSON (cleaner for API when no files)
+      console.log('📄 Sending as JSON (no attachments)');
+      
+      // We need a different mutation that sends JSON instead of FormData
+      // For now, create FormData without file
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+      
+      if (assignment) {
+        updateMutation.mutate({ id: assignment.id, data: formData });
+      } else {
+        createMutation.mutate(formData);
+      }
     }
   };
 
@@ -359,6 +431,52 @@ export function AssignmentForm({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="allowLateSubmission"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 mt-2">
+                    <div>
+                      <input 
+                        type="checkbox"
+                        id="allowLateSubmission"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                    </div>
+                    <FormLabel htmlFor="allowLateSubmission" className="mt-0 cursor-pointer">
+                      Allow Late Submission
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('allowLateSubmission') && (
+                <FormField
+                  control={form.control}
+                  name="lateSubmissionPenalty"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Late Submission Penalty (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="0-100"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
 
             <FormField
               control={form.control}

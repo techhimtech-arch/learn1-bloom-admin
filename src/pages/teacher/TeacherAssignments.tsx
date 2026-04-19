@@ -1,30 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Edit2, Trash2, Eye, Send, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  BookOpen, 
-  Calendar, 
-  Users, 
-  Plus,
-  Edit,
-  Eye,
-  FileText,
-  Upload,
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { teacherApi } from '@/pages/services/api';
-import { showApiError, showApiSuccess } from '@/lib/api-toast';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useTeacherContext } from '@/contexts/TeacherContext';
+import { Loader2 } from 'lucide-react';
 
 interface Assignment {
   _id: string;
@@ -34,269 +47,399 @@ interface Assignment {
   classId: { _id: string; name: string };
   sectionId: { _id: string; name: string };
   dueDate: string;
-  totalMarks: number;
-  status: 'draft' | 'published' | 'closed';
-  submissionCount: number;
-  totalStudents: number;
-  attachments?: Array<{
-    filename: string;
-    originalName: string;
-    url: string;
-  }>;
-}
-
-interface ClassAssignment {
-  _id: string;
-  classId: { _id: string; name: string };
-  sectionId: { _id: string; name: string };
-  subjectId: { _id: string; name: string };
-}
-
-interface Submission {
-  _id: string;
-  studentId: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    admissionNumber: string;
-  };
-  assignmentId: string;
-  submittedAt: string;
-  attachments: Array<{
-    filename: string;
-    originalName: string;
-    url: string;
-  }>;
-  grade?: string;
-  remarks?: string;
-  status: 'submitted' | 'graded';
+  maxMarks: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'CLOSED';
+  teacherId: string;
+  allowLateSubmission?: boolean;
+  lateSubmissionPenalty?: number;
 }
 
 const TeacherAssignments = () => {
   const queryClient = useQueryClient();
-  const { 
-    classesLoading, 
-    classes, 
-    getUniqueClasses, 
-    getClassName, 
-    getSectionName, 
-    getSectionsForClass 
-  } = useTeacherContext();
+  const { classes } = useTeacherContext();
+  
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [deletingAssignment, setDeleteAssignment] = useState<Assignment | null>(null);
   const [selectedClass, setSelectedClass] = useState<string>('');
-  const [selectedAssignment, setSelectedAssignment] = useState<string>('');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [submissionsDialogOpen, setSubmissionsDialogOpen] = useState(false);
-  const [assignmentForm, setAssignmentForm] = useState({
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string>('');
+  
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     dueDate: '',
-    totalMarks: 100,
-    instructions: ''
+    maxMarks: 50,
+    allowLateSubmission: false,
+    lateSubmissionPenalty: 0,
   });
 
-  // Get assignments for teacher
-  const { data: assignmentsData, isLoading: assignmentsLoading } = useQuery({
-    queryKey: ['teacher-assignments', selectedClass],
-    queryFn: () => {
-      // You'll need to add this API endpoint
-      return teacherApi.getAssignments({ classId: selectedClass });
+  const teacherClasses = Array.from(
+    new Map(classes.map(c => [c.classId._id, c.classId])).values()
+  );
+
+  const teacherSubjectsForClass = selectedClass
+    ? Array.from(
+        new Map(
+          classes
+            .filter(c => c.classId._id === selectedClass)
+            .map(c => [c.subjectId._id, c.subjectId])
+        ).values()
+      )
+    : [];
+
+  const teacherSectionsForSubject = selectedClass && selectedSubject
+    ? Array.from(
+        new Map(
+          classes
+            .filter(c => c.classId._id === selectedClass && c.subjectId._id === selectedSubject)
+            .map(c => [c.sectionId._id, c.sectionId])
+        ).values()
+      )
+    : [];
+
+  const selectedClassData = selectedClass && selectedSubject && selectedSection
+    ? classes.find(
+        c =>
+          c.classId._id === selectedClass &&
+          c.subjectId._id === selectedSubject &&
+          c.sectionId._id === selectedSection
+      )
+    : null;
+
+  const { data: assignmentsResponse, isLoading: assignmentsLoading, refetch } = useQuery({
+    queryKey: ['teacher-assignments'],
+    queryFn: () => teacherApi.getAssignments(),
+  });
+
+  const assignments = (assignmentsResponse?.data?.data || []) as Assignment[];
+  const filteredAssignments = selectedClass && selectedClass !== 'all'
+    ? assignments.filter(a => a.classId._id === selectedClass)
+    : assignments;
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => teacherApi.createAssignment(data),
+    onSuccess: () => {
+      toast.success('✅ Assignment created successfully');
+      setShowCreateDialog(false);
+      resetForm();
+      refetch();
     },
-    enabled: !!selectedClass,
-    staleTime: 3 * 60 * 1000,
-  });
-
-  const assignments = assignmentsData?.data?.data as Assignment[] || [];
-
-  // Get unique classes and sections using optimized functions
-  const uniqueClasses = getUniqueClasses();
-  const sectionsForClass = getSectionsForClass(selectedClass);
-
-  // Get submissions for selected assignment
-  const { data: submissionsData, isLoading: submissionsLoading } = useQuery({
-    queryKey: ['assignment-submissions', selectedAssignment],
-    queryFn: () => {
-      // You'll need to add this API endpoint
-      return teacherApi.getAssignmentSubmissions(selectedAssignment);
+    onError: (error: any) => {
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to create assignment'}`);
     },
-    enabled: !!selectedAssignment,
-    staleTime: 2 * 60 * 1000,
   });
 
-  const submissions = submissionsData?.data?.data as Submission[] || [];
-
-  // Create assignment mutation
-  const createAssignmentMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: (data: any) => {
-      // You'll need to add this API endpoint
-      return teacherApi.createAssignment(data);
+      if (!editingAssignment) throw new Error('No assignment selected');
+      return teacherApi.updateAssignment(editingAssignment._id, data);
     },
     onSuccess: () => {
-      showApiSuccess(null, 'Assignment created successfully');
-      queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
-      setCreateDialogOpen(false);
-      resetAssignmentForm();
+      toast.success('✅ Assignment updated successfully');
+      setShowCreateDialog(false);
+      setEditingAssignment(null);
+      resetForm();
+      refetch();
     },
-    onError: (error) => showApiError(error, 'Failed to create assignment'),
+    onError: (error: any) => {
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to update assignment'}`);
+    },
   });
 
-  // Grade submission mutation
-  const gradeSubmissionMutation = useMutation({
-    mutationFn: (data: { submissionId: string; grade: string; remarks: string }) => {
-      // You'll need to add this API endpoint
-      return teacherApi.gradeSubmission(data.submissionId, data);
-    },
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => teacherApi.deleteAssignment(id),
     onSuccess: () => {
-      showApiSuccess(null, 'Submission graded successfully');
-      queryClient.invalidateQueries({ queryKey: ['assignment-submissions'] });
+      toast.success('✅ Assignment deleted successfully');
+      setDeleteAssignment(null);
+      refetch();
     },
-    onError: (error) => showApiError(error, 'Failed to grade submission'),
+    onError: (error: any) => {
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to delete assignment'}`);
+    },
   });
 
-  const resetAssignmentForm = () => {
-    setAssignmentForm({
+  const publishMutation = useMutation({
+    mutationFn: (id: string) => teacherApi.publishAssignment(id),
+    onSuccess: () => {
+      toast.success('✅ Assignment published successfully');
+      refetch();
+    },
+    onError: (error: any) => {
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to publish assignment'}`);
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
       title: '',
       description: '',
       dueDate: '',
-      totalMarks: 100,
-      instructions: ''
+      maxMarks: 50,
+      allowLateSubmission: false,
+      lateSubmissionPenalty: 0,
     });
   };
 
-  const handleCreateAssignment = () => {
-    if (!selectedClass) {
-      showApiError(new Error('Please select a class'), 'Missing information');
+  const handleSubmit = () => {
+    if (!formData.title || !formData.description || !formData.dueDate || !selectedClass || !selectedSubject || !selectedSection) {
+      toast.error('❌ Please fill all required fields (Class, Subject, Section, Title, Description, Due Date)');
       return;
     }
 
-    const selectedClassData = classes.find(cls => cls.classId._id === selectedClass);
-    if (!selectedClassData) return;
+    if (!selectedClassData) {
+      toast.error('❌ Invalid class/subject/section selection');
+      return;
+    }
 
-    createAssignmentMutation.mutate({
-      ...assignmentForm,
+    const payload = {
+      title: formData.title,
+      description: formData.description,
       classId: selectedClass,
-      subjectId: selectedClassData.subjectId._id,
-      sectionId: selectedClassData.sectionId._id
-    });
-  };
+      subjectId: selectedSubject,
+      sectionId: selectedSection,
+      dueDate: new Date(formData.dueDate).toISOString(),
+      maxMarks: formData.maxMarks,
+      allowLateSubmission: formData.allowLateSubmission,
+      lateSubmissionPenalty: formData.lateSubmissionPenalty,
+    };
 
-  const handleGradeSubmission = (submissionId: string, grade: string, remarks: string) => {
-    gradeSubmissionMutation.mutate({
-      submissionId,
-      grade,
-      remarks
-    });
-  };
+    console.log('📤 Submitting assignment:', payload);
 
-  const getStatusBadge = (assignment: Assignment) => {
-    const dueDate = new Date(assignment.dueDate);
-    const today = new Date();
-    const isOverdue = dueDate < today && assignment.status !== 'closed';
-
-    switch (assignment.status) {
-      case 'published':
-        return isOverdue ? (
-          <Badge variant="destructive">
-            <AlertCircle className="mr-1 h-3 w-3" />
-            Overdue
-          </Badge>
-        ) : (
-          <Badge variant="default">
-            <Clock className="mr-1 h-3 w-3" />
-            Active
-          </Badge>
-        );
-      case 'closed':
-        return <Badge variant="secondary">Closed</Badge>;
-      default:
-        return <Badge variant="outline">Draft</Badge>;
+    if (editingAssignment) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const getSubmissionStatusBadge = (submission: Submission) => {
-    if (submission.status === 'graded') {
-      return <Badge className="bg-green-100 text-green-800">Graded</Badge>;
-    }
-    return <Badge className="bg-blue-100 text-blue-800">Submitted</Badge>;
+  const handleEdit = (assignment: Assignment) => {
+    setEditingAssignment(assignment);
+    setSelectedClass(assignment.classId._id);
+    setSelectedSubject(assignment.subjectId._id);
+    setSelectedSection(assignment.sectionId._id);
+    setFormData({
+      title: assignment.title,
+      description: assignment.description,
+      dueDate: assignment.dueDate.split('T')[0],
+      maxMarks: assignment.maxMarks,
+      allowLateSubmission: assignment.allowLateSubmission || false,
+      lateSubmissionPenalty: assignment.lateSubmissionPenalty || 0,
+    });
+    setShowCreateDialog(true);
+  };
+
+  const isLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
+  const getStatusBadge = (status: string, dueDate: string) => {
+    const isOverdue = new Date(dueDate) < new Date() && status !== 'CLOSED';
+    
+    const statusConfig: Record<string, { color: string; label: string }> = {
+      DRAFT: { color: 'bg-gray-100 text-gray-800', label: 'Draft' },
+      PUBLISHED: { color: isOverdue ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800', label: isOverdue ? 'Overdue' : 'Active' },
+      CLOSED: { color: 'bg-slate-100 text-slate-800', label: 'Closed' },
+    };
+
+    const config = statusConfig[status] || statusConfig.DRAFT;
+    return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Assignments</h1>
-          <p className="text-sm text-muted-foreground">Create and manage assignments for your classes</p>
+          <h1 className="text-3xl font-bold">📝 Assignments</h1>
+          <p className="text-muted-foreground">Create and manage assignments for your classes</p>
         </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button disabled={!selectedClass}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Assignment
+            <Button onClick={() => { 
+              resetForm(); 
+              setEditingAssignment(null);
+              setSelectedClass('');
+              setSelectedSubject('');
+              setSelectedSection('');
+            }} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Assignment
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Assignment</DialogTitle>
+              <DialogTitle>{editingAssignment ? '✏️ Edit Assignment' : '➕ Create New Assignment'}</DialogTitle>
+              <DialogDescription>
+                {editingAssignment ? 'Update the assignment details' : 'Fill in all required fields to create a new assignment'}
+              </DialogDescription>
             </DialogHeader>
+
             <div className="space-y-4">
+              {/* Info Box - Show Assignment Context */}
+              {selectedClass && selectedSubject && selectedSection && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-900">📚 Assignment Context</p>
+                    <p className="text-blue-800 text-xs mt-1">
+                      Class: <span className="font-semibold">{teacherClasses.find(c => c._id === selectedClass)?.name}</span> • 
+                      Subject: <span className="font-semibold">{teacherSubjectsForClass.find(s => s._id === selectedSubject)?.name}</span> • 
+                      Section: <span className="font-semibold">{teacherSectionsForSubject.find(sec => sec._id === selectedSection)?.name}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {/* Class, Subject, Section Selection */}
               <div className="space-y-2">
-                <Label>Assignment Title</Label>
-                <Input
-                  value={assignmentForm.title}
-                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="e.g., Mathematics Homework Chapter 5"
-                />
+                <Label>Class * (Required)</Label>
+                <Select value={selectedClass} onValueChange={(value) => {
+                  setSelectedClass(value);
+                  setSelectedSubject('');
+                  setSelectedSection('');
+                }} disabled={!!editingAssignment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teacherClasses.map(cls => (
+                      <SelectItem key={cls._id} value={cls._id}>
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              
+
+              {/* Subject Selection - Only show if class is selected */}
+              {selectedClass && (
+                <div className="space-y-2">
+                  <Label>Subject * (Required)</Label>
+                  <Select value={selectedSubject} onValueChange={(value) => {
+                    setSelectedSubject(value);
+                    setSelectedSection('');
+                  }} disabled={!!editingAssignment}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teacherSubjectsForClass.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          No subjects assigned for this class
+                        </div>
+                      ) : (
+                        teacherSubjectsForClass.map(subject => (
+                          <SelectItem key={subject._id} value={subject._id}>
+                            {subject.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Section Selection - Only show if subject is selected */}
+              {selectedSubject && (
+                <div className="space-y-2">
+                  <Label>Section * (Required)</Label>
+                  <Select value={selectedSection} onValueChange={setSelectedSection} disabled={!!editingAssignment}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teacherSectionsForSubject.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">
+                          No sections assigned for this subject
+                        </div>
+                      ) : (
+                        teacherSectionsForSubject.map(section => (
+                          <SelectItem key={section._id} value={section._id}>
+                            {section.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Title */}
               <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={assignmentForm.description}
-                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the assignment requirements..."
-                  rows={3}
+                <Label>Title * (Max 200 characters)</Label>
+                <Input
+                  placeholder="e.g., Algebra Chapter 5 Homework"
+                  maxLength={200}
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              {/* Description */}
+              <div className="space-y-2">
+                <Label>Description * (Max 5000 characters)</Label>
+                <Textarea
+                  placeholder="Provide detailed instructions for students..."
+                  maxLength={5000}
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+
+              {/* Due Date & Max Marks */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Due Date</Label>
+                  <Label>Due Date * (Must be future date)</Label>
                   <Input
-                    type="datetime-local"
-                    value={assignmentForm.dueDate}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, dueDate: e.target.value }))}
-                    min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    type="date"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Total Marks</Label>
+                  <Label>Max Marks * (must be positive)</Label>
                   <Input
                     type="number"
-                    value={assignmentForm.totalMarks}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, totalMarks: parseInt(e.target.value) || 0 }))}
                     min="1"
+                    value={formData.maxMarks}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxMarks: parseInt(e.target.value) || 0 }))}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Instructions</Label>
-                <Textarea
-                  value={assignmentForm.instructions}
-                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, instructions: e.target.value }))}
-                  placeholder="Provide detailed instructions for students..."
-                  rows={4}
-                />
+              {/* Late Submission */}
+              <div className="space-y-3 border rounded-lg p-3 bg-muted/30">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowLateSubmission}
+                    onChange={(e) => setFormData(prev => ({ ...prev, allowLateSubmission: e.target.checked }))}
+                    className="h-4 w-4 rounded"
+                  />
+                  <span className="text-sm font-medium">Allow Late Submission</span>
+                </label>
+
+                {formData.allowLateSubmission && (
+                  <div className="space-y-2 pl-7">
+                    <Label>Penalty (%) - 0 to 100</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={formData.lateSubmissionPenalty}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lateSubmissionPenalty: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleCreateAssignment}
-                  disabled={createAssignmentMutation.isPending}
-                >
-                  {createAssignmentMutation.isPending ? 'Creating...' : 'Create Assignment'}
+                <Button onClick={handleSubmit} disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingAssignment ? 'Update' : 'Create'} Assignment
                 </Button>
               </div>
             </div>
@@ -304,232 +447,145 @@ const TeacherAssignments = () => {
         </Dialog>
       </div>
 
-      {/* Filters */}
+      {/* Class Filter */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle className="text-lg">Filter by Class</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueClasses.map((cls) => (
-                    <SelectItem key={cls._id} value={cls._id}>
-                      {cls.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Select value={selectedClass || 'all'} onValueChange={setSelectedClass}>
+            <SelectTrigger className="w-full md:w-64">
+              <SelectValue placeholder="All Classes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Classes</SelectItem>
+              {teacherClasses.map(cls => (
+                <SelectItem key={cls._id} value={cls._id}>
+                  {cls.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
-      {/* Assignments List */}
+      {/* Assignments Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Assignments List
-            </div>
-            <Badge variant="secondary">
-              {assignments.length} assignments
-            </Badge>
+            <span>All Assignments</span>
+            <Badge variant="secondary">{filteredAssignments.length} assignments</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {assignmentsLoading ? (
             <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted animate-pulse rounded" />
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-16 bg-muted animate-pulse rounded" />
               ))}
             </div>
-          ) : !selectedClass ? (
-            <div className="text-center py-8">
+          ) : filteredAssignments.length === 0 ? (
+            <div className="text-center py-12">
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">Select a Class</h3>
-              <p className="text-muted-foreground">
-                Please select a class to view assignments.
-              </p>
-            </div>
-          ) : assignments.length === 0 ? (
-            <div className="text-center py-8">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">No Assignments Found</h3>
-              <p className="text-muted-foreground">
-                No assignments have been created for this class yet.
-              </p>
+              <h3 className="text-lg font-semibold">No assignments yet</h3>
+              <p className="text-muted-foreground">Create your first assignment to get started</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {assignments.map((assignment) => (
-                <div key={assignment._id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{assignment.title}</h3>
-                          <p className="text-sm text-muted-foreground">{assignment.description}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span>Due: {format(new Date(assignment.dueDate), 'MMM dd, yyyy')}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{assignment.classId.name} - {assignment.subjectId.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span>{assignment.totalMarks} marks</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                          <span>{assignment.submissionCount}/{assignment.totalStudents} submitted</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
-                      {getStatusBadge(assignment)}
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAssignment(assignment._id);
-                          setSubmissionsDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Marks</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAssignments.map(assignment => (
+                    <TableRow key={assignment._id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium max-w-xs">
+                        <div className="truncate">{assignment.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">{assignment.description.substring(0, 50)}...</div>
+                      </TableCell>
+                      <TableCell>{assignment.classId.name}</TableCell>
+                      <TableCell>{assignment.subjectId.name}</TableCell>
+                      <TableCell>{format(new Date(assignment.dueDate), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell>{assignment.maxMarks}</TableCell>
+                      <TableCell>{getStatusBadge(assignment.status, assignment.dueDate)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {assignment.status === 'DRAFT' && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleEdit(assignment)}>
+                                  <Edit2 className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => publishMutation.mutate(assignment._id)}>
+                                  <Send className="mr-2 h-4 w-4" />
+                                  Publish
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {assignment.status === 'PUBLISHED' && (
+                              <DropdownMenuItem>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Submissions
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setDeleteAssignment(assignment)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Submissions Dialog */}
-      <Dialog open={submissionsDialogOpen} onOpenChange={setSubmissionsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Assignment Submissions</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {submissionsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-                ))}
-              </div>
-            ) : submissions.length === 0 ? (
-              <div className="text-center py-8">
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold">No Submissions Yet</h3>
-                <p className="text-muted-foreground">
-                  No students have submitted this assignment yet.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {submissions.map((submission) => (
-                  <div key={submission._id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div>
-                            <h4 className="font-medium">
-                              {submission.studentId.firstName} {submission.studentId.lastName}
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              {submission.studentId.admissionNumber}
-                            </p>
-                          </div>
-                          {getSubmissionStatusBadge(submission)}
-                        </div>
-                        
-                        <div className="text-sm text-muted-foreground mb-2">
-                          Submitted: {format(new Date(submission.submittedAt), 'MMM dd, yyyy HH:mm')}
-                        </div>
-
-                        {submission.attachments.length > 0 && (
-                          <div className="space-y-2">
-                            <Label>Submitted Files:</Label>
-                            {submission.attachments.map((file, index) => (
-                              <div key={index} className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4" />
-                                <a 
-                                  href={file.url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  {file.originalName}
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="ml-4 space-y-2">
-                        {submission.status !== 'graded' && (
-                          <div className="space-y-2">
-                            <Input
-                              placeholder="Grade"
-                              className="w-20"
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  const grade = (e.target as HTMLInputElement).value;
-                                  handleGradeSubmission(submission._id, grade, '');
-                                }
-                              }}
-                            />
-                            <Button 
-                              size="sm" 
-                              onClick={() => {
-                                const input = document.querySelector(`#grade-${submission._id}`) as HTMLInputElement;
-                                const grade = input?.value || '';
-                                handleGradeSubmission(submission._id, grade, '');
-                              }}
-                            >
-                              Grade
-                            </Button>
-                          </div>
-                        )}
-                        {submission.grade && (
-                          <div className="text-sm">
-                            <Badge variant="outline">Grade: {submission.grade}</Badge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Dialog */}
+      <AlertDialog open={!!deletingAssignment} onOpenChange={(open) => !open && setDeleteAssignment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assignment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The assignment "{deletingAssignment?.title}" will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingAssignment && deleteMutation.mutate(deletingAssignment._id)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 export default TeacherAssignments;
+
+// Import missing icon
+import { BookOpen } from 'lucide-react';
