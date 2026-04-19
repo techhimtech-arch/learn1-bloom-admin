@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Clock, AlertCircle, CheckCircle, ArrowLeft, ArrowRight, Save, Send } from 'lucide-react';
 import { studentQuizService, quizUtils } from '@/services/quizService';
-import { StudentQuiz, QuizStartResponse, QuizAnswerRequest, QuizSubmitResponse } from '@/types/quiz';
+import { StudentQuiz, QuizStartResponse, QuizAnswerRequest, QuizSubmitResponse, ApiResponse } from '@/types/quiz';
 
 interface QuizTakingInterfaceProps {
   quiz: StudentQuiz;
@@ -41,10 +41,10 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
   // Submit quiz mutation
   const submitQuizMutation = useMutation({
     mutationFn: () => studentQuizService.submitQuiz(quiz._id),
-    onSuccess: (data: QuizSubmitResponse) => {
+    onSuccess: (data: ApiResponse<QuizSubmitResponse>) => {
       toast({ 
         title: 'Quiz Completed!', 
-        description: `You scored ${data.data.results.percentage}% (${data.data.results.grade})` 
+        description: `You scored ${data.data?.results.percentage}% (${data.data?.results.grade})` 
       });
       onComplete();
     },

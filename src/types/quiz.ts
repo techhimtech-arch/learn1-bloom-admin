@@ -71,6 +71,7 @@ export interface Quiz {
   createdAt: string;
   updatedAt?: string;
   publishedAt?: string;
+  questions?: QuizQuestion[];
 }
 
 export interface QuizWithStats extends Quiz {

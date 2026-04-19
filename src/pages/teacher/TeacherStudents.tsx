@@ -120,7 +120,7 @@ const TeacherStudents = () => {
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {console.log('Rendering unique classes in dropdown:', uniqueClasses)}
+                  {(() => { console.log('Rendering unique classes in dropdown:', uniqueClasses); return null; })()}
                   {uniqueClasses.length === 0 ? (
                     <SelectItem value="no-classes" disabled>
                       No classes available
@@ -149,7 +149,7 @@ const TeacherStudents = () => {
                   <SelectValue placeholder="Select section" />
                 </SelectTrigger>
                 <SelectContent>
-                  {console.log('Rendering sections for class:', selectedClass, sectionsForClass)}
+                  {(() => { console.log('Rendering sections for class:', selectedClass, sectionsForClass); return null; })()}
                   {sectionsForClass.length === 0 ? (
                     <SelectItem value="no-sections" disabled>
                       {selectedClass ? 'No sections available' : 'Select a class first'}

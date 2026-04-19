@@ -52,7 +52,6 @@ const getTourAttribute = (title: string) => {
     'My Profile': 'profile',
     'Teacher Exams': 'exams',
     'Teacher Results': 'exams',
-    'Teacher Assignments': 'exams',
     'Teacher Quizzes': 'quizzes',
     'Quiz Management': 'quizzes',
     'Student Quizzes': 'quizzes',
@@ -61,7 +60,6 @@ const getTourAttribute = (title: string) => {
     'My Fees': 'fees',
     'Study Materials': 'subjects',
     'My Assignments': 'subjects',
-    'Announcements': 'announcements',
     'My Timetable': 'dashboard',
     'My Certificates': 'fees',
   };

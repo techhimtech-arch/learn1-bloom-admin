@@ -56,14 +56,17 @@ interface AssignmentFormProps {
   assignment?: Assignment | null;
   classes: Array<{
     id: string;
+    _id?: string;
     name: string;
   }>;
   sections: Array<{
     id: string;
+    _id?: string;
     name: string;
   }>;
   subjects: Array<{
     id: string;
+    _id?: string;
     name: string;
     code: string;
   }>;

@@ -373,7 +373,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
         ...data,
         startsAt: new Date(data.startsAt).toISOString(),
         endsAt: new Date(data.endsAt).toISOString(),
-      };
+      } as QuizCreateRequest;
 
       if (quiz) {
         // Update existing quiz

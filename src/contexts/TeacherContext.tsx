@@ -2,17 +2,17 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { useQuery } from '@tanstack/react-query';
 import { teacherApi } from '@/pages/services/api';
 
-interface ClassAssignment {
+export interface ClassAssignment {
   _id: string;
-  classId: { _id: string; name: string } | string;
-  sectionId: { _id: string; name: string } | string;
-  subjectId?: { _id: string; name: string } | string;
+  classId: { _id: string; name: string };
+  sectionId: { _id: string; name: string };
+  subjectId?: { _id: string; name: string };
 }
 
 interface TeacherContextType {
   classesData: any;
   classesLoading: boolean;
-  classes: (ClassAssignment | string)[];
+  classes: ClassAssignment[];
   getUniqueClasses: () => Array<{ _id: string; name: string }>;
   getClassName: (classId: string) => string;
   getSectionName: (classId: string, sectionId: string) => string;
@@ -88,20 +88,13 @@ export const TeacherProvider = ({ children }: TeacherProviderProps) => {
   };
 
   const getClassName = (classId: string) => {
-    const cls = classes.find(c => {
-      const currentClassId = typeof c.classId === 'object' && c.classId !== null ? c.classId._id : c.classId;
-      return currentClassId === classId;
-    });
-    return typeof cls?.classId === 'object' && cls.classId !== null ? cls.classId.name : (cls?.classId as string) || 'Unknown';
+    const cls = classes.find(c => c.classId._id === classId);
+    return cls?.classId.name || 'Unknown';
   };
 
   const getSectionName = (classId: string, sectionId: string) => {
-    const cls = classes.find(c => {
-      const currentClassId = typeof c.classId === 'object' && c.classId !== null ? c.classId._id : c.classId;
-      const currentSectionId = typeof c.sectionId === 'object' && c.sectionId !== null ? c.sectionId._id : c.sectionId;
-      return currentClassId === classId && currentSectionId === sectionId;
-    });
-    return typeof cls?.sectionId === 'object' && cls.sectionId !== null ? cls.sectionId.name : (cls?.sectionId as string) || 'Unknown';
+    const cls = classes.find(c => c.classId._id === classId && c.sectionId._id === sectionId);
+    return cls?.sectionId.name || 'Unknown';
   };
 
   const getSectionsForClass = (classId: string) => {
