@@ -21,7 +21,7 @@ export function AcademicSummaryCards() {
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['academic-summary'],
     queryFn: async () => {
-      const response = await academicApi.getSummary();
+      const response = await academicApi.getSummary('');
       return response.data;
     },
   });
@@ -118,7 +118,7 @@ export function ClassStatsTable() {
   const { data: classStatsData, isLoading } = useQuery({
     queryKey: ['class-stats'],
     queryFn: async () => {
-      const response = await academicApi.getClassStats('all');
+      const response = await academicApi.getClassStats('all', '');
       return response.data;
     },
   });
@@ -200,7 +200,7 @@ export function TeacherWorkloadTable() {
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['academic-summary'],
     queryFn: async () => {
-      const response = await academicApi.getSummary();
+      const response = await academicApi.getSummary('');
       return response.data;
     },
   });
@@ -313,7 +313,7 @@ export function EnrollmentTrendChart() {
   const { data: trendsData, isLoading } = useQuery({
     queryKey: ['enrollment-trends'],
     queryFn: async () => {
-      const response = await academicApi.getEnrollmentTrends();
+      const response = await academicApi.getEnrollmentTrends('');
       return response.data;
     },
   });
@@ -377,7 +377,7 @@ export function UpcomingAcademicEvents() {
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['academic-summary'],
     queryFn: async () => {
-      const response = await academicApi.getSummary();
+      const response = await academicApi.getSummary('');
       return response.data;
     },
   });

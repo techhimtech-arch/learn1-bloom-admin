@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { useQuery } from '@tanstack/react-query';
 import { teacherApi } from '@/pages/services/api';
 
-interface ClassAssignment {
+export interface ClassAssignment {
   _id: string;
   classId: { _id: string; name: string } | string;
   sectionId: { _id: string; name: string } | string;
@@ -12,7 +12,7 @@ interface ClassAssignment {
 interface TeacherContextType {
   classesData: any;
   classesLoading: boolean;
-  classes: (ClassAssignment | string)[];
+  classes: ClassAssignment[];
   getUniqueClasses: () => Array<{ _id: string; name: string }>;
   getClassName: (classId: string) => string;
   getSectionName: (classId: string, sectionId: string) => string;

@@ -257,10 +257,7 @@ export default function ExamManagement() {
                               onClick={() => handleEdit({
                                 ...exam,
                                 id: exam._id || exam.id || '',
-                                classId: exam.classId?._id || '',
-                                sectionId: exam.sectionId?._id || '',
-                                sessionId: exam.sessionId?._id || '',
-                              })}
+                              } as Exam)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
