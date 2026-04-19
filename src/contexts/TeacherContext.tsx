@@ -4,9 +4,9 @@ import { teacherApi } from '@/pages/services/api';
 
 export interface ClassAssignment {
   _id: string;
-  classId: { _id: string; name: string } | string;
-  sectionId: { _id: string; name: string } | string;
-  subjectId?: { _id: string; name: string } | string;
+  classId: { _id: string; name: string };
+  sectionId: { _id: string; name: string };
+  subjectId?: { _id: string; name: string };
 }
 
 interface TeacherContextType {
