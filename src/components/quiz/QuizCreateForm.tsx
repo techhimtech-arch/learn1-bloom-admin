@@ -166,8 +166,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingClasses(true);
       console.log('🔄 Loading classes...');
       try {
+        const cacheKey = isAdmin ? 'quiz_classes_admin' : 'quiz_classes';
         // Try to get from sessionStorage first
-        const cached = sessionStorage.getItem('quiz_classes');
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached && cached.startsWith('[') && cached.includes('_id')) {
           const parsed = JSON.parse(cached);
           // Validate it's actually an array of classes
@@ -178,32 +179,32 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
           }
         }
         // Clear invalid cache
-        sessionStorage.removeItem('quiz_classes');
-        
-        // Fetch from API
-        const response = await teacherApi.getClasses();
-        console.log('📡 Classes API response:', response);
+        sessionStorage.removeItem(cacheKey);
+
         let data: any[] = [];
-        
-        // Navigate through nested structure: response.data.data
-        const innerData = response?.data?.data;
-        console.log('📦 Inner data:', innerData);
-        
-        if (innerData?.classTeacherAssignment?.classId) {
-          // Extract just the class object from classTeacherAssignment
-          const classObj = innerData.classTeacherAssignment.classId;
-          console.log('Class object:', classObj);
-          if (classObj && classObj._id) {
-            data = [classObj];
-            console.log('✅ Extracted class:', data);
+        if (isAdmin) {
+          const response = await classApi.getAll();
+          const inner = response?.data?.data ?? response?.data;
+          data = Array.isArray(inner) ? inner : (inner?.classes ?? []);
+          console.log('✅ Admin classes:', data);
+        } else {
+          // Fetch from teacher API
+          const response = await teacherApi.getClasses();
+          console.log('📡 Classes API response:', response);
+          const innerData = response?.data?.data;
+          if (innerData?.classTeacherAssignment?.classId) {
+            const classObj = innerData.classTeacherAssignment.classId;
+            if (classObj && classObj._id) {
+              data = [classObj];
+            }
           }
         }
-        
+
         setClasses(Array.isArray(data) ? data : []);
         console.log('Set classes state to:', data);
         // Cache in sessionStorage
         if (Array.isArray(data) && data.length > 0) {
-          sessionStorage.setItem('quiz_classes', JSON.stringify(data));
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
         }
       } catch (error) {
         console.error('❌ Error loading classes:', error);
@@ -213,7 +214,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadClasses();
-  }, []);
+  }, [isAdmin]);
 
   // Load sections based on selected class
   useEffect(() => {
