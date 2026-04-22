@@ -229,18 +229,26 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingSections(true);
       try {
         // Try to get from sessionStorage first
-        const cacheKey = `quiz_sections_${selectedClass}`;
+        const cacheKey = `quiz_sections_${isAdmin ? 'admin_' : ''}${selectedClass}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
           const parsed = JSON.parse(cached);
           console.log('✅ Sections from cache:', parsed);
           setSections(Array.isArray(parsed) ? parsed : []);
         } else {
-          // Get sections from teacher classes data (which we loaded earlier)
           let data: any[] = [];
-          
-          // We need to re-fetch to get sections for the selected class
-          try {
+          if (isAdmin) {
+            try {
+              const response = await sectionApi.getByClass(selectedClass);
+              const inner = response?.data?.data ?? response?.data;
+              data = Array.isArray(inner) ? inner : (inner?.sections ?? []);
+              console.log('✅ Admin sections:', data);
+            } catch (err) {
+              console.error('❌ Admin sections fetch failed:', err);
+            }
+          } else {
+            // Get sections from teacher classes data
+            try {
             const response = await teacherApi.getClasses();
             console.log('📡 Sections API response:', response);
             const innerData = response?.data?.data;
@@ -268,8 +276,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 console.log('✅ Extracted section from classTeacherAssignment:', data);
               }
             }
-          } catch (error) {
-            console.error('❌ Error fetching sections:', error);
+            } catch (error) {
+              console.error('❌ Error fetching sections:', error);
+            }
           }
           
           setSections(Array.isArray(data) ? data : []);
@@ -286,7 +295,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadSections();
-  }, [selectedClass]);
+  }, [selectedClass, isAdmin]);
 
   const form = useForm<QuizFormData>({
     resolver: zodResolver(quizFormSchema),
