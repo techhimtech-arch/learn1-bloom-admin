@@ -64,6 +64,9 @@ interface QuizCreateFormProps {
 }
 
 const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCancel }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'school_admin' || user?.role === 'superadmin';
+
   // Clear bad cache on component mount
   useEffect(() => {
     const cached = sessionStorage.getItem('quiz_classes');
