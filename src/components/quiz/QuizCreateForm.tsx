@@ -466,7 +466,27 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="isSchoolWide"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/30">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Make this Quiz School Wide?</FormLabel>
+                      <FormDescription>
+                        Available to every student in the school. Class & Section won't be required.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <div className={`grid grid-cols-1 ${isSchoolWide ? '' : 'md:grid-cols-3'} gap-4`}>
               <FormField
                 control={form.control}
                 name="subjectId"
@@ -492,6 +512,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 )}
               />
 
+              {!isSchoolWide && (
               <FormField
                 control={form.control}
                 name="classId"
