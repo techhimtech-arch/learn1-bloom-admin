@@ -578,6 +578,8 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                   </FormItem>
                 )}
               />
+              </>
+              )}
             </div>
           </CardContent>
         </Card>
