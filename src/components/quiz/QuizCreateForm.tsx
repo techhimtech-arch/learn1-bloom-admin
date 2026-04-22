@@ -513,6 +513,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
               />
 
               {!isSchoolWide && (
+              <>
               <FormField
                 control={form.control}
                 name="classId"
