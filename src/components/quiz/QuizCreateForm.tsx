@@ -101,8 +101,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingSubjects(true);
       console.log('🔄 Loading subjects...');
       try {
+        const cacheKey = isAdmin ? 'quiz_subjects_admin' : 'quiz_subjects';
         // Try to get from sessionStorage first
-        const cached = sessionStorage.getItem('quiz_subjects');
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached && cached.startsWith('[') && cached.includes('_id')) {
           const parsed = JSON.parse(cached);
           // Validate it's actually an array of subjects
@@ -113,13 +114,18 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
           }
         }
         // Clear invalid cache
-        sessionStorage.removeItem('quiz_subjects');
-        
-        // Fetch from API
-        const response = await teacherApi.getClasses();
+        sessionStorage.removeItem(cacheKey);
+
+        // Fetch from API — admin gets all subjects, teacher gets from assignments
+        let data: any[] = [];
+        if (isAdmin) {
+          const response = await subjectApi.getAll();
+          const inner = response?.data?.data ?? response?.data;
+          data = Array.isArray(inner) ? inner : (inner?.subjects ?? []);
+          console.log('✅ Admin subjects:', data);
+        } else {
+          const response = await teacherApi.getClasses();
           console.log('📡 Full API response:', response);
-          let data: any[] = [];
-          
           // Navigate through nested structure: response.data.data.subjectAssignments
           const innerData = response?.data?.data;
           console.log('📦 Inner data:', innerData);
@@ -137,11 +143,12 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
             data = Array.from(subjectsSet.values());
             console.log('✅ Extracted subjects:', data);
           }
-          
+        }
+
         setSubjects(Array.isArray(data) ? data : []);
         // Cache in sessionStorage
         if (Array.isArray(data) && data.length > 0) {
-          sessionStorage.setItem('quiz_subjects', JSON.stringify(data));
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
         }
       } catch (error) {
         console.error('❌ Error loading subjects:', error);
@@ -151,7 +158,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadSubjects();
-  }, []);
+  }, [isAdmin]);
 
   // Load classes from sessionStorage or API
   useEffect(() => {
