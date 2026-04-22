@@ -337,6 +337,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
 
   const selectedQuizType = form.watch('quizType');
   const questions = form.watch('questions');
+  const isSchoolWide = form.watch('isSchoolWide');
 
   useEffect(() => {
     if (quiz?.classId._id) {
@@ -398,6 +399,12 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
         startsAt: new Date(data.startsAt).toISOString(),
         endsAt: new Date(data.endsAt).toISOString(),
       } as QuizCreateRequest;
+
+      // For school-wide quizzes (admin), backend doesn't require class/section
+      if (data.isSchoolWide) {
+        delete (quizData as any).classId;
+        delete (quizData as any).sectionId;
+      }
 
       if (quiz) {
         // Update existing quiz
