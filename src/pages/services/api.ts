@@ -54,10 +54,9 @@ apiClient.interceptors.response.use(
     }
     // Handle 403 forbidden
     if (error.response?.status === 403) {
-      const msg = error.response?.data?.message || "Access forbidden";
-      if (msg.toLowerCase().includes("permission")) {
-        window.location.href = "/unauthorized";
-      }
+      // Do NOT redirect to /unauthorized on background API 403s.
+      // Route-level access is enforced by ProtectedRoute + role-config.
+      // Silently reject so individual queries can handle the error locally.
     }
     return Promise.reject(error);
   },

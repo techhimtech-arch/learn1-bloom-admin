@@ -49,7 +49,12 @@ export function NotificationDropdown() {
     refetchOnWindowFocus: false,
     staleTime: 240000, // Consider data fresh for 4 minutes
     gcTime: 600000, // Keep in cache for 10 minutes
-    retry: 2,
+    retry: (failureCount, error: any) => {
+      // Don't retry on auth/permission errors
+      const status = error?.response?.status;
+      if (status === 401 || status === 403) return false;
+      return failureCount < 2;
+    },
   });
 
   const markReadMutation = useMutation({
