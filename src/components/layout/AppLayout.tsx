@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 
 export function AppLayout() {
   const { user } = useAuth();
+  const profilePath = user?.role === 'teacher' ? '/teacher/profile' : '/profile';
 
   return (
     <SidebarProvider>
@@ -23,7 +24,7 @@ export function AppLayout() {
             </div>
             <div className="flex items-center gap-2">
               <NotificationDropdown />
-              <Link to="/profile">
+              <Link to={profilePath}>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer">
                   {user?.name?.charAt(0)?.toUpperCase() || 'A'}
                 </div>
