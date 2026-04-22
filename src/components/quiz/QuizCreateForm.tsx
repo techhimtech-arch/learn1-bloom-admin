@@ -17,14 +17,15 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { teacherQuizService } from '@/services/quizService';
 import { QuizCreateRequest, QuizQuestion, Quiz } from '@/types/quiz';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { subjectApi, sectionApi, teacherApi } from '@/pages/services/api';
+import { subjectApi, sectionApi, teacherApi, classApi } from '@/pages/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 const quizFormSchema = z.object({
   title: z.string().min(1, 'Quiz title is required'),
   description: z.string().min(1, 'Description is required'),
   subjectId: z.string().min(1, 'Subject is required'),
-  classId: z.string().min(1, 'Class is required'),
-  sectionId: z.string().min(1, 'Section is required'),
+  classId: z.string().optional().or(z.literal('')),
+  sectionId: z.string().optional().or(z.literal('')),
   quizType: z.enum(['MCQ', 'TRUE_FALSE', 'SHORT_ANSWER', 'MIXED']),
   timeLimit: z.number().min(1, 'Time limit must be at least 1 minute'),
   maxMarks: z.number().min(1, 'Max marks must be at least 1'),
@@ -49,6 +50,9 @@ const quizFormSchema = z.object({
   message: 'Passing marks cannot be greater than max marks',
 }).refine((data) => new Date(data.endsAt) > new Date(data.startsAt), {
   message: 'End time must be after start time',
+}).refine((data) => data.isSchoolWide || (!!data.classId && !!data.sectionId), {
+  message: 'Class and Section are required unless quiz is School Wide',
+  path: ['classId'],
 });
 
 type QuizFormData = z.infer<typeof quizFormSchema>;
