@@ -17,14 +17,15 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { teacherQuizService } from '@/services/quizService';
 import { QuizCreateRequest, QuizQuestion, Quiz } from '@/types/quiz';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { subjectApi, sectionApi, teacherApi } from '@/pages/services/api';
+import { subjectApi, sectionApi, teacherApi, classApi } from '@/pages/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 const quizFormSchema = z.object({
   title: z.string().min(1, 'Quiz title is required'),
   description: z.string().min(1, 'Description is required'),
   subjectId: z.string().min(1, 'Subject is required'),
-  classId: z.string().min(1, 'Class is required'),
-  sectionId: z.string().min(1, 'Section is required'),
+  classId: z.string().optional().or(z.literal('')),
+  sectionId: z.string().optional().or(z.literal('')),
   quizType: z.enum(['MCQ', 'TRUE_FALSE', 'SHORT_ANSWER', 'MIXED']),
   timeLimit: z.number().min(1, 'Time limit must be at least 1 minute'),
   maxMarks: z.number().min(1, 'Max marks must be at least 1'),
@@ -49,6 +50,9 @@ const quizFormSchema = z.object({
   message: 'Passing marks cannot be greater than max marks',
 }).refine((data) => new Date(data.endsAt) > new Date(data.startsAt), {
   message: 'End time must be after start time',
+}).refine((data) => data.isSchoolWide || (!!data.classId && !!data.sectionId), {
+  message: 'Class and Section are required unless quiz is School Wide',
+  path: ['classId'],
 });
 
 type QuizFormData = z.infer<typeof quizFormSchema>;
@@ -60,6 +64,9 @@ interface QuizCreateFormProps {
 }
 
 const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCancel }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'school_admin' || user?.role === 'superadmin';
+
   // Clear bad cache on component mount
   useEffect(() => {
     const cached = sessionStorage.getItem('quiz_classes');
@@ -94,8 +101,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingSubjects(true);
       console.log('🔄 Loading subjects...');
       try {
+        const cacheKey = isAdmin ? 'quiz_subjects_admin' : 'quiz_subjects';
         // Try to get from sessionStorage first
-        const cached = sessionStorage.getItem('quiz_subjects');
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached && cached.startsWith('[') && cached.includes('_id')) {
           const parsed = JSON.parse(cached);
           // Validate it's actually an array of subjects
@@ -106,13 +114,18 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
           }
         }
         // Clear invalid cache
-        sessionStorage.removeItem('quiz_subjects');
-        
-        // Fetch from API
-        const response = await teacherApi.getClasses();
+        sessionStorage.removeItem(cacheKey);
+
+        // Fetch from API — admin gets all subjects, teacher gets from assignments
+        let data: any[] = [];
+        if (isAdmin) {
+          const response = await subjectApi.getAll();
+          const inner = response?.data?.data ?? response?.data;
+          data = Array.isArray(inner) ? inner : (inner?.subjects ?? []);
+          console.log('✅ Admin subjects:', data);
+        } else {
+          const response = await teacherApi.getClasses();
           console.log('📡 Full API response:', response);
-          let data: any[] = [];
-          
           // Navigate through nested structure: response.data.data.subjectAssignments
           const innerData = response?.data?.data;
           console.log('📦 Inner data:', innerData);
@@ -130,11 +143,12 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
             data = Array.from(subjectsSet.values());
             console.log('✅ Extracted subjects:', data);
           }
-          
+        }
+
         setSubjects(Array.isArray(data) ? data : []);
         // Cache in sessionStorage
         if (Array.isArray(data) && data.length > 0) {
-          sessionStorage.setItem('quiz_subjects', JSON.stringify(data));
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
         }
       } catch (error) {
         console.error('❌ Error loading subjects:', error);
@@ -144,7 +158,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadSubjects();
-  }, []);
+  }, [isAdmin]);
 
   // Load classes from sessionStorage or API
   useEffect(() => {
@@ -152,8 +166,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingClasses(true);
       console.log('🔄 Loading classes...');
       try {
+        const cacheKey = isAdmin ? 'quiz_classes_admin' : 'quiz_classes';
         // Try to get from sessionStorage first
-        const cached = sessionStorage.getItem('quiz_classes');
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached && cached.startsWith('[') && cached.includes('_id')) {
           const parsed = JSON.parse(cached);
           // Validate it's actually an array of classes
@@ -164,32 +179,32 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
           }
         }
         // Clear invalid cache
-        sessionStorage.removeItem('quiz_classes');
-        
-        // Fetch from API
-        const response = await teacherApi.getClasses();
-        console.log('📡 Classes API response:', response);
+        sessionStorage.removeItem(cacheKey);
+
         let data: any[] = [];
-        
-        // Navigate through nested structure: response.data.data
-        const innerData = response?.data?.data;
-        console.log('📦 Inner data:', innerData);
-        
-        if (innerData?.classTeacherAssignment?.classId) {
-          // Extract just the class object from classTeacherAssignment
-          const classObj = innerData.classTeacherAssignment.classId;
-          console.log('Class object:', classObj);
-          if (classObj && classObj._id) {
-            data = [classObj];
-            console.log('✅ Extracted class:', data);
+        if (isAdmin) {
+          const response = await classApi.getAll();
+          const inner = response?.data?.data ?? response?.data;
+          data = Array.isArray(inner) ? inner : (inner?.classes ?? []);
+          console.log('✅ Admin classes:', data);
+        } else {
+          // Fetch from teacher API
+          const response = await teacherApi.getClasses();
+          console.log('📡 Classes API response:', response);
+          const innerData = response?.data?.data;
+          if (innerData?.classTeacherAssignment?.classId) {
+            const classObj = innerData.classTeacherAssignment.classId;
+            if (classObj && classObj._id) {
+              data = [classObj];
+            }
           }
         }
-        
+
         setClasses(Array.isArray(data) ? data : []);
         console.log('Set classes state to:', data);
         // Cache in sessionStorage
         if (Array.isArray(data) && data.length > 0) {
-          sessionStorage.setItem('quiz_classes', JSON.stringify(data));
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
         }
       } catch (error) {
         console.error('❌ Error loading classes:', error);
@@ -199,7 +214,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadClasses();
-  }, []);
+  }, [isAdmin]);
 
   // Load sections based on selected class
   useEffect(() => {
@@ -214,18 +229,26 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       setLoadingSections(true);
       try {
         // Try to get from sessionStorage first
-        const cacheKey = `quiz_sections_${selectedClass}`;
+        const cacheKey = `quiz_sections_${isAdmin ? 'admin_' : ''}${selectedClass}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
           const parsed = JSON.parse(cached);
           console.log('✅ Sections from cache:', parsed);
           setSections(Array.isArray(parsed) ? parsed : []);
         } else {
-          // Get sections from teacher classes data (which we loaded earlier)
           let data: any[] = [];
-          
-          // We need to re-fetch to get sections for the selected class
-          try {
+          if (isAdmin) {
+            try {
+              const response = await sectionApi.getByClass(selectedClass);
+              const inner = response?.data?.data ?? response?.data;
+              data = Array.isArray(inner) ? inner : (inner?.sections ?? []);
+              console.log('✅ Admin sections:', data);
+            } catch (err) {
+              console.error('❌ Admin sections fetch failed:', err);
+            }
+          } else {
+            // Get sections from teacher classes data
+            try {
             const response = await teacherApi.getClasses();
             console.log('📡 Sections API response:', response);
             const innerData = response?.data?.data;
@@ -253,8 +276,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 console.log('✅ Extracted section from classTeacherAssignment:', data);
               }
             }
-          } catch (error) {
-            console.error('❌ Error fetching sections:', error);
+            } catch (error) {
+              console.error('❌ Error fetching sections:', error);
+            }
           }
           
           setSections(Array.isArray(data) ? data : []);
@@ -271,7 +295,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
       }
     };
     loadSections();
-  }, [selectedClass]);
+  }, [selectedClass, isAdmin]);
 
   const form = useForm<QuizFormData>({
     resolver: zodResolver(quizFormSchema),
@@ -313,6 +337,7 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
 
   const selectedQuizType = form.watch('quizType');
   const questions = form.watch('questions');
+  const isSchoolWide = form.watch('isSchoolWide');
 
   useEffect(() => {
     if (quiz?.classId._id) {
@@ -375,6 +400,12 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
         endsAt: new Date(data.endsAt).toISOString(),
       } as QuizCreateRequest;
 
+      // For school-wide quizzes (admin), backend doesn't require class/section
+      if (data.isSchoolWide) {
+        delete (quizData as any).classId;
+        delete (quizData as any).sectionId;
+      }
+
       if (quiz) {
         // Update existing quiz
         const response = await teacherQuizService.updateQuiz(quiz._id, quizData);
@@ -435,7 +466,27 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="isSchoolWide"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/30">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Make this Quiz School Wide?</FormLabel>
+                      <FormDescription>
+                        Available to every student in the school. Class & Section won't be required.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <div className={`grid grid-cols-1 ${isSchoolWide ? '' : 'md:grid-cols-3'} gap-4`}>
               <FormField
                 control={form.control}
                 name="subjectId"
@@ -461,6 +512,8 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                 )}
               />
 
+              {!isSchoolWide && (
+              <>
               <FormField
                 control={form.control}
                 name="classId"
@@ -526,6 +579,8 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
                   </FormItem>
                 )}
               />
+              </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -791,26 +846,25 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="isSchoolWide"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">School Wide Quiz</FormLabel>
-                    <FormDescription>
-                      Make this quiz available to all students in the school
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {!isAdmin && (
+              <FormField
+                control={form.control}
+                name="isSchoolWide"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">School Wide Quiz</FormLabel>
+                      <FormDescription>
+                        Make this quiz available to all students in the school
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
           </CardContent>
         </Card>
 

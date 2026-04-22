@@ -9,9 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { Search, BarChart3, Users, Trophy, Clock, TrendingUp, Trash2, Eye } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { adminQuizService } from '@/services/quizService';
 import { AdminQuiz, QuizAnalytics, QuizFilters, QuizAnalyticsFilters } from '@/types/quiz';
 import QuizAnalyticsView from '@/components/quiz/QuizAnalyticsView';
+import QuizCreateForm from '@/components/quiz/QuizCreateForm';
 
 const AdminQuizzes: React.FC = () => {
   const [filters, setFilters] = useState<QuizFilters>({
@@ -22,6 +25,7 @@ const AdminQuizzes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [showAnalyticsDialog, setShowAnalyticsDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -89,10 +93,35 @@ const AdminQuizzes: React.FC = () => {
           <h1 className="text-3xl font-bold">Quiz Management</h1>
           <p className="text-muted-foreground">Admin overview and management of all school quizzes</p>
         </div>
-        <Button onClick={() => setShowAnalyticsDialog(true)}>
-          <BarChart3 className="mr-2 h-4 w-4" />
-          View Analytics
-        </Button>
+        <div className="flex gap-2">
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Quiz
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Quiz</DialogTitle>
+                <DialogDescription>
+                  Create a class-specific quiz or toggle "School Wide" to make it available to all students.
+                </DialogDescription>
+              </DialogHeader>
+              <QuizCreateForm
+                onSuccess={() => {
+                  setShowCreateDialog(false);
+                  queryClient.invalidateQueries({ queryKey: ['admin-quizzes'] });
+                }}
+                onCancel={() => setShowCreateDialog(false)}
+              />
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" onClick={() => setShowAnalyticsDialog(true)}>
+            <BarChart3 className="mr-2 h-4 w-4" />
+            View Analytics
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
