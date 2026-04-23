@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '@/pages/services/api';
 import {
   Quiz,
   QuizCreateRequest,
@@ -22,30 +22,11 @@ import {
   QuizAnalyticsFilters
 } from '@/types/quiz';
 
-const BASE_URL = 'https://sms-backend-d19v.onrender.com/api/v1';
-
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 // TEACHER QUIZ APIS
 export const teacherQuizService = {
   // Create Quiz
   createQuiz: async (quizData: QuizCreateRequest): Promise<ApiResponse<Quiz>> => {
-    const response = await api.post('/teacher/quizzes', quizData);
+    const response = await apiClient.post('/teacher/quizzes', quizData);
     return response.data;
   },
 
@@ -57,49 +38,49 @@ export const teacherQuizService = {
         params.append(key, value.toString());
       }
     });
-    const response = await api.get(`/teacher/quizzes?${params}`);
+    const response = await apiClient.get(`/teacher/quizzes?${params}`);
     return response.data;
   },
 
   // Get Quiz Details
   getQuizDetails: async (quizId: string): Promise<ApiResponse<QuizWithStats>> => {
-    const response = await api.get(`/teacher/quizzes/${quizId}`);
+    const response = await apiClient.get(`/teacher/quizzes/${quizId}`);
     return response.data;
   },
 
   // Update Quiz
   updateQuiz: async (quizId: string, quizData: Partial<QuizCreateRequest>): Promise<ApiResponse<Quiz>> => {
-    const response = await api.put(`/teacher/quizzes/${quizId}`, quizData);
+    const response = await apiClient.put(`/teacher/quizzes/${quizId}`, quizData);
     return response.data;
   },
 
   // Publish Quiz
   publishQuiz: async (quizId: string): Promise<ApiResponse<Quiz>> => {
-    const response = await api.post(`/teacher/quizzes/${quizId}/publish`);
+    const response = await apiClient.post(`/teacher/quizzes/${quizId}/publish`);
     return response.data;
   },
 
   // Delete Quiz
   deleteQuiz: async (quizId: string): Promise<ApiResponse> => {
-    const response = await api.delete(`/teacher/quizzes/${quizId}`);
+    const response = await apiClient.delete(`/teacher/quizzes/${quizId}`);
     return response.data;
   },
 
   // Get Quiz Results
   getQuizResults: async (quizId: string, page = 1, limit = 50): Promise<ApiResponse<QuizResultsResponse>> => {
-    const response = await api.get(`/teacher/quizzes/${quizId}/results?page=${page}&limit=${limit}`);
+    const response = await apiClient.get(`/teacher/quizzes/${quizId}/results?page=${page}&limit=${limit}`);
     return response.data;
   },
 
   // Get Quiz Leaderboard
   getQuizLeaderboard: async (quizId: string, limit = 10): Promise<ApiResponse<QuizLeaderboardResponse>> => {
-    const response = await api.get(`/teacher/quizzes/${quizId}/leaderboard?limit=${limit}`);
+    const response = await apiClient.get(`/teacher/quizzes/${quizId}/leaderboard?limit=${limit}`);
     return response.data;
   },
 
   // Get School Leaderboard
   getSchoolLeaderboard: async (limit = 20): Promise<ApiResponse<SchoolLeaderboardEntry[]>> => {
-    const response = await api.get(`/teacher/leaderboard?limit=${limit}`);
+    const response = await apiClient.get(`/teacher/leaderboard?limit=${limit}`);
     return response.data;
   },
 };
@@ -108,43 +89,43 @@ export const teacherQuizService = {
 export const studentQuizService = {
   // Get Available Quizzes
   getAvailableQuizzes: async (page = 1, limit = 20): Promise<PaginatedResponse<StudentQuiz>> => {
-    const response = await api.get(`/student/quizzes?page=${page}&limit=${limit}`);
+    const response = await apiClient.get(`/student/quizzes?page=${page}&limit=${limit}`);
     return response.data;
   },
 
   // Start Quiz
   startQuiz: async (quizId: string): Promise<ApiResponse<QuizStartResponse>> => {
-    const response = await api.post(`/student/quizzes/${quizId}/start`);
+    const response = await apiClient.post(`/student/quizzes/${quizId}/start`);
     return response.data;
   },
 
   // Submit Answer
   submitAnswer: async (quizId: string, answerData: QuizAnswerRequest): Promise<ApiResponse<QuizAnswerResponse>> => {
-    const response = await api.post(`/student/quizzes/${quizId}/answer`, answerData);
+    const response = await apiClient.post(`/student/quizzes/${quizId}/answer`, answerData);
     return response.data;
   },
 
   // Submit Quiz
   submitQuiz: async (quizId: string): Promise<ApiResponse<QuizSubmitResponse>> => {
-    const response = await api.post(`/student/quizzes/${quizId}/submit`);
+    const response = await apiClient.post(`/student/quizzes/${quizId}/submit`);
     return response.data;
   },
 
   // Get Quiz Results
   getQuizResults: async (quizId: string): Promise<ApiResponse<QuizStudentResults>> => {
-    const response = await api.get(`/student/quizzes/${quizId}/results`);
+    const response = await apiClient.get(`/student/quizzes/${quizId}/results`);
     return response.data;
   },
 
   // Get Quiz History
   getQuizHistory: async (page = 1, limit = 20): Promise<PaginatedResponse<QuizHistoryEntry>> => {
-    const response = await api.get(`/student/quizzes/history?page=${page}&limit=${limit}`);
+    const response = await apiClient.get(`/student/quizzes/history?page=${page}&limit=${limit}`);
     return response.data;
   },
 
   // Get Quiz Statistics
   getQuizStatistics: async (): Promise<ApiResponse<QuizStatistics>> => {
-    const response = await api.get('/student/quizzes/stats');
+    const response = await apiClient.get('/student/quizzes/stats');
     return response.data;
   },
 };
@@ -159,7 +140,7 @@ export const adminQuizService = {
         params.append(key, value.toString());
       }
     });
-    const response = await api.get(`/admin/quizzes?${params}`);
+    const response = await apiClient.get(`/admin/quizzes?${params}`);
     return response.data;
   },
 
@@ -171,13 +152,13 @@ export const adminQuizService = {
         params.append(key, value.toString());
       }
     });
-    const response = await api.get(`/admin/quizzes/analytics?${params}`);
+    const response = await apiClient.get(`/admin/quizzes/analytics?${params}`);
     return response.data;
   },
 
   // Delete Quiz (Admin)
   deleteQuiz: async (quizId: string): Promise<ApiResponse> => {
-    const response = await api.delete(`/admin/quizzes/${quizId}`);
+    const response = await apiClient.delete(`/admin/quizzes/${quizId}`);
     return response.data;
   },
 };

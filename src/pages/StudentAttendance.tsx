@@ -8,6 +8,8 @@ import {
   TrendingUp,
   Filter,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,13 +32,20 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { studentPortalApi } from '@/pages/services/api';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
+import { format } from 'date-fns';
 
 interface AttendanceRecord {
   _id: string;
-  date: string;
-  status: 'present' | 'absent' | 'late' | 'leave';
+  enrollmentId: string;
+  date?: string;
+  status?: 'Present' | 'Absent' | 'Late' | 'Leave';
   remarks?: string;
+}
+
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
 }
 
 interface AttendanceStats {
@@ -49,30 +58,26 @@ interface AttendanceStats {
 }
 
 const StudentAttendance = () => {
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    format(new Date(), 'yyyy-MM')
-  );
+  const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState<AttendanceStats | null>(null);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
   // Fetch attendance records
   const {
     data: attendanceData,
     isLoading,
     error,
-    refetch,
   } = useQuery({
-    queryKey: ['student-attendance', selectedMonth],
+    queryKey: ['student-attendance', currentPage],
     queryFn: async () => {
       try {
         const response = await studentPortalApi.getAttendance();
-        const attendanceResponse = response.data?.data || {};
-        // New API returns dailyAttendance array and monthlySummary
-        const allRecords = attendanceResponse.dailyAttendance || [];
-        const filtered = allRecords.filter((record: AttendanceRecord) => {
-          const recordDate = format(new Date(record.date), 'yyyy-MM');
-          return recordDate === selectedMonth;
-        });
-        return filtered;
+        const responseData = response.data?.data || {};
+        const records = responseData.attendance || [];
+        const paginationData = response.data?.pagination || { currentPage: 1, totalPages: 1, totalRecords: 0 };
+        
+        setPagination(paginationData);
+        return records;
       } catch (err) {
         console.error('Failed to fetch attendance:', err);
         return [];
@@ -85,10 +90,10 @@ const StudentAttendance = () => {
     if (attendanceData && attendanceData.length > 0) {
       const records = attendanceData as AttendanceRecord[];
       const total = records.length;
-      const present = records.filter((r) => r.status === 'present').length;
-      const absent = records.filter((r) => r.status === 'absent').length;
-      const leave = records.filter((r) => r.status === 'leave').length;
-      const late = records.filter((r) => r.status === 'late').length;
+      const present = records.filter((r) => r.status?.toLowerCase() === 'present').length;
+      const absent = records.filter((r) => r.status?.toLowerCase() === 'absent').length;
+      const leave = records.filter((r) => r.status?.toLowerCase() === 'leave').length;
+      const late = records.filter((r) => r.status?.toLowerCase() === 'late').length;
       const percentage =
         total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
@@ -105,8 +110,9 @@ const StudentAttendance = () => {
     }
   }, [attendanceData]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (status?: string) => {
+    const lowerStatus = status?.toLowerCase();
+    switch (lowerStatus) {
       case 'present':
         return 'bg-green-100 text-green-800';
       case 'absent':
@@ -120,8 +126,8 @@ const StudentAttendance = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+  const getStatusLabel = (status?: string) => {
+    return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown';
   };
 
   const attendancePercentage = stats?.attendancePercentage || 0;
@@ -134,7 +140,7 @@ const StudentAttendance = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Attendance</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Track your attendance records and monthly statistics
+            Track your attendance records and statistics
           </p>
         </div>
         <Button variant="outline" className="gap-2">
@@ -144,11 +150,11 @@ const StudentAttendance = () => {
       </div>
 
       {/* Attendance Alert */}
-      {isLow && (
+      {isLow && stats && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            Your attendance is below 75%. Please ensure regular attendance.
+            Your attendance is {attendancePercentage}%, below 75%. Please ensure regular attendance.
           </AlertDescription>
         </Alert>
       )}
@@ -184,7 +190,7 @@ const StudentAttendance = () => {
           <CardContent>
             <div className="text-3xl font-bold">{stats?.totalDays || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              in {selectedMonth}
+              Records
             </p>
           </CardContent>
         </Card>
@@ -218,12 +224,14 @@ const StudentAttendance = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground">
-              Leave
+              Late / Leave
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
-              {stats?.leaveDays || 0}
+            <div className="text-3xl font-bold">
+              <span className="text-yellow-600">{stats?.lateDays || 0}</span>
+              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-blue-600">{stats?.leaveDays || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -237,24 +245,11 @@ const StudentAttendance = () => {
               <Calendar className="h-5 w-5" />
               Attendance Records
             </CardTitle>
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const date = new Date();
-                  date.setMonth(date.getMonth() - i);
-                  const value = format(date, 'yyyy-MM');
-                  const label = format(date, 'MMMM yyyy');
-                  return (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            <div className="text-sm text-muted-foreground">
+              {pagination && (
+                <span>Page {pagination.currentPage} of {pagination.totalPages} | {pagination.totalRecords} Total Records</span>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -272,66 +267,111 @@ const StudentAttendance = () => {
               </AlertDescription>
             </Alert>
           ) : attendanceData && attendanceData.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Day</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Remarks</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(attendanceData as AttendanceRecord[]).map((record) => (
-                    <TableRow key={record._id}>
-                      <TableCell className="font-semibold">
-                        {format(new Date(record.date), 'dd MMM yyyy')}
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(record.date), 'EEEE')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(record.status)}>
-                          {getStatusLabel(record.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {record.remarks || '—'}
-                      </TableCell>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Remarks</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {(attendanceData as AttendanceRecord[]).map((record) => (
+                      <TableRow key={record._id}>
+                        <TableCell className="font-semibold">
+                          {record.date ? format(new Date(record.date), 'dd MMM yyyy') : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(record.status)}>
+                            {getStatusLabel(record.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {record.remarks || '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    className="gap-2"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === pagination.totalPages}
+                    onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
+                    className="gap-2"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="py-8 text-center">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
               <p className="text-muted-foreground">
-                No attendance records for {selectedMonth}
+                No attendance records found
               </p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Monthly Trend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Attendance Trend
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground text-sm">
-            <p>Last 6 months attendance trend visualization</p>
-            <p className="mt-2 text-xs">
-              📊 Chart component can be integrated here (Chart.js, Recharts, etc.)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Summary Info */}
+      {stats && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Overall Attendance Rate</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        attendancePercentage >= 75 ? 'bg-green-600' : 'bg-red-600'
+                      }`}
+                      style={{ width: `${Math.min(attendancePercentage, 100)}%` }}
+                    />
+                  </div>
+                  <span className="font-semibold text-lg">{attendancePercentage}%</span>
+                </div>
+              </div>
+              <div className="space-y-1 text-sm">
+                <p className="text-muted-foreground">Status</p>
+                <p className={`font-semibold text-lg ${attendancePercentage >= 75 ? 'text-green-600' : 'text-red-600'}`}>
+                  {attendancePercentage >= 75 ? '✓ Satisfactory' : '✗ Below Target'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

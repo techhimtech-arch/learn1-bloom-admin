@@ -455,28 +455,28 @@ export const studentPortalApi = {
   getDashboard: () => apiClient.get("/students/dashboard"),
 
   // Attendance
-  getAttendance: () => apiClient.get("/students/attendance"),
+  getAttendance: () => apiClient.get("/student/attendance"),
 
   // Exam Results
-  getExamResults: () => apiClient.get("/students/exam-results"),
+  getExamResults: () => apiClient.get("/student/exam-results"),
 
   // Fees
-  getFees: () => apiClient.get("/students/fees"),
+  getFees: () => apiClient.get("/student/fees"),
 
   // Study Materials
-  getStudyMaterials: () => apiClient.get("/students/study-materials"),
+  getStudyMaterials: () => apiClient.get("/student/study-materials"),
 
   // Assignments
-  getAssignments: () => apiClient.get("/students/assignments"),
+  getAssignments: () => apiClient.get("/student/assignments"),
 
   // Announcements
-  getAnnouncements: () => apiClient.get("/students/announcements"),
+  getAnnouncements: () => apiClient.get("/student/announcements"),
 
   // Timetable
-  getTimetable: () => apiClient.get("/students/timetable"),
+  getTimetable: () => apiClient.get("/student/timetable"),
 
   // Certificates
-  getCertificates: () => apiClient.get("/students/certificates"),
+  getCertificates: () => apiClient.get("/student/certificates"),
 };
 
 // ── Enrollment API ──────────────────────────────────────
