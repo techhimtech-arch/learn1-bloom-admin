@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { studentPortalApi } from '@/pages/services/api';
+import { studentPortalApi, studentAssignmentApi } from '@/pages/services/api';
 import { format, isPast } from 'date-fns';
 import {
   Dialog,
@@ -78,15 +78,38 @@ const StudentAssignmentsView = () => {
     queryKey: ['student-assignments', filterStatus],
     queryFn: async () => {
       try {
-        const response = await studentPortalApi.getAssignments();
-        const assignmentResponse = response.data?.data || {};
-        // New API returns { pendingAssignments: [...], submittedAssignments: [...] }
-        const pending = assignmentResponse.pendingAssignments || [];
-        const submitted = assignmentResponse.submittedAssignments || [];
-        const all = [...pending, ...submitted];
+        const response = await studentAssignmentApi.getAll({
+          status: 'PUBLISHED',
+          sortBy: 'dueDate',
+          sortOrder: 'asc'
+        });
         
-        if (filterStatus === 'all') return all;
-        return all.filter(a => a.status === filterStatus);
+        if (response.data.success) {
+          const assignments = response.data.data || [];
+          
+          // Transform the API response to match the expected interface
+          const transformedAssignments = assignments.map((assignment: any) => ({
+            _id: assignment.id,
+            id: assignment.id,
+            title: assignment.title,
+            subject: assignment.subjectId.name,
+            description: assignment.description,
+            dueDate: assignment.dueDate,
+            assignedBy: assignment.teacherId.name,
+            assignedDate: assignment.createdAt,
+            status: assignment.submissionStatus || 'pending',
+            marks: assignment.marks,
+            files: assignment.attachments?.map((att: any) => ({
+              url: att.url,
+              name: att.filename
+            })),
+            submissionDetails: assignment.submissionDetails
+          }));
+          
+          if (filterStatus === 'all') return transformedAssignments;
+          return transformedAssignments.filter(a => a.status === filterStatus);
+        }
+        return [];
       } catch (err) {
         console.error('Failed to fetch assignments:', err);
         return [];

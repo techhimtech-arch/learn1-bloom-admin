@@ -158,7 +158,7 @@ export default function AssignmentManagement() {
       const response = await classApi.getAll();
       return response.data;
     },
-    enabled: user?.role === 'school_admin',
+    enabled: user?.role === 'school_admin' || user?.role === 'teacher',
   });
 
   const { data: sectionsData } = useQuery({
@@ -167,7 +167,7 @@ export default function AssignmentManagement() {
       const response = await sectionApi.getAll();
       return response.data;
     },
-    enabled: user?.role === 'school_admin',
+    enabled: user?.role === 'school_admin' || user?.role === 'teacher',
   });
 
   const { data: subjectsData } = useQuery({
@@ -176,7 +176,7 @@ export default function AssignmentManagement() {
       const response = await subjectApi.getAll();
       return response.data;
     },
-    enabled: user?.role === 'school_admin',
+    enabled: user?.role === 'school_admin' || user?.role === 'teacher',
   });
 
   const deleteMutation = useMutation({
@@ -202,6 +202,17 @@ export default function AssignmentManagement() {
     },
   });
 
+  const closeMutation = useMutation({
+    mutationFn: (id: string) => assignmentApi.close(id),
+    onSuccess: () => {
+      toast.success('Assignment closed successfully');
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to close assignment');
+    },
+  });
+
   const handleEdit = (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setShowForm(true);
@@ -221,10 +232,14 @@ export default function AssignmentManagement() {
     publishMutation.mutate(id);
   };
 
+  const handleClose = (id: string) => {
+    closeMutation.mutate(id);
+  };
+
   const assignments = assignmentsData?.data || [];
-  const classes = user?.role === 'teacher' ? teacherClasses : (classesData?.data || []);
-  const sections = user?.role === 'teacher' ? teacherSections : (sectionsData?.data || []);
-  const subjects = user?.role === 'teacher' ? teacherSubjects : (subjectsData?.data || []);
+  const classes = user?.role === 'teacher' ? (Array.isArray(teacherClasses) ? teacherClasses : []) : (Array.isArray(classesData?.data) ? classesData.data : []);
+  const sections = user?.role === 'teacher' ? (Array.isArray(teacherSections) ? teacherSections : []) : (Array.isArray(sectionsData?.data) ? sectionsData.data : []);
+  const subjects = user?.role === 'teacher' ? (Array.isArray(teacherSubjects) ? teacherSubjects : []) : (Array.isArray(subjectsData?.data) ? subjectsData.data : []);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -495,6 +510,20 @@ export default function AssignmentManagement() {
                                 disabled={publishMutation.isPending}
                               >
                                 <Send className="h-4 w-4" />
+                              </Button>
+                            </PermissionGuard>
+                          )}
+
+                          {assignment.status === 'published' && (
+                            <PermissionGuard permission="close_assignment">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleClose(assignment.id)}
+                                disabled={closeMutation.isPending}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Calendar className="h-4 w-4" />
                               </Button>
                             </PermissionGuard>
                           )}

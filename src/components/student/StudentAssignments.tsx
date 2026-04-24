@@ -15,15 +15,41 @@ import {
 } from '@/components/ui/dialog';
 import { FileText, Upload, Calendar, AlertCircle, CheckCircle, Clock, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { studentAssignmentApi } from '@/pages/services/api';
+import { useToast } from '@/hooks/use-toast';
+import { AssignmentSubmissionDialog } from './AssignmentSubmissionDialog';
 
 interface Assignment {
-  _id: string;
+  id: string;
   title: string;
-  subject: string;
   description: string;
+  subjectId: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  classId: {
+    id: string;
+    name: string;
+  };
+  sectionId: {
+    id: string;
+    name: string;
+  };
+  teacherId: {
+    id: string;
+    name: string;
+    email: string;
+  };
   dueDate: string;
-  assignedBy: string;
-  submissionStatus: 'pending' | 'submitted' | 'late';
+  maxMarks: number;
+  status: string;
+  attachments?: Array<{
+    filename: string;
+    url: string;
+  }>;
+  createdAt: string;
+  submissionStatus?: 'pending' | 'submitted' | 'late';
   marks?: { obtained?: number; total?: number };
 }
 
@@ -33,41 +59,42 @@ export const StudentAssignments = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call
-    setAssignments([
-      {
-        _id: '1',
-        title: 'Mathematics Chapter 5 Exercise',
-        subject: 'Mathematics',
-        description: 'Solve all problems from exercise 5.1 to 5.5',
-        dueDate: '2026-04-15',
-        assignedBy: 'Mr. Sharma',
-        submissionStatus: 'pending',
-      },
-      {
-        _id: '2',
-        title: 'English Essay on Nature',
-        subject: 'English',
-        description: 'Write an essay of 500 words on "Importance of Nature"',
-        dueDate: '2026-04-10',
-        assignedBy: 'Ms. Gupta',
-        submissionStatus: 'submitted',
-        marks: { obtained: 18, total: 20 },
-      },
-      {
-        _id: '3',
-        title: 'Science Project',
-        subject: 'Science',
-        description: 'Create a working model of solar system',
-        dueDate: '2026-04-12',
-        assignedBy: 'Dr. Patel',
-        submissionStatus: 'late',
-      },
-    ]);
-    setLoading(false);
+    fetchAssignments();
   }, []);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await studentAssignmentApi.getAll({
+        status: 'PUBLISHED',
+        sortBy: 'dueDate',
+        sortOrder: 'asc'
+      });
+      
+      if (response.data.success) {
+        setAssignments(response.data.data || []);
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.message || "Failed to fetch assignments",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch assignments",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = assignments;
@@ -79,7 +106,7 @@ export const StudentAssignments = () => {
     if (searchTerm) {
       filtered = filtered.filter(a =>
         a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.subject.toLowerCase().includes(searchTerm.toLowerCase())
+        a.subjectId.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -107,6 +134,37 @@ export const StudentAssignments = () => {
     const due = new Date(dueDate);
     const diff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 3600 * 24));
     return diff;
+  };
+
+  const handleAssignmentSubmit = async (assignmentId: string, submissionData: any) => {
+    try {
+      setSubmitting(true);
+      const response = await studentAssignmentApi.submit(assignmentId, submissionData);
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Assignment submitted successfully",
+        });
+        // Refresh assignments to update status
+        fetchAssignments();
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.message || "Failed to submit assignment",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit assignment",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -181,7 +239,7 @@ export const StudentAssignments = () => {
             const isOverdue = assignment.submissionStatus === 'late' || (daysLeft < 0 && assignment.submissionStatus === 'pending');
 
             return (
-              <Card key={assignment._id} className="hover:shadow-md transition-shadow">
+              <Card key={assignment.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-4">
@@ -192,17 +250,17 @@ export const StudentAssignments = () => {
                         </div>
                         <p className="text-sm text-muted-foreground">{assignment.description}</p>
                       </div>
-                      {getStatusBadge(assignment.submissionStatus)}
+                      {getStatusBadge(assignment.submissionStatus || 'pending')}
                     </div>
 
                     <div className="grid gap-2 grid-cols-2 text-sm">
                       <div>
                         <p className="text-muted-foreground text-xs">Subject</p>
-                        <p className="font-semibold">{assignment.subject}</p>
+                        <p className="font-semibold">{assignment.subjectId.name}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-xs">Assigned By</p>
-                        <p className="font-semibold">{assignment.assignedBy}</p>
+                        <p className="font-semibold">{assignment.teacherId.name}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-xs">Due Date</p>
@@ -211,7 +269,11 @@ export const StudentAssignments = () => {
                           {new Date(assignment.dueDate).toLocaleDateString()}
                         </p>
                       </div>
-                      {assignment.submissionStatus === 'pending' && (
+                      <div>
+                        <p className="text-muted-foreground text-xs">Max Marks</p>
+                        <p className="font-semibold">{assignment.maxMarks}</p>
+                      </div>
+                      {(assignment.submissionStatus === 'pending' || !assignment.submissionStatus) && (
                         <div>
                           <p className="text-muted-foreground text-xs">Days Remaining</p>
                           <p className={`font-semibold flex items-center gap-1 ${isOverdue ? 'text-red-600' : daysLeft <= 3 ? 'text-orange-600' : 'text-green-600'}`}>
@@ -228,32 +290,36 @@ export const StudentAssignments = () => {
                       )}
                     </div>
 
-                    {assignment.submissionStatus === 'pending' && (
-                      <div className="flex gap-2 pt-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm">
-                              <Upload className="h-4 w-4 mr-2" />
-                              Submit Assignment
+                    {assignment.attachments && assignment.attachments.length > 0 && (
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-2">Attachments</p>
+                        <div className="flex flex-wrap gap-2">
+                          {assignment.attachments.map((attachment, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(attachment.url, '_blank')}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              {attachment.filename}
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Submit Assignment</DialogTitle>
-                              <DialogDescription>
-                                Upload your assignment file for: {assignment.title}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <Input type="file" />
-                              <Button className="w-full">Submit</Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                          ))}
+                        </div>
                       </div>
                     )}
 
-                    {isOverdue && assignment.submissionStatus === 'pending' && (
+                    {(assignment.submissionStatus === 'pending' || !assignment.submissionStatus) && (
+                      <div className="flex gap-2 pt-2">
+                        <AssignmentSubmissionDialog
+                          assignment={assignment}
+                          onSubmit={handleAssignmentSubmit}
+                          submitting={submitting}
+                        />
+                      </div>
+                    )}
+
+                    {isOverdue && (assignment.submissionStatus === 'pending' || !assignment.submissionStatus) && (
                       <Alert className="bg-red-50 border-red-200">
                         <AlertCircle className="h-4 w-4 text-red-600" />
                         <AlertDescription className="text-red-800 text-xs">

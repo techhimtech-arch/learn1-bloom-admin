@@ -220,15 +220,24 @@ export function AssignmentForm({
       const formData = new FormData();
       // Append all fields
       Object.entries(payload).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          // For arrays, we'll handle specially if needed
-          formData.append(key, JSON.stringify(value));
+        if (key === 'attachments' && Array.isArray(value)) {
+          // For attachments array, don't append if empty (will be handled by file)
+          if (value.length > 0) {
+            value.forEach((item, index) => {
+              formData.append(`${key}[${index}]`, item);
+            });
+          }
+        } else if (Array.isArray(value)) {
+          // For other arrays, handle each item separately
+          value.forEach((item, index) => {
+            formData.append(`${key}[${index}]`, item);
+          });
         } else {
           formData.append(key, String(value));
         }
       });
-      // Append file
-      formData.append('attachments', attachmentFile);
+      // Append file as attachments[0]
+      formData.append('attachments[0]', attachmentFile);
       
       console.log('📦 FormData with file attachment prepared');
       
@@ -241,21 +250,11 @@ export function AssignmentForm({
       // Send as JSON (cleaner for API when no files)
       console.log('📄 Sending as JSON (no attachments)');
       
-      // We need a different mutation that sends JSON instead of FormData
-      // For now, create FormData without file
-      const formData = new FormData();
-      Object.entries(payload).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, String(value));
-        }
-      });
-      
+      // Send as JSON instead of FormData for cleaner API
       if (assignment) {
-        updateMutation.mutate({ id: assignment.id, data: formData });
+        updateMutation.mutate({ id: assignment.id, data: payload });
       } else {
-        createMutation.mutate(formData);
+        createMutation.mutate(payload);
       }
     }
   };

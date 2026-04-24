@@ -27,6 +27,7 @@ export type Permission =
   | 'view_assignment'
   | 'edit_assignment'
   | 'publish_assignment'
+  | 'close_assignment'
   | 'delete_assignment'
   | 'generate_certificate'
   | 'delete_certificate'
@@ -52,7 +53,7 @@ const rolePermissions: RolePermissions = {
     'assign_roll_numbers', 'view_academic_summary',
     'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
     'create_announcement', 'edit_announcement', 'delete_announcement', 'view_announcement', 'publish_announcement',
-    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'delete_assignment',
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'close_assignment', 'delete_assignment',
     'generate_certificate', 'delete_certificate',
     'create_exam_paper', 'edit_exam_paper', 'delete_exam_paper',
     'manage_fee_structure', 'edit_fee_structure', 'delete_fee_structure',
@@ -65,7 +66,7 @@ const rolePermissions: RolePermissions = {
     'assign_roll_numbers', 'view_academic_summary',
     'manage_users', 'manage_admissions', 'manage_attendance', 'manage_classes', 'view_reports',
     'create_announcement', 'edit_announcement', 'delete_announcement', 'view_announcement', 'publish_announcement',
-    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'delete_assignment',
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'close_assignment', 'delete_assignment',
     'generate_certificate', 'delete_certificate',
     'create_exam_paper', 'edit_exam_paper', 'delete_exam_paper',
     'manage_fee_structure', 'edit_fee_structure', 'delete_fee_structure',
@@ -84,7 +85,7 @@ const rolePermissions: RolePermissions = {
     'create_calendar_event', 'edit_calendar_event',
     'view_academic_summary', 'manage_attendance',
     'create_announcement', 'edit_announcement', 'view_announcement', 'publish_announcement',
-    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment'
+    'create_assignment', 'view_assignment', 'edit_assignment', 'publish_assignment', 'close_assignment'
   ],
   academic_coordinator: [
     'create_subject', 'edit_subject', 'assign_teacher',

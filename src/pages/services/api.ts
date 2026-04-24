@@ -348,9 +348,39 @@ export const assignmentApi = {
   update: (id: string, data: Record<string, unknown> | FormData) => apiClient.put(`/assignments/${id}`, data),
   delete: (id: string) => apiClient.delete(`/assignments/${id}`),
   publish: (id: string) => apiClient.post(`/assignments/${id}/publish`),
+  close: (id: string) => apiClient.post(`/assignments/${id}/close`),
   submit: (id: string, data: Record<string, unknown> | FormData) => apiClient.post(`/assignments/${id}/submit`, data),
   getSubmissions: (id: string) => apiClient.get(`/assignments/${id}/submissions`),
   grade: (id: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${id}/grade`, data),
+};
+
+// ── Student Assignment API ───────────────────────────────────────
+export const studentAssignmentApi = {
+  // Get all assignments for the logged-in student
+  getAll: (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    subjectId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => apiClient.get("/assignments", { params }),
+  
+  // Get single assignment details
+  getById: (assignmentId: string) => apiClient.get(`/assignments/${assignmentId}`),
+  
+  // Submit assignment
+  submit: (assignmentId: string, data: {
+    submissionText?: string;
+    attachment?: {
+      filename: string;
+      url: string;
+    };
+    lateSubmissionReason?: string;
+  }) => apiClient.post(`/assignments/${assignmentId}/submit`, data),
+  
+  // Get submission status for an assignment
+  getSubmissionStatus: (assignmentId: string) => apiClient.get(`/assignments/${assignmentId}/submission-status`),
 };
 
 // ── Notification API ─────────────────────────────────────
