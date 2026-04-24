@@ -132,7 +132,7 @@ export const studentQuizService = {
 
 // ADMIN QUIZ APIS
 export const adminQuizService = {
-  // Get All School Quizzes
+  // Get All School Quizzes (using teacher endpoint)
   getAllQuizzes: async (filters: QuizFilters = {}): Promise<PaginatedResponse<AdminQuiz>> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -140,7 +140,13 @@ export const adminQuizService = {
         params.append(key, value.toString());
       }
     });
-    const response = await apiClient.get(`/admin/quizzes?${params}`);
+    const response = await apiClient.get(`/teacher/quizzes?${params}`);
+    return response.data;
+  },
+
+  // Create Quiz (Admin using teacher endpoint)
+  createQuiz: async (quizData: QuizCreateRequest): Promise<ApiResponse<Quiz>> => {
+    const response = await apiClient.post('/teacher/quizzes', quizData);
     return response.data;
   },
 

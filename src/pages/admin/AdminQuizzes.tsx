@@ -75,8 +75,8 @@ const AdminQuizzes: React.FC = () => {
   const filteredQuizzes = quizzesData?.data?.filter(quiz => 
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     quiz.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    quiz.teacherId.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    quiz.teacherId.lastName.toLowerCase().includes(searchTerm.toLowerCase())
+    (quiz.teacherId?.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (quiz.teacherId?.lastName || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   if (isLoadingQuizzes || isLoadingAnalytics) {
@@ -94,9 +94,12 @@ const AdminQuizzes: React.FC = () => {
           <p className="text-muted-foreground">Admin overview and management of all school quizzes</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <Dialog open={showCreateDialog} onOpenChange={(open) => {
+            console.log('📭 Dialog State Changed:', open);
+            setShowCreateDialog(open);
+          }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => console.log('🎯 Create Quiz Button Clicked')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Quiz
               </Button>
@@ -110,10 +113,14 @@ const AdminQuizzes: React.FC = () => {
               </DialogHeader>
               <QuizCreateForm
                 onSuccess={() => {
+                  console.log('✅ Quiz Created Successfully!');
                   setShowCreateDialog(false);
                   queryClient.invalidateQueries({ queryKey: ['admin-quizzes'] });
                 }}
-                onCancel={() => setShowCreateDialog(false)}
+                onCancel={() => {
+                  console.log('❌ Quiz Creation Cancelled');
+                  setShowCreateDialog(false);
+                }}
               />
             </DialogContent>
           </Dialog>
@@ -298,7 +305,6 @@ const AdminQuizzes: React.FC = () => {
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
                 <SelectItem value="DRAFT">Draft</SelectItem>
                 <SelectItem value="PUBLISHED">Published</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
@@ -319,7 +325,7 @@ const AdminQuizzes: React.FC = () => {
                       <CardDescription className="line-clamp-2">{quiz.description}</CardDescription>
                       <div className="flex gap-2 items-center">
                         {getStatusBadge(quiz.status)}
-                        <Badge variant="outline">{quiz.subjectId.name}</Badge>
+                        <Badge variant="outline">{quiz.subjectId?.name || 'N/A'}</Badge>
                       </div>
                     </div>
                   </div>
@@ -328,7 +334,7 @@ const AdminQuizzes: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{quiz.teacherId.firstName} {quiz.teacherId.lastName}</span>
+                      <span className="text-sm">{quiz.teacherId?.firstName || 'Admin'} {quiz.teacherId?.lastName || ''}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
@@ -345,15 +351,15 @@ const AdminQuizzes: React.FC = () => {
                   
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-blue-600">{quiz.totalSubmissions}</div>
+                      <div className="text-lg font-semibold text-blue-600">{quiz.totalSubmissions || 0}</div>
                       <div className="text-xs text-muted-foreground">Submissions</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-green-600">{quiz.averagePercentage.toFixed(1)}%</div>
+                      <div className="text-lg font-semibold text-green-600">{(quiz.averagePercentage || 0).toFixed(1)}%</div>
                       <div className="text-xs text-muted-foreground">Average Score</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-purple-600">{quiz.classId.name}</div>
+                      <div className="text-lg font-semibold text-purple-600">{quiz.classId?.name || 'School-wide'}</div>
                       <div className="text-xs text-muted-foreground">Class</div>
                     </div>
                   </div>

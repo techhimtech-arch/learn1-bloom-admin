@@ -39,16 +39,21 @@ import {
 interface Announcement {
   _id: string;
   title: string;
-  description: string;
+  message: string;
+  description?: string;
   content?: string;
-  type: 'general' | 'class' | 'urgent' | 'event';
-  priority: 'low' | 'medium' | 'high';
+  type: 'GENERAL' | 'ACADEMIC' | 'SPORTS' | 'EVENTS' | 'EMERGENCY' | 'EXAMINATION' | 'HOLIDAY' | string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | string;
   audience?: string;
-  publishedDate: string;
+  publishDate: string;
+  publishedDate?: string; // fallback
   expiryDate?: string;
-  createdBy?: string;
+  createdBy?: { _id: string; name: string; email?: string } | string; // can be object or string for backwards compatibility
   attachments?: Array<{ url: string; name: string }>;
   isRead?: boolean;
+  status?: string;
+  targetType?: string;
+  visibleToRoles?: string[];
 }
 
 const StudentAnnouncementsView = () => {
@@ -66,10 +71,12 @@ const StudentAnnouncementsView = () => {
     queryKey: ['student-announcements'],
     queryFn: async () => {
       try {
+        console.log('📢 Fetching student announcements from /announcements/my endpoint');
         const response = await studentPortalApi.getAnnouncements();
+        console.log('✅ Announcements fetched:', response.data?.data);
         return response.data?.data || [];
       } catch (err) {
-        console.error('Failed to fetch announcements:', err);
+        console.error('❌ Failed to fetch announcements:', err);
         return [];
       }
     },
@@ -81,34 +88,49 @@ const StudentAnnouncementsView = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesType =
-      filterType === 'all' || announcement.type === filterType;
+      filterType === 'all' || (announcement.type || '').toLowerCase() === filterType.toLowerCase();
     const matchesPriority =
-      filterPriority === 'all' || announcement.priority === filterPriority;
+      filterPriority === 'all' || (announcement.priority || '').toUpperCase() === filterPriority.toUpperCase();
     return matchesSearch && matchesType && matchesPriority;
   });
 
   const getTypeColor = (type: string) => {
-    switch (type) {
+    const typeStr = (type || '').toLowerCase();
+    switch (typeStr) {
       case 'general':
         return 'bg-blue-100 text-blue-800';
       case 'class':
         return 'bg-green-100 text-green-800';
+      case 'academic':
+        return 'bg-cyan-100 text-cyan-800';
       case 'urgent':
+        return 'bg-red-100 text-red-800';
+      case 'emergency':
         return 'bg-red-100 text-red-800';
       case 'event':
         return 'bg-purple-100 text-purple-800';
+      case 'events':
+        return 'bg-purple-100 text-purple-800';
+      case 'sports':
+        return 'bg-orange-100 text-orange-800';
+      case 'examination':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'holiday':
+        return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
+    const priorityStr = (priority || '').toUpperCase();
+    switch (priorityStr) {
+      case 'HIGH':
+      case 'URGENT':
         return 'bg-red-100 text-red-800';
-      case 'medium':
+      case 'MEDIUM':
         return 'bg-yellow-100 text-yellow-800';
-      case 'low':
+      case 'LOW':
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -123,7 +145,7 @@ const StudentAnnouncementsView = () => {
   const stats = {
     total: announcements?.length || 0,
     unread: announcements?.filter((a) => !a.isRead).length || 0,
-    urgent: announcements?.filter((a) => a.priority === 'high').length || 0,
+    urgent: announcements?.filter((a) => (a.priority || '').toUpperCase() === 'HIGH' || (a.priority || '').toUpperCase() === 'URGENT').length || 0,
   };
 
   return (
@@ -255,14 +277,16 @@ const StudentAnnouncementsView = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <Badge className={getTypeColor(announcement.type)}>
-                        {announcement.type
+                        {(announcement.type || 'GENERAL')
+                          .toLowerCase()
                           .charAt(0)
-                          .toUpperCase() + announcement.type.slice(1)}
+                          .toUpperCase() + (announcement.type || 'GENERAL').toLowerCase().slice(1)}
                       </Badge>
                       <Badge className={getPriorityColor(announcement.priority)}>
-                        {announcement.priority
+                        {(announcement.priority || 'MEDIUM')
+                          .toLowerCase()
                           .charAt(0)
-                          .toUpperCase() + announcement.priority.slice(1)}{' '}
+                          .toUpperCase() + (announcement.priority || 'MEDIUM').toLowerCase().slice(1)}{' '}
                         Priority
                       </Badge>
                       {isExpired(announcement.expiryDate) && (
@@ -280,18 +304,18 @@ const StudentAnnouncementsView = () => {
                     </h3>
 
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {announcement.description}
+                      {announcement.message || announcement.description || 'No description'}
                     </p>
 
                     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        {format(new Date(announcement.publishedDate), 'dd MMM yyyy')}
+                        {format(new Date(announcement.publishDate || announcement.publishedDate || new Date()), 'dd MMM yyyy')}
                       </div>
                       {announcement.createdBy && (
                         <div className="flex items-center gap-1">
                           <User className="h-3.5 w-3.5" />
-                          {announcement.createdBy}
+                          {typeof announcement.createdBy === 'string' ? announcement.createdBy : announcement.createdBy.name}
                         </div>
                       )}
                       {announcement.attachments &&
@@ -328,23 +352,25 @@ const StudentAnnouncementsView = () => {
                               <div className="flex flex-wrap gap-2">
                                 <Badge
                                   className={getTypeColor(
-                                    selectedAnnouncement?.type || 'general'
+                                    selectedAnnouncement?.type || 'GENERAL'
                                   )}
                                 >
-                                  {selectedAnnouncement?.type
-                                    ?.charAt(0)
+                                  {(selectedAnnouncement?.type || 'GENERAL')
+                                    ?.toLowerCase()
+                                    .charAt(0)
                                     .toUpperCase() +
-                                    selectedAnnouncement?.type?.slice(1)}
+                                    (selectedAnnouncement?.type || 'GENERAL')?.toLowerCase().slice(1)}
                                 </Badge>
                                 <Badge
                                   className={getPriorityColor(
-                                    selectedAnnouncement?.priority || 'low'
+                                    selectedAnnouncement?.priority || 'MEDIUM'
                                   )}
                                 >
-                                  {selectedAnnouncement?.priority
-                                    ?.charAt(0)
+                                  {(selectedAnnouncement?.priority || 'MEDIUM')
+                                    ?.toLowerCase()
+                                    .charAt(0)
                                     .toUpperCase() +
-                                    selectedAnnouncement?.priority?.slice(1)}
+                                    (selectedAnnouncement?.priority || 'MEDIUM')?.toLowerCase().slice(1)}
                                 </Badge>
                               </div>
                             </DialogDescription>
@@ -360,7 +386,7 @@ const StudentAnnouncementsView = () => {
                             Published:{' '}
                             {format(
                               new Date(
-                                selectedAnnouncement?.publishedDate || new Date()
+                                selectedAnnouncement?.publishDate || selectedAnnouncement?.publishedDate || new Date()
                               ),
                               'dd MMM yyyy, hh:mm a'
                             )}
@@ -378,7 +404,7 @@ const StudentAnnouncementsView = () => {
                           {selectedAnnouncement?.createdBy && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <User className="h-4 w-4" />
-                              Posted by: {selectedAnnouncement.createdBy}
+                              Posted by: {typeof selectedAnnouncement.createdBy === 'string' ? selectedAnnouncement.createdBy : selectedAnnouncement.createdBy.name}
                             </div>
                           )}
                         </div>
@@ -386,7 +412,7 @@ const StudentAnnouncementsView = () => {
                         <div>
                           <h4 className="font-semibold mb-2">Description</h4>
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            {selectedAnnouncement?.description}
+                            {selectedAnnouncement?.message || selectedAnnouncement?.description || 'No description available'}
                           </p>
                         </div>
 

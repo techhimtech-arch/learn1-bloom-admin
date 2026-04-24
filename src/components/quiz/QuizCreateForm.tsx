@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
-import { teacherQuizService } from '@/services/quizService';
+import { teacherQuizService, adminQuizService } from '@/services/quizService';
 import { QuizCreateRequest, QuizQuestion, Quiz } from '@/types/quiz';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { subjectApi, sectionApi, teacherApi, classApi } from '@/pages/services/api';
@@ -330,6 +330,8 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
     },
   });
 
+  console.log('📝 QuizCreateForm Mounted - isAdmin:', isAdmin, 'Editing:', !!quiz);
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'questions',
@@ -338,6 +340,14 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
   const selectedQuizType = form.watch('quizType');
   const questions = form.watch('questions');
   const isSchoolWide = form.watch('isSchoolWide');
+
+  // Log form errors
+  useEffect(() => {
+    const errors = form.formState.errors;
+    if (Object.keys(errors).length > 0) {
+      console.log('⚠️ Form Validation Errors:', errors);
+    }
+  }, [form.formState.errors]);
 
   useEffect(() => {
     if (quiz?.classId._id) {
@@ -353,8 +363,9 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
     console.log('Sections:', sections);
     console.log('Selected Class:', selectedClass);
     console.log('Loading states:', { loadingSubjects, loadingClasses, loadingSections });
+    console.log('isSchoolWide:', isSchoolWide);
     console.log('=============================');
-  }, [subjects, classes, sections, selectedClass, loadingSubjects, loadingClasses, loadingSections]);
+  }, [subjects, classes, sections, selectedClass, loadingSubjects, loadingClasses, loadingSections, isSchoolWide]);
 
   const handleAddQuestion = () => {
     append({
@@ -392,34 +403,73 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
   };
 
   const onSubmit = async (data: QuizFormData) => {
+    console.log('📝 === QUIZ FORM SUBMISSION START ===');
+    console.log('🔐 Is Admin:', isAdmin);
+    console.log('📋 Form Data:', data);
+    
     setIsSubmitting(true);
     try {
-      const quizData: QuizCreateRequest = {
-        ...data,
+      const baseQuizData = {
+        title: data.title,
+        description: data.description,
+        subjectId: data.subjectId,
+        quizType: data.quizType,
+        timeLimit: data.timeLimit,
+        maxMarks: data.maxMarks,
+        passingMarks: data.passingMarks,
         startsAt: new Date(data.startsAt).toISOString(),
         endsAt: new Date(data.endsAt).toISOString(),
-      } as QuizCreateRequest;
+        allowRetake: data.allowRetake,
+        maxAttempts: data.maxAttempts,
+        showCorrectAnswers: data.showCorrectAnswers,
+        showResultsImmediately: data.showResultsImmediately,
+        randomizeQuestions: data.randomizeQuestions,
+        randomizeOptions: data.randomizeOptions,
+        isSchoolWide: data.isSchoolWide,
+        questions: data.questions,
+      };
 
-      // For school-wide quizzes (admin), backend doesn't require class/section
-      if (data.isSchoolWide) {
-        delete (quizData as any).classId;
-        delete (quizData as any).sectionId;
-      }
+      console.log('🏗️ Base Quiz Data:', baseQuizData);
+
+      // For school-wide quizzes, don't include classId/sectionId
+      // For regular quizzes, include them
+      const quizData = data.isSchoolWide 
+        ? baseQuizData 
+        : {
+            ...baseQuizData,
+            classId: data.classId,
+            sectionId: data.sectionId,
+          };
+
+      console.log('✅ Final Quiz Data to Send:', quizData);
 
       if (quiz) {
+        console.log('🔄 Updating existing quiz:', quiz._id);
         // Update existing quiz
-        const response = await teacherQuizService.updateQuiz(quiz._id, quizData);
+        const response = await teacherQuizService.updateQuiz(quiz._id, quizData as Partial<QuizCreateRequest>);
+        console.log('✅ Update Response:', response);
         showApiSuccess(response);
       } else {
-        // Create new quiz
-        const response = await teacherQuizService.createQuiz(quizData);
+        // Create new quiz - use admin service if admin, otherwise teacher service
+        console.log(`📤 Creating new quiz using ${isAdmin ? 'ADMIN' : 'TEACHER'} service`);
+        const response = isAdmin 
+          ? await adminQuizService.createQuiz(quizData as QuizCreateRequest)
+          : await teacherQuizService.createQuiz(quizData as QuizCreateRequest);
+        console.log('✅ Create Response:', response);
         showApiSuccess(response);
       }
       
+      console.log('🎉 Quiz operation successful, calling onSuccess');
       onSuccess();
     } catch (error: any) {
+      console.error('❌ === QUIZ FORM ERROR ===');
+      console.error('Error Object:', error);
+      console.error('Error Message:', error.message);
+      console.error('Error Response:', error.response?.data);
+      console.error('Stack:', error.stack);
       showApiError(error);
     } finally {
+      console.log('🏁 Form submission finished, setIsSubmitting(false)');
       setIsSubmitting(false);
     }
   };
@@ -430,7 +480,10 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={(e) => {
+        console.log('📋 Form element onSubmit fired');
+        return form.handleSubmit(onSubmit)(e);
+      }} className="space-y-6">
         {/* Basic Information */}
         <Card>
           <CardHeader>
@@ -1037,10 +1090,13 @@ const QuizCreateForm: React.FC<QuizCreateFormProps> = ({ quiz, onSuccess, onCanc
 
         {/* Form Actions */}
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={() => {
+            console.log('❌ Cancel button clicked');
+            onCancel();
+          }}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} onClick={() => console.log('🔘 Submit button clicked, isSubmitting:', isSubmitting)}>
             {isSubmitting ? 'Saving...' : quiz ? 'Update Quiz' : 'Create Quiz'}
           </Button>
         </div>

@@ -470,7 +470,7 @@ export const studentPortalApi = {
   getAssignments: () => apiClient.get("/student/assignments"),
 
   // Announcements
-  getAnnouncements: () => apiClient.get("/student/announcements"),
+  getAnnouncements: () => apiClient.get("/announcements/my"),
 
   // Timetable
   getTimetable: () => apiClient.get("/student/timetable"),
