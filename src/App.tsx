@@ -47,6 +47,8 @@ import StudentFeeManagement from "@/pages/StudentFeeManagement";
 import FeeReports from "@/pages/FeeReports";
 import ParentDashboard from "@/pages/ParentDashboard";
 import ParentStudentDetail from "@/pages/ParentStudentDetail";
+import AccountantPayments from "@/pages/accountant/AccountantPayments";
+import AccountantDues from "@/pages/accountant/AccountantDues";
 import CertificateGenerator from "@/pages/CertificateGenerator";
 import StudentAttendance from "@/pages/StudentAttendance";
 import StudentStudyMaterials from "@/pages/StudentStudyMaterials";
@@ -174,6 +176,8 @@ const AppContent = () => {
           <Route path="/fees/structure" element={<FeeStructureManagement />} />
           <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
           <Route path="/fees/reports" element={<FeeReports />} />
+          <Route path="/fees/payments" element={<AccountantPayments />} />
+          <Route path="/fees/dues" element={<AccountantDues />} />
           
           {/* Parent Portal Routes */}
           <Route path="/parent/dashboard" element={<ParentDashboard />} />

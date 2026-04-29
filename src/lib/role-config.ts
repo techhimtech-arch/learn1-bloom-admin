@@ -44,7 +44,8 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/teacher/results', '/teacher/assignments', '/teacher/attendance', '/teacher/quizzes',
   ],
   accountant: [
-    '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
+    '/', '/profile', '/sessions',
+    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
   ],
   parent: [
     '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
@@ -72,8 +73,11 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Assignments', url: '/assignments', icon: Edit },
   { title: 'Fee Structure', url: '/fees/structure', icon: DollarSign },
   { title: 'Fee Reports', url: '/fees/reports', icon: TrendingUp },
+  { title: 'Payments & Receipts', url: '/fees/payments', icon: Receipt },
+  { title: 'Pending Dues', url: '/fees/dues', icon: AlertCircle },
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
   { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
+  { title: 'Announcements', url: '/announcements', icon: Bell },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
   // Teacher Portal Routes
   { title: 'Teacher Dashboard', url: '/teacher/dashboard', icon: LayoutDashboard },
