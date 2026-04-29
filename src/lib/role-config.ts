@@ -20,6 +20,8 @@ import {
   UsersRound,
   PlayCircle,
   Brain,
+  Receipt,
+  AlertCircle,
   type LucideIcon,
 } from 'lucide-react';
 
