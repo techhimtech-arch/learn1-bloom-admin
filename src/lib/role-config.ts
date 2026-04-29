@@ -39,7 +39,8 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/users', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
-    '/fees/structure', '/fees/reports', '/certificates', '/admin/quizzes',
+    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
+    '/certificates', '/admin/quizzes',
   ],
   teacher: [
     '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams', 
