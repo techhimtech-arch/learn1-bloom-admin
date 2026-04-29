@@ -129,9 +129,9 @@ const StudentDashboard = () => {
         />
         <StatWidget
           title="Notifications"
-          value={`${stats?.unreadAnnouncements || 0}`}
+          value={`${(stats as any)?.unreadAnnouncements || 0}`}
           change="Unread"
-          changeType={stats?.unreadAnnouncements ? 'negative' : 'positive'}
+          changeType={(stats as any)?.unreadAnnouncements ? 'negative' : 'positive'}
           icon={Bell}
           iconColor="bg-orange-500/10 text-orange-600"
         />
