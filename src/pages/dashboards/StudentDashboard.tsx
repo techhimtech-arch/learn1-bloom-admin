@@ -356,7 +356,7 @@ const StudentDashboard = () => {
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  You have {stats?.unreadAnnouncements || 0} unread announcement(s)
+                  You have {(stats as any)?.unreadAnnouncements || 0} unread announcement(s)
                 </p>
                 <Button variant="outline" className="w-full">View All Announcements</Button>
               </div>
