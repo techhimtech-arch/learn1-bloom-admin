@@ -48,10 +48,20 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
       });
       onComplete();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const message =
+        (typeof error === 'object' &&
+          error !== null &&
+          'response' in error &&
+          typeof (error as any).response === 'object' &&
+          (error as any).response !== null &&
+          (error as any).response.data &&
+          (error as any).response.data.message) ||
+        'Failed to submit quiz';
+
       toast({ 
         title: 'Error', 
-        description: error.response?.data?.message || 'Failed to submit quiz',
+        description: message,
         variant: 'destructive' 
       });
       setIsSubmitting(false);
@@ -64,15 +74,23 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
   const totalQuestions = questions.length;
   const progress = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
 
+  const handleSubmitQuiz = useCallback(() => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    submitQuizMutation.mutate();
+  }, [isSubmitting, submitQuizMutation]);
+
   // Initialize timer when quiz starts
   useEffect(() => {
     const initial = quizStartData?.data?.timeRemaining;
+    const isResumed = quizStartData?.data?.isResumed;
     if (typeof initial === 'number' && initial > 0 && !timerInitialized) {
       setTimeRemaining(initial);
       setTimerInitialized(true);
       
       // Show session recovery message if resumed
-      if (quizStartData.data.isResumed) {
+      if (isResumed) {
         toast({
           title: '📝 Quiz Resumed!',
           description: `Your previous session has been restored. You have ${quizUtils.formatTimeRemaining(initial)} left.`,
@@ -80,7 +98,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
         });
       }
     }
-  }, [quizStartData?.data?.timeRemaining, timerInitialized]);
+  }, [quizStartData?.data?.timeRemaining, quizStartData?.data?.isResumed, timerInitialized]);
 
   // Timer countdown
   useEffect(() => {
@@ -106,7 +124,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
     if (timeRemaining === 0 && quizStartData?.data && !isSubmitting && !submitQuizMutation.isPending) {
       handleSubmitQuiz();
     }
-  }, [timerInitialized, timeRemaining, quizStartData?.data, isSubmitting, submitQuizMutation.isPending]);
+  }, [timerInitialized, timeRemaining, quizStartData?.data, isSubmitting, submitQuizMutation.isPending, handleSubmitQuiz]);
 
   // Save answer when user selects an option
   const handleAnswerSelect = useCallback(async (questionIndex: number, selectedAnswer: number) => {
@@ -131,13 +149,6 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
     }
   };
 
-  const handleSubmitQuiz = () => {
-    if (isSubmitting) return;
-    
-    setIsSubmitting(true);
-    submitQuizMutation.mutate();
-  };
-
   const getAnsweredCount = () => {
     return Object.keys(answers).length;
   };
@@ -159,9 +170,9 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
       {/* Quiz Header */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <CardTitle className="text-xl">{quiz.title}</CardTitle>
                 {quizStartData?.data?.isResumed && (
                   <Badge className="bg-blue-100 text-blue-800">
@@ -178,7 +189,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <Badge variant="outline">
                 {getAnsweredCount()}/{totalQuestions} Answered
               </Badge>
@@ -253,7 +264,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
       {/* Navigation */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
             <Button
               variant="outline"
               onClick={handlePreviousQuestion}
@@ -263,7 +274,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
               Previous
             </Button>
 
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground order-last sm:order-none">
               Progress: {currentQuestionIndex + 1} / {totalQuestions}
             </div>
 
@@ -301,7 +312,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2">
             {Array.from({ length: totalQuestions }, (_, index) => (
               <Button
                 key={index}
@@ -318,7 +329,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
               </Button>
             ))}
           </div>
-          <div className="flex gap-4 mt-4 text-sm">
+          <div className="flex flex-wrap gap-4 mt-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
               <span>Answered</span>

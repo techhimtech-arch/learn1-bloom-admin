@@ -114,12 +114,12 @@ const AdminQuizzes: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-3xl font-bold">Quiz Management</h1>
           <p className="text-muted-foreground">Admin overview and management of all school quizzes</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Dialog open={showCreateDialog} onOpenChange={(open) => {
             console.log('📭 Dialog State Changed:', open);
             setShowCreateDialog(open);
@@ -130,7 +130,7 @@ const AdminQuizzes: React.FC = () => {
                 Create Quiz
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[96vw] max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Quiz</DialogTitle>
                 <DialogDescription>
@@ -158,7 +158,7 @@ const AdminQuizzes: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="w-full flex flex-wrap gap-1 sm:gap-2 justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="quizzes">All Quizzes</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -313,7 +313,7 @@ const AdminQuizzes: React.FC = () => {
         {/* All Quizzes Tab */}
         <TabsContent value="quizzes" className="space-y-4">
           {/* Search and Filters */}
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -327,7 +327,7 @@ const AdminQuizzes: React.FC = () => {
               value={filters.status || ''}
               onValueChange={(value) => setFilters(prev => ({ ...prev, status: value || undefined }))}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -390,7 +390,7 @@ const AdminQuizzes: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -496,7 +496,7 @@ const AdminQuizzes: React.FC = () => {
 
       {/* Analytics Dialog */}
       <AlertDialog open={showAnalyticsDialog} onOpenChange={setShowAnalyticsDialog}>
-        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <AlertDialogContent className="w-[96vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Quiz Analytics Dashboard</AlertDialogTitle>
             <AlertDialogDescription>

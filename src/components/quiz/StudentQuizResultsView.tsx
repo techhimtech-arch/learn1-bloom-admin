@@ -241,13 +241,13 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
 
       {/* Actions */}
       <DialogFooter>
-        <div className="flex gap-2 w-full">
-          <Button variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          <Button variant="outline" className="w-full sm:w-auto">
             Download Results
           </Button>
           <Button 
             onClick={onClose}
-            className="ml-auto"
+            className="w-full sm:w-auto sm:ml-auto"
           >
             Close
           </Button>

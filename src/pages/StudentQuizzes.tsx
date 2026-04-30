@@ -92,7 +92,7 @@ const StudentQuizzes: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-3xl font-bold">Student Quizzes</h1>
           <p className="text-muted-foreground">Take quizzes and view your results</p>
@@ -143,13 +143,13 @@ const StudentQuizzes: React.FC = () => {
           placeholder="Search quizzes..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
       </div>
 
       {/* Quiz Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="w-full flex flex-wrap gap-1 sm:gap-2 justify-start">
           <TabsTrigger value="available">
             Available ({getQuizzesByStatus('available').length})
           </TabsTrigger>
@@ -236,7 +236,7 @@ const StudentQuizzes: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {/* RETAKE LOGIC */}
                     {quiz.submissionStatus === 'NOT_ATTEMPTED' && (
                       <Button
@@ -321,7 +321,7 @@ const StudentQuizzes: React.FC = () => {
 
       {/* Quiz Taking Dialog */}
       <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quiz: {selectedQuiz?.title}</DialogTitle>
             <DialogDescription>
@@ -344,7 +344,7 @@ const StudentQuizzes: React.FC = () => {
 
       {/* Results Dialog */}
       <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quiz Results</DialogTitle>
             <DialogDescription>
