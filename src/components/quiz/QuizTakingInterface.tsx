@@ -22,14 +22,14 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timerInitialized, setTimerInitialized] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [quizStarted, setQuizStarted] = useState(false);
 
   // Start quiz query
   const { data: quizStartData, isLoading: isStartingQuiz } = useQuery({
     queryKey: ['quiz-start', quiz._id],
     queryFn: () => studentQuizService.startQuiz(quiz._id),
-    enabled: !quizStarted,
+    staleTime: Infinity, // Don't refetch automatically
   });
 
   // Submit answer mutation
@@ -58,30 +58,39 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
     },
   });
 
+  // Extract questions from response
   const questions = quizStartData?.data?.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
-  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  const progress = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
 
-  // Initialize quiz data
+  // Initialize timer when quiz starts
   useEffect(() => {
-    if (quizStartData?.data && !quizStarted) {
-      setTimeRemaining(quizStartData.data.timeRemaining);
-      setQuizStarted(true);
+    const initial = quizStartData?.data?.timeRemaining;
+    if (typeof initial === 'number' && initial > 0 && !timerInitialized) {
+      setTimeRemaining(initial);
+      setTimerInitialized(true);
+      
+      // Show session recovery message if resumed
+      if (quizStartData.data.isResumed) {
+        toast({
+          title: '📝 Quiz Resumed!',
+          description: `Your previous session has been restored. You have ${quizUtils.formatTimeRemaining(initial)} left.`,
+          variant: 'default'
+        });
+      }
     }
-  }, [quizStartData, quizStarted]);
+  }, [quizStartData?.data?.timeRemaining, timerInitialized]);
 
   // Timer countdown
   useEffect(() => {
-    if (timeRemaining <= 0 && quizStarted) {
-      handleSubmitQuiz();
+    if (!quizStartData?.data || !timerInitialized || timeRemaining <= 0 || isSubmitting) {
       return;
     }
 
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          handleSubmitQuiz();
           return 0;
         }
         return prev - 1;
@@ -89,7 +98,15 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, quizStarted]);
+  }, [quizStartData?.data, timerInitialized, timeRemaining, isSubmitting]);
+
+  // Auto-submit when time expires
+  useEffect(() => {
+    if (!timerInitialized) return;
+    if (timeRemaining === 0 && quizStartData?.data && !isSubmitting && !submitQuizMutation.isPending) {
+      handleSubmitQuiz();
+    }
+  }, [timerInitialized, timeRemaining, quizStartData?.data, isSubmitting, submitQuizMutation.isPending]);
 
   // Save answer when user selects an option
   const handleAnswerSelect = useCallback(async (questionIndex: number, selectedAnswer: number) => {
@@ -133,7 +150,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
     return <div className="flex items-center justify-center h-64">Starting quiz...</div>;
   }
 
-  if (!quizStarted || !currentQuestion) {
+  if (!quizStartData?.data || !currentQuestion) {
     return <div className="flex items-center justify-center h-64">Loading quiz...</div>;
   }
 
@@ -144,7 +161,19 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-xl">{quiz.title}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-xl">{quiz.title}</CardTitle>
+                {quizStartData?.data?.isResumed && (
+                  <Badge className="bg-blue-100 text-blue-800">
+                    📝 Resumed
+                  </Badge>
+                )}
+                {quiz.attempts > 0 && (
+                  <Badge variant="outline">
+                    Attempt {quiz.attempts}/{quiz.maxAttempts}
+                  </Badge>
+                )}
+              </div>
               <CardDescription>
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </CardDescription>
@@ -163,7 +192,7 @@ const QuizTakingInterface: React.FC<QuizTakingInterfaceProps> = ({ quiz, onCompl
               </div>
             </div>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2 mt-4" />
         </CardHeader>
       </Card>
 

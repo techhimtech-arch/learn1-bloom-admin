@@ -29,6 +29,12 @@ const AdminQuizzes: React.FC = () => {
 
   const queryClient = useQueryClient();
 
+  const formatPercent = (value: unknown, digits = 1) => {
+    const n = typeof value === 'number' ? value : Number(value);
+    const safe = Number.isFinite(n) ? n : 0;
+    return `${safe.toFixed(digits)}%`;
+  };
+
   // Fetch all quizzes
   const { data: quizzesData, isLoading: isLoadingQuizzes, error: quizzesError } = useQuery({
     queryKey: ['admin-quizzes', filters],
@@ -57,8 +63,28 @@ const AdminQuizzes: React.FC = () => {
     },
   });
 
+  const publishQuizMutation = useMutation({
+    mutationFn: adminQuizService.publishQuiz,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-quizzes'] });
+      queryClient.invalidateQueries({ queryKey: ['quiz-analytics'] });
+      toast({ title: 'Success', description: 'Quiz published successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to publish quiz',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleDeleteQuiz = (quizId: string) => {
     deleteQuizMutation.mutate(quizId);
+  };
+
+  const handlePublishQuiz = (quizId: string) => {
+    publishQuizMutation.mutate(quizId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -182,7 +208,7 @@ const AdminQuizzes: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-8 w-8 text-orange-600" />
                       <div>
-                        <div className="text-2xl font-bold">{analytics.averageParticipation.toFixed(1)}%</div>
+                        <div className="text-2xl font-bold">{formatPercent(analytics.averageParticipation, 1)}</div>
                         <div className="text-sm text-muted-foreground">Participation Rate</div>
                       </div>
                     </div>
@@ -243,7 +269,7 @@ const AdminQuizzes: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">{performer.averageScore.toFixed(1)}%</div>
+                          <div className="font-semibold">{formatPercent(performer.averageScore, 1)}</div>
                           <div className="text-sm text-muted-foreground">average score</div>
                         </div>
                       </div>
@@ -264,7 +290,7 @@ const AdminQuizzes: React.FC = () => {
                       <div key={index} className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="font-medium">{classData.className}</span>
-                          <span>{classData.participationRate.toFixed(1)}%</span>
+                          <span>{formatPercent(classData.participationRate, 1)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
@@ -373,6 +399,32 @@ const AdminQuizzes: React.FC = () => {
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </Button>
+                    {quiz.status === 'DRAFT' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            disabled={publishQuizMutation.isPending}
+                          >
+                            Publish
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Publish Quiz</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Publish "{quiz.title}" now? Students will be able to see (and attempt) it based on start/end time settings.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handlePublishQuiz(quiz._id)}>
+                              Publish
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button

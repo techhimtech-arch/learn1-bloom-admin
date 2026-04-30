@@ -95,7 +95,7 @@ export const studentQuizService = {
 
   // Start Quiz
   startQuiz: async (quizId: string): Promise<ApiResponse<QuizStartResponse>> => {
-    const response = await apiClient.post(`/student/quizzes/${quizId}/start`);
+    const response = await apiClient.post(`/student/quizzes/${quizId}/start`, {});
     return response.data;
   },
 
@@ -107,7 +107,7 @@ export const studentQuizService = {
 
   // Submit Quiz
   submitQuiz: async (quizId: string): Promise<ApiResponse<QuizSubmitResponse>> => {
-    const response = await apiClient.post(`/student/quizzes/${quizId}/submit`);
+    const response = await apiClient.post(`/student/quizzes/${quizId}/submit`, {});
     return response.data;
   },
 
@@ -150,8 +150,23 @@ export const adminQuizService = {
     return response.data;
   },
 
+  // Publish Quiz (Admin using teacher endpoint)
+  publishQuiz: async (quizId: string): Promise<ApiResponse<Quiz>> => {
+    const response = await apiClient.post(`/teacher/quizzes/${quizId}/publish`);
+    return response.data;
+  },
+
   // Get School Quiz Analytics
   getQuizAnalytics: async (filters: QuizAnalyticsFilters = {}): Promise<ApiResponse<QuizAnalytics>> => {
+    const toNumber = (value: unknown): number => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string' && value.trim() !== '') {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : 0;
+      }
+      return 0;
+    };
+
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -159,8 +174,39 @@ export const adminQuizService = {
       }
     });
     const response = await apiClient.get(`/admin/quizzes/analytics?${params}`);
-    return response.data;
+
+    const payload = response.data as ApiResponse<any>;
+    if (payload?.data) {
+      const a = payload.data;
+      payload.data = {
+        ...a,
+        totalQuizzes: toNumber(a.totalQuizzes),
+        activeQuizzes: toNumber(a.activeQuizzes),
+        totalSubmissions: toNumber(a.totalSubmissions),
+        averageParticipation: toNumber(a.averageParticipation),
+        topSubjects: (a.topSubjects || []).map((s: any) => ({
+          ...s,
+          quizCount: toNumber(s.quizCount),
+          totalSubmissions: toNumber(s.totalSubmissions),
+        })),
+        topPerformers: (a.topPerformers || []).map((p: any) => ({
+          ...p,
+          averageScore: toNumber(p.averageScore),
+          totalQuizzes: toNumber(p.totalQuizzes),
+        })),
+        participationByClass: (a.participationByClass || []).map((c: any) => ({
+          ...c,
+          totalStudents: toNumber(c.totalStudents),
+          participatedStudents: toNumber(c.participatedStudents),
+          participationRate: toNumber(c.participationRate),
+        })),
+      } satisfies QuizAnalytics;
+    }
+
+    return payload as ApiResponse<QuizAnalytics>;
   },
+
+  // Unpublish/close endpoints are backend-dependent; add when available.
 
   // Delete Quiz (Admin)
   deleteQuiz: async (quizId: string): Promise<ApiResponse> => {

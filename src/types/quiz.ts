@@ -156,6 +156,7 @@ export interface StudentQuiz extends Quiz {
 
 export interface QuizStartResponse {
   submissionId: string;
+  isResumed?: boolean;
   quiz: {
     _id: string;
     title: string;
@@ -167,6 +168,7 @@ export interface QuizStartResponse {
   questions: Omit<QuizQuestion, 'correctAnswer' | 'explanation'>[];
   timeRemaining: number;
   startedAt: string;
+  resumedAt?: string;
 }
 
 export interface QuizAnswerRequest {
@@ -222,6 +224,7 @@ export interface QuizStudentResults {
     percentage: number;
     grade: string;
     passed: boolean;
+    isAutoSubmitted?: boolean;
     answers: {
       questionIndex: number;
       question: string;

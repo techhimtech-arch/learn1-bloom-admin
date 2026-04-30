@@ -20,6 +20,12 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
     queryFn: () => studentQuizService.getQuizResults(quizId),
   });
 
+  const formatPercent = (value: unknown, digits = 1) => {
+    const n = typeof value === 'number' ? value : Number(value);
+    const safe = Number.isFinite(n) ? n : 0;
+    return `${safe.toFixed(digits)}%`;
+  };
+
   const getGradeColor = (grade: string) => {
     const colors: Record<string, string> = {
       'A+': 'bg-green-100 text-green-800',
@@ -34,7 +40,7 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
     return colors[grade] || 'bg-gray-100 text-gray-800';
   };
 
-  const getPerformanceMessage = (percentage: number, grade: string) => {
+  const getPerformanceMessage = (percentage: number) => {
     if (percentage >= 90) return "Outstanding performance! Excellent work!";
     if (percentage >= 80) return "Great job! Keep up the excellent work!";
     if (percentage >= 70) return "Good performance! Room for improvement.";
@@ -58,8 +64,15 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
     return <div className="text-center text-muted-foreground">No results available</div>;
   }
 
-  const performanceMessage = getPerformanceMessage(submission.percentage, submission.grade);
-  const accuracy = (submission.correctAnswers / submission.totalQuestions) * 100;
+  const performanceMessage = getPerformanceMessage(submission.percentage);
+  const accuracy =
+    submission.totalQuestions > 0 ? (submission.correctAnswers / submission.totalQuestions) * 100 : 0;
+
+  const passingPercent =
+    quiz.maxMarks > 0 ? (quiz.passingMarks / quiz.maxMarks) * 100 : 0;
+
+  const timeTakenText =
+    submission.timeTakenFormatted || submission.timeTaken || '—';
 
   return (
     <div className="space-y-6">
@@ -72,6 +85,11 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
           </CardTitle>
           <CardDescription>
             {quiz.title} - Attempt #{submission.attemptNumber}
+            {submission.isAutoSubmitted && (
+              <span className="ml-2 text-amber-600 font-medium">
+                (⏱️ Auto-submitted due to timeout)
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,7 +97,7 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
             <div className="space-y-4">
               <div className="text-center">
                 <div className={`text-4xl font-bold ${getGradeColor(submission.grade).split(' ')[1]}`}>
-                  {submission.percentage.toFixed(1)}%
+                  {formatPercent(submission.percentage, 1)}
                 </div>
                 <Badge className={`mt-2 ${getGradeColor(submission.grade)}`}>
                   {submission.grade}
@@ -93,7 +111,7 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
                   {submission.passed ? '✓ PASSED' : '✗ FAILED'}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Passing score: {quiz.passingMarks} marks ({((quiz.passingMarks / quiz.maxMarks) * 100).toFixed(1)}%)
+                  Passing score: {quiz.passingMarks} marks ({formatPercent(passingPercent, 1)})
                 </div>
               </div>
             </div>
@@ -113,14 +131,14 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Accuracy</span>
-                  <span className="font-semibold">{accuracy.toFixed(1)}%</span>
+                  <span className="font-semibold">{formatPercent(accuracy, 1)}</span>
                 </div>
                 <Progress value={accuracy} className="h-2" />
               </div>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>Time taken: {submission.timeTakenFormatted}</span>
+                <span>Time taken: {timeTakenText}</span>
               </div>
             </div>
           </div>
@@ -172,10 +190,19 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
                           answer.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                         } border`}>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">
-                              {String.fromCharCode(65 + answer.selectedAnswer)}
-                            </Badge>
-                            <span>{answer.options[answer.selectedAnswer]}</span>
+                            {answer.selectedAnswer === null || answer.selectedAnswer === undefined ? (
+                              <>
+                                <Badge variant="outline">—</Badge>
+                                <span className="text-muted-foreground">Not answered</span>
+                              </>
+                            ) : (
+                              <>
+                                <Badge variant="outline">
+                                  {String.fromCharCode(65 + answer.selectedAnswer)}
+                                </Badge>
+                                <span>{answer.options[answer.selectedAnswer] ?? '—'}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -214,11 +241,14 @@ const QuizResultsView: React.FC<QuizResultsViewProps> = ({ quizId, onClose }) =>
 
       {/* Actions */}
       <DialogFooter>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full">
           <Button variant="outline">
             Download Results
           </Button>
-          <Button onClick={onClose}>
+          <Button 
+            onClick={onClose}
+            className="ml-auto"
+          >
             Close
           </Button>
         </div>

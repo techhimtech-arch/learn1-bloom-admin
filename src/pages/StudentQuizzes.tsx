@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
-import { Play, Clock, Trophy, CheckCircle, XCircle, AlertCircle, Eye, BarChart3 } from 'lucide-react';
+import { Play, Clock, Trophy, CheckCircle, XCircle, AlertCircle, Eye, BarChart3, RotateCcw } from 'lucide-react';
 import { studentQuizService, quizUtils } from '@/services/quizService';
 import { StudentQuiz, QuizStatistics } from '@/types/quiz';
 import QuizTakingInterface from '@/components/quiz/QuizTakingInterface';
@@ -36,24 +36,9 @@ const StudentQuizzes: React.FC = () => {
   });
 
   // Start quiz mutation
-  const startQuizMutation = useMutation({
-    mutationFn: studentQuizService.startQuiz,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['student-quizzes'] });
-      setShowQuizDialog(true);
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: 'Error', 
-        description: error.response?.data?.message || 'Failed to start quiz',
-        variant: 'destructive' 
-      });
-    },
-  });
-
   const handleStartQuiz = (quiz: StudentQuiz) => {
     setSelectedQuiz(quiz);
-    startQuizMutation.mutate(quiz._id);
+    setShowQuizDialog(true);
   };
 
   const handleViewResults = (quiz: StudentQuiz) => {
@@ -76,7 +61,8 @@ const StudentQuizzes: React.FC = () => {
   const canStartQuiz = (quiz: StudentQuiz) => {
     return quizUtils.isQuizActive(quiz) && 
            (quiz.submissionStatus === 'NOT_ATTEMPTED' || 
-            (quiz.submissionStatus === 'COMPLETED' && quizUtils.canRetakeQuiz(quiz)));
+            (quiz.submissionStatus === 'ATTEMPTED' && quiz.canRetake) ||
+            (quiz.submissionStatus === 'COMPLETED' && quiz.canRetake));
   };
 
   const filteredQuizzes = quizzesData?.data?.filter(quiz => 
@@ -87,10 +73,13 @@ const StudentQuizzes: React.FC = () => {
   const getQuizzesByStatus = (status: string) => {
     if (status === 'available') {
       return filteredQuizzes.filter(quiz => canStartQuiz(quiz));
-    } else if (status === 'completed') {
-      return filteredQuizzes.filter(quiz => quiz.submissionStatus === 'COMPLETED');
     } else if (status === 'in-progress') {
       return filteredQuizzes.filter(quiz => quiz.submissionStatus === 'IN_PROGRESS');
+    } else if (status === 'completed') {
+      // Show quizzes that have been attempted and no retakes available
+      return filteredQuizzes.filter(quiz => 
+        (quiz.submissionStatus === 'ATTEMPTED' || quiz.submissionStatus === 'COMPLETED') && !quiz.canRetake
+      );
     }
     return filteredQuizzes;
   };
@@ -215,11 +204,23 @@ const StudentQuizzes: React.FC = () => {
                   {/* Progress for attempted quizzes */}
                   {quiz.submissionStatus !== 'NOT_ATTEMPTED' && (
                     <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Best Score: {quiz.bestScore}% ({quiz.bestGrade})</span>
-                        <span>Attempts: {quiz.attempts}/{quiz.maxAttempts}</span>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="font-semibold">
+                          Attempt {quiz.attempts}/{quiz.maxAttempts}
+                        </span>
+                        <span className="text-green-600">Best: {quiz.bestScore}% ({quiz.bestGrade})</span>
                       </div>
-                      <Progress value={quiz.bestScore} className="h-2" />
+                      <Progress value={quiz.bestScore} className="h-2 mb-2" />
+                      {quiz.submissionStatus === 'ATTEMPTED' && quiz.canRetake && (
+                        <p className="text-xs text-yellow-600 font-medium">
+                          ✅ You can attempt {quiz.maxAttempts - quiz.attempts} more time(s)
+                        </p>
+                      )}
+                      {quiz.submissionStatus === 'ATTEMPTED' && !quiz.canRetake && (
+                        <p className="text-xs text-red-600 font-medium">
+                          ❌ All attempts completed
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -236,17 +237,51 @@ const StudentQuizzes: React.FC = () => {
                   )}
 
                   <div className="flex gap-2">
-                    {canStartQuiz(quiz) && (
+                    {/* RETAKE LOGIC */}
+                    {quiz.submissionStatus === 'NOT_ATTEMPTED' && (
                       <Button
                         onClick={() => handleStartQuiz(quiz)}
-                        disabled={startQuizMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        {quiz.submissionStatus === 'NOT_ATTEMPTED' ? 'Start Quiz' : 'Retake Quiz'}
+                        Take Quiz
                       </Button>
                     )}
                     
-                    {quiz.submissionStatus === 'COMPLETED' && (
+                    {quiz.submissionStatus === 'ATTEMPTED' && quiz.canRetake && (
+                      <Button
+                        onClick={() => {
+                          const remaining = quiz.maxAttempts - quiz.attempts;
+                          const confirmed = window.confirm(
+                            `🔄 RETAKE QUIZ\n\n` +
+                            `Attempt: ${quiz.attempts}/${quiz.maxAttempts}\n` +
+                            `Best Score: ${quiz.bestScore}% (${quiz.bestGrade})\n` +
+                            `Remaining: ${remaining} more attempt(s)\n\n` +
+                            `Ready to try again?`
+                          );
+                          if (confirmed) {
+                            handleStartQuiz(quiz);
+                          }
+                        }}
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Retake Quiz
+                      </Button>
+                    )}
+                    
+                    {quiz.submissionStatus === 'ATTEMPTED' && !quiz.canRetake && (
+                      <Button
+                        onClick={() => handleViewResults(quiz)}
+                        variant="outline"
+                        disabled
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        All Attempts Used
+                      </Button>
+                    )}
+                    
+                    {quiz.submissionStatus === 'ATTEMPTED' && (
                       <Button
                         variant="outline"
                         onClick={() => handleViewResults(quiz)}
@@ -258,8 +293,8 @@ const StudentQuizzes: React.FC = () => {
 
                     {quiz.submissionStatus === 'IN_PROGRESS' && (
                       <Button
-                        variant="outline"
                         onClick={() => handleStartQuiz(quiz)}
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
                         <Play className="mr-2 h-4 w-4" />
                         Continue Quiz
