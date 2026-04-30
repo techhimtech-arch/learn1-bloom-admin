@@ -564,6 +564,22 @@ export const rollNumberApi = {
   validate: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/validate', data),
 };
 
+// ── Accountant Portal API ───────────────────────────────
+// Only includes endpoints accountant actually has backend access to.
+// (Per backend audit: payment recording, structure view, dashboard, reports,
+// class summary, overdue, reminders are NOT yet allowed for accountant.)
+export const accountantApi = {
+  // Working endpoints
+  getPayments: (params?: Record<string, any>) => apiClient.get("/fees/payments", { params }),
+  getReceipt: (paymentId: string) => apiClient.get(`/fees/receipt/${paymentId}`),
+  getDues: (params?: Record<string, any>) => apiClient.get("/fees/dues", { params }),
+  getStudentFees: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
+  generateStudentFees: (data: Record<string, unknown>) =>
+    apiClient.post("/fees/generate-student-fees", data),
+  refund: (paymentId: string, data: Record<string, unknown>) =>
+    apiClient.post(`/fees/refund/${paymentId}`, data),
+};
+
 // Academic Summary API
 export const academicApi = {
   getSummary: (academicSessionId: string) => apiClient.get('/academic/summary', { params: { academicSessionId } }),

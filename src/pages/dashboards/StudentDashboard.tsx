@@ -129,9 +129,9 @@ const StudentDashboard = () => {
         />
         <StatWidget
           title="Notifications"
-          value={`${stats?.unreadAnnouncements || 0}`}
+          value={`${(stats as any)?.unreadAnnouncements || 0}`}
           change="Unread"
-          changeType={stats?.unreadAnnouncements ? 'negative' : 'positive'}
+          changeType={(stats as any)?.unreadAnnouncements ? 'negative' : 'positive'}
           icon={Bell}
           iconColor="bg-orange-500/10 text-orange-600"
         />
@@ -356,7 +356,7 @@ const StudentDashboard = () => {
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  You have {stats?.unreadAnnouncements || 0} unread announcement(s)
+                  You have {(stats as any)?.unreadAnnouncements || 0} unread announcement(s)
                 </p>
                 <Button variant="outline" className="w-full">View All Announcements</Button>
               </div>

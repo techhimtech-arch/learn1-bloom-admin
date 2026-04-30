@@ -20,6 +20,8 @@ import {
   UsersRound,
   PlayCircle,
   Brain,
+  Receipt,
+  AlertCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,14 +39,16 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/users', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
-    '/fees/structure', '/fees/reports', '/certificates', '/admin/quizzes',
+    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
+    '/certificates', '/admin/quizzes',
   ],
   teacher: [
     '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams', 
     '/teacher/results', '/teacher/assignments', '/teacher/attendance', '/teacher/quizzes',
   ],
   accountant: [
-    '/', '/profile', '/sessions', '/fees/structure', '/fees/reports',
+    '/', '/profile', '/sessions',
+    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
   ],
   parent: [
     '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
@@ -72,6 +76,8 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Assignments', url: '/assignments', icon: Edit },
   { title: 'Fee Structure', url: '/fees/structure', icon: DollarSign },
   { title: 'Fee Reports', url: '/fees/reports', icon: TrendingUp },
+  { title: 'Payments & Receipts', url: '/fees/payments', icon: Receipt },
+  { title: 'Pending Dues', url: '/fees/dues', icon: AlertCircle },
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
   { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
