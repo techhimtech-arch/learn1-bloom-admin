@@ -17,6 +17,34 @@ interface SectionOption { _id: string; name: string; classId: string | { _id: st
 interface AcademicYearOption { _id: string; name: string; label?: string; isActive?: boolean; }
 interface StudentOption { _id: string; firstName: string; lastName: string; admissionNumber: string; }
 
+interface EnrollmentRow {
+  _id?: string;
+  studentName: string;
+  admissionNumber: string;
+  academicYearName: string;
+  className: string;
+  sectionName: string;
+  rollNumber: string;
+  status: string;
+  schoolName: string;
+  raw: any;
+}
+
+const getDisplayName = (value: any, fallback = '-') => {
+  if (!value) return fallback;
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  return value.name || value.label || value.title || value.firstName || fallback;
+};
+
+const getStudentDisplayName = (student: any) => {
+  if (!student) return '-';
+  if (typeof student === 'string') return student;
+  const firstName = student.firstName || '';
+  const lastName = student.lastName || '';
+  const fullName = `${firstName} ${lastName}`.trim();
+  return fullName || student.name || student.admissionNumber || '-';
+};
+
 const Enrollment = () => {
   const [activeTab, setActiveTab] = useState('individual');
   const [loading, setLoading] = useState(false);
@@ -55,7 +83,7 @@ const Enrollment = () => {
   const [bulkData, setBulkData] = useState('');
 
   // Lists & Dialogs
-  const [classEnrollments, setClassEnrollments] = useState<any[]>([]);
+  const [classEnrollments, setClassEnrollments] = useState<EnrollmentRow[]>([]);
   const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
   const [promotionDialog, setPromotionDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
@@ -144,7 +172,19 @@ const Enrollment = () => {
         classId: viewForm.classId,
         sectionId: viewForm.sectionId,
       });
-      setClassEnrollments(res.data?.data || []);
+      const rows = (res.data?.data || []).map((item: any) => ({
+        _id: item._id,
+        studentName: getStudentDisplayName(item.studentId),
+        admissionNumber: item.studentId?.admissionNumber || item.admissionNumber || '-',
+        academicYearName: getDisplayName(item.academicYearId, '-'),
+        className: getDisplayName(item.classId, '-'),
+        sectionName: getDisplayName(item.sectionId, '-'),
+        rollNumber: item.rollNumber ?? '-',
+        status: item.status || 'ENROLLED',
+        schoolName: getDisplayName(item.schoolId, '-'),
+        raw: item,
+      }));
+      setClassEnrollments(rows);
     } catch (err: any) {
       showApiError(err);
       setClassEnrollments([]);
@@ -215,10 +255,14 @@ const Enrollment = () => {
     setLoading(false);
   };
 
-  const enrollmentColumns: Column<any>[] = [
-    { key: 'studentId', label: 'Student', render: (_: any, row: any) => `${row.studentId?.firstName} ${row.studentId?.lastName}` },
-    { key: 'studentId', label: 'Admission No.', render: (_: any, row: any) => row.studentId?.admissionNumber || '-' },
+  const enrollmentColumns: Column<EnrollmentRow>[] = [
+    { key: 'studentName', label: 'Student' },
+    { key: 'admissionNumber', label: 'Admission No.' },
+    { key: 'academicYearName', label: 'Academic Year' },
+    { key: 'className', label: 'Class' },
+    { key: 'sectionName', label: 'Section' },
     { key: 'rollNumber', label: 'Roll Number' },
+    { key: 'schoolName', label: 'School' },
     { key: 'status', label: 'Status', render: (v: string) => <Badge variant="secondary">{v || 'ENROLLED'}</Badge> },
   ];
 

@@ -14,6 +14,9 @@ import {
   Clock,
   AlertCircle,
   FileText,
+  TrendingUp,
+  MessageSquare,
+  GraduationCap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -617,6 +620,382 @@ function TimetableTab({ studentId }: { studentId: string }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// TAB: HOMEWORK / ASSIGNMENTS
+// ─────────────────────────────────────────────────────────
+
+function HomeworkTab({ studentId }: { studentId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['parent-homework', studentId],
+    queryFn: async () => {
+      const response = await parentApi.getChildHomework(studentId);
+      return response.data.data;
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-64 w-full" />;
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Unable to load homework data</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const assignments = Array.isArray(data) ? data : data ? [data] : [];
+
+  if (!assignments || assignments.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No homework assigned</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'submitted': 'bg-blue-100 text-blue-800',
+      'completed': 'bg-green-100 text-green-800',
+      'graded': 'bg-green-100 text-green-800',
+      'overdue': 'bg-red-100 text-red-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPendingCount = () => assignments.filter((a: any) => a.status === 'pending').length;
+  const getSubmittedCount = () => assignments.filter((a: any) => a.status === 'submitted').length;
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="text-2xl font-bold">{assignments.length}</div>
+            <div className="text-xs text-muted-foreground">Total</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="text-2xl font-bold text-yellow-600">{getPendingCount()}</div>
+            <div className="text-xs text-muted-foreground">Pending</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="text-2xl font-bold text-blue-600">{getSubmittedCount()}</div>
+            <div className="text-xs text-muted-foreground">Submitted</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {assignments.filter((a: any) => a.status === 'graded' || a.status === 'completed').length}
+            </div>
+            <div className="text-xs text-muted-foreground">Completed</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Assignments List */}
+      <div className="space-y-4">
+        {assignments.map((assignment: any) => (
+          <Card key={assignment.id || assignment._id}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <CardTitle className="text-base">{assignment.title}</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">{assignment.subject}</p>
+                </div>
+                <Badge className={getStatusColor(assignment.status)}>
+                  {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">{assignment.description}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                {assignment.dueDate && (
+                  <div>
+                    <span className="text-muted-foreground">Due Date: </span>
+                    <span className="font-medium">{format(new Date(assignment.dueDate), 'MMM dd, yyyy')}</span>
+                  </div>
+                )}
+                {assignment.submittedDate && (
+                  <div>
+                    <span className="text-muted-foreground">Submitted: </span>
+                    <span className="font-medium text-green-600">{format(new Date(assignment.submittedDate), 'MMM dd, yyyy')}</span>
+                  </div>
+                )}
+                {assignment.grade && (
+                  <div>
+                    <span className="text-muted-foreground">Grade: </span>
+                    <span className="font-medium">{assignment.grade}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// TAB: TEACHER REMARKS
+// ─────────────────────────────────────────────────────────
+
+function RemarksTab({ studentId }: { studentId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['parent-remarks', studentId],
+    queryFn: async () => {
+      const response = await parentApi.getChildRemarks(studentId);
+      return response.data.data;
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-64 w-full" />;
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Unable to load teacher remarks</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const remarks = Array.isArray(data) ? data : data ? [data] : [];
+
+  if (!remarks || remarks.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No teacher remarks yet</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getRemarkTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      'positive': 'bg-green-100 text-green-800',
+      'constructive': 'bg-blue-100 text-blue-800',
+      'neutral': 'bg-gray-100 text-gray-800',
+      'concern': 'bg-orange-100 text-orange-800',
+    };
+    return colors[type] || 'bg-gray-100 text-gray-800';
+  };
+
+  return (
+    <div className="space-y-4">
+      {remarks.map((remark: any) => (
+        <Card key={remark.id || remark._id}>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-base">{remark.teacher}</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {remark.subject} • {format(new Date(remark.date || remark.createdAt), 'MMM dd, yyyy')}
+                </p>
+              </div>
+              <Badge className={getRemarkTypeColor(remark.type || 'neutral')}>
+                {(remark.type || 'neutral').charAt(0).toUpperCase() + (remark.type || 'neutral').slice(1)}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed">{remark.remarks || remark.message}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// TAB: PERFORMANCE ANALYTICS
+// ─────────────────────────────────────────────────────────
+
+function PerformanceTab({ studentId }: { studentId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['parent-performance', studentId],
+    queryFn: async () => {
+      const response = await parentApi.getChildPerformance(studentId);
+      return response.data.data;
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-64 w-full" />;
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Unable to load performance data</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const performance = data as any;
+
+  if (!performance) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No performance data available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getAnalysisColor = (trend: string) => {
+    const colors: Record<string, string> = {
+      'improving': 'text-green-600',
+      'stable': 'text-blue-600',
+      'declining': 'text-red-600',
+    };
+    return colors[trend] || 'text-gray-600';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Overall Average</div>
+            <div className="text-3xl font-bold mt-2">{(performance.overallAverage || 0).toFixed(1)}%</div>
+            <div className={`text-sm mt-2 font-medium ${getAnalysisColor(performance.trend)}`}>
+              ↑ {performance.trend === 'improving' ? 'Improving' : performance.trend === 'stable' ? 'Stable' : 'Needs Improvement'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Best Subject</div>
+            <div className="text-2xl font-bold mt-2 text-green-600">{performance.bestSubject || 'N/A'}</div>
+            <div className="text-xs text-muted-foreground mt-2">Strong performance area</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Needs Improvement</div>
+            <div className="text-2xl font-bold mt-2 text-orange-600">{performance.needsImprovement || 'N/A'}</div>
+            <div className="text-xs text-muted-foreground mt-2">Focus area</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Last Exam Grade */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Award className="h-4 w-4" />
+            Last Exam Performance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <Badge className="text-lg py-2 px-4">
+              Grade: {performance.lastExamGrade || 'N/A'}
+            </Badge>
+            <p className="text-sm text-muted-foreground mt-4">Showing consistent performance trend</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Monthly Progress */}
+      {performance.monthlyProgress && performance.monthlyProgress.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-4 w-4" />
+              Monthly Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {performance.monthlyProgress.map((month: any, index: number) => (
+                <div key={index}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium">{month.month}</span>
+                    <span className="text-sm font-semibold">{month.average}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-full rounded-full ${
+                        month.average >= 85 ? 'bg-green-600' :
+                        month.average >= 70 ? 'bg-blue-600' :
+                        'bg-orange-600'
+                      }`}
+                      style={{ width: `${Math.min(month.average, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Performance Insights</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm">
+              <strong>Overall Trend:</strong> {performance.trend === 'improving' 
+                ? 'Excellent! Your child is showing consistent improvement.' 
+                : performance.trend === 'stable'
+                ? 'Good performance is being maintained consistently.'
+                : 'Please focus on improving performance in weaker areas.'}
+            </p>
+          </div>
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm">
+              <strong>Strength:</strong> Excellent performance in {performance.bestSubject}. Continue supporting this area.
+            </p>
+          </div>
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-sm">
+              <strong>Focus Area:</strong> Additional support needed in {performance.needsImprovement}. Consider extra classes or tutoring.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────
 
@@ -742,12 +1121,15 @@ export default function ParentStudentDetail() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="attendance" className="text-xs sm:text-sm">Attendance</TabsTrigger>
           <TabsTrigger value="fees" className="text-xs sm:text-sm">Fees</TabsTrigger>
           <TabsTrigger value="results" className="text-xs sm:text-sm">Results</TabsTrigger>
           <TabsTrigger value="announcements" className="text-xs sm:text-sm">Announcements</TabsTrigger>
           <TabsTrigger value="timetable" className="text-xs sm:text-sm">Timetable</TabsTrigger>
+          <TabsTrigger value="homework" className="text-xs sm:text-sm">Homework</TabsTrigger>
+          <TabsTrigger value="remarks" className="text-xs sm:text-sm">Remarks</TabsTrigger>
+          <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="attendance">
@@ -768,6 +1150,18 @@ export default function ParentStudentDetail() {
 
         <TabsContent value="timetable">
           <TimetableTab studentId={studentId!} />
+        </TabsContent>
+
+        <TabsContent value="homework">
+          <HomeworkTab studentId={studentId!} />
+        </TabsContent>
+
+        <TabsContent value="remarks">
+          <RemarksTab studentId={studentId!} />
+        </TabsContent>
+
+        <TabsContent value="performance">
+          <PerformanceTab studentId={studentId!} />
         </TabsContent>
       </Tabs>
     </div>

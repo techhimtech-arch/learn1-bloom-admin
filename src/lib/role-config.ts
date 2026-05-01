@@ -49,6 +49,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   accountant: [
     '/', '/profile', '/sessions',
     '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
+    '/accountant/dashboard', '/accountant/record-payment', '/accountant/fee-structure', '/accountant/reports',
   ],
   parent: [
     '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
@@ -78,6 +79,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Fee Reports', url: '/fees/reports', icon: TrendingUp },
   { title: 'Payments & Receipts', url: '/fees/payments', icon: Receipt },
   { title: 'Pending Dues', url: '/fees/dues', icon: AlertCircle },
+  { title: 'Accountant Dashboard', url: '/accountant/dashboard', icon: LayoutDashboard },
+  { title: 'Record Payment', url: '/accountant/record-payment', icon: DollarSign },
+  { title: 'Fee Structure Mgmt', url: '/accountant/fee-structure', icon: FileText },
+  { title: 'Fee Reports', url: '/accountant/reports', icon: TrendingUp },
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
   { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },

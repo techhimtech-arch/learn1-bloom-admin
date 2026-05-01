@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://sms-backend-d19v.onrender.com/api/v1";
+// const API_BASE_URL = import.meta.env.VITE_API_URL || "https://sms-backend-d19v.onrender.com/api/v1";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -412,6 +412,14 @@ export const parentApi = {
   getChildTimetable: (studentId: string) => 
     apiClient.get(`/parent/children/${studentId}/timetable`),
   
+  // Additional child data endpoints
+  getChildHomework: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/children/${studentId}/homework`, { params }),
+  getChildRemarks: (studentId: string, params?: Record<string, any>) => 
+    apiClient.get(`/parent/children/${studentId}/remarks`, { params }),
+  getChildPerformance: (studentId: string) => 
+    apiClient.get(`/parent/children/${studentId}/performance`),
+  
   // Legacy endpoints (deprecated but keeping for compatibility)
   getAttendance: (params?: Record<string, any>) => apiClient.get("/parent/attendance", { params }),
   getFees: () => apiClient.get("/parent/fees"),
@@ -578,6 +586,20 @@ export const accountantApi = {
     apiClient.post("/fees/generate-student-fees", data),
   refund: (paymentId: string, data: Record<string, unknown>) =>
     apiClient.post(`/fees/refund/${paymentId}`, data),
+  
+  // Additional endpoints for complete portal functionality
+  recordPayment: (data: Record<string, unknown>) => 
+    apiClient.post("/fees/pay", data),
+  getFeeStructure: (params?: Record<string, any>) => 
+    apiClient.get("/fees/structure", { params }),
+  getDashboard: (params?: Record<string, any>) => 
+    apiClient.get("/fees/dashboard", { params }),
+  getClassFeeSummary: (classId: string, academicYearId: string) => 
+    apiClient.get("/fees/class-summary", { params: { classId, academicYearId } }),
+  getOverdueFees: (params?: Record<string, any>) => 
+    apiClient.get("/fees/overdue", { params }),
+  generateReport: (reportType: string, params?: Record<string, any>) => 
+    apiClient.get(`/fees/reports/${reportType}`, { params }),
 };
 
 // Academic Summary API

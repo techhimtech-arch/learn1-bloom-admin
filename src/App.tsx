@@ -49,6 +49,10 @@ import ParentDashboard from "@/pages/ParentDashboard";
 import ParentStudentDetail from "@/pages/ParentStudentDetail";
 import AccountantPayments from "@/pages/accountant/AccountantPayments";
 import AccountantDues from "@/pages/accountant/AccountantDues";
+import AccountantDashboard from "@/pages/accountant/AccountantDashboard";
+import AccountantPaymentForm from "@/pages/accountant/AccountantPaymentForm";
+import AccountantFeeStructure from "@/pages/accountant/AccountantFeeStructure";
+import AccountantReports from "@/pages/accountant/AccountantReports";
 import CertificateGenerator from "@/pages/CertificateGenerator";
 import StudentAttendance from "@/pages/StudentAttendance";
 import StudentStudyMaterials from "@/pages/StudentStudyMaterials";
@@ -178,6 +182,12 @@ const AppContent = () => {
           <Route path="/fees/reports" element={<FeeReports />} />
           <Route path="/fees/payments" element={<AccountantPayments />} />
           <Route path="/fees/dues" element={<AccountantDues />} />
+          
+          {/* Accountant Portal Routes */}
+          <Route path="/accountant/dashboard" element={<AccountantDashboard />} />
+          <Route path="/accountant/record-payment" element={<AccountantPaymentForm />} />
+          <Route path="/accountant/fee-structure" element={<AccountantFeeStructure />} />
+          <Route path="/accountant/reports" element={<AccountantReports />} />
           
           {/* Parent Portal Routes */}
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
