@@ -38,6 +38,7 @@ const getTourAttribute = (title: string) => {
     'Class Management': 'classes',
     'Subject Management': 'subjects',
     'Teacher Assignments': 'teachers',
+    'Timetable Management': 'academic-year',
     'Exam Management': 'exams',
     'Announcements': 'announcements',
     'Assignments': 'announcements',

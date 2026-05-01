@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, MapPin, Users, AlertCircle } from 'lucide-react';
-import { timetableApi } from '@/pages/services/api';
+import { timetableApi, academicYearApi } from '@/pages/services/api';
 
 interface TeacherTimetableViewProps {
   teachers: Array<{
-    id: string;
+    id?: string;
+    _id?: string;
     name: string;
     email: string;
   }>;
@@ -58,6 +59,28 @@ const getSubjectColor = (subjectName: string) => {
 
 export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableViewProps) {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+  const [academicSessionId, setAcademicSessionId] = useState('');
+
+  useEffect(() => {
+    const loadCurrentSession = async () => {
+      try {
+        const response = await academicYearApi.getCurrent();
+        const currentSession = response.data?.data || response.data;
+        setAcademicSessionId(currentSession?._id || '');
+      } catch {
+        setAcademicSessionId('');
+      }
+    };
+
+    loadCurrentSession();
+  }, []);
+
+  const normalizedTeachers = teachers
+    .map((teacher) => ({
+      ...teacher,
+      teacherId: teacher._id || teacher.id || '',
+    }))
+    .filter((teacher) => teacher.teacherId && teacher.name);
 
   const {
     data: timetableData,
@@ -67,10 +90,10 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
     queryKey: ['timetable', 'teacher', selectedTeacherId],
     queryFn: async () => {
       if (!selectedTeacherId) return { data: [] };
-      const response = await timetableApi.getByTeacher(selectedTeacherId);
+      const response = await timetableApi.getByTeacher(selectedTeacherId, academicSessionId);
       return response.data;
     },
-    enabled: !!selectedTeacherId,
+    enabled: !!selectedTeacherId && !!academicSessionId,
   });
 
   if (!selectedTeacherId) {
@@ -88,8 +111,8 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
                 <SelectValue placeholder="Select a teacher" />
               </SelectTrigger>
               <SelectContent>
-                {teachers.map((teacher) => (
-                  <SelectItem key={teacher.id} value={teacher.id}>
+                {normalizedTeachers.map((teacher) => (
+                  <SelectItem key={teacher.teacherId} value={teacher.teacherId}>
                     {teacher.name}
                   </SelectItem>
                 ))}
@@ -164,8 +187,8 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
               <SelectValue placeholder="Select a teacher" />
             </SelectTrigger>
             <SelectContent>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher.id} value={teacher.id}>
+              {normalizedTeachers.map((teacher) => (
+                <SelectItem key={teacher.teacherId} value={teacher.teacherId}>
                   {teacher.name}
                 </SelectItem>
               ))}

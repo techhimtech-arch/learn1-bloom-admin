@@ -3,7 +3,8 @@ import { Clock, MapPin, User, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { timetableApi } from '@/pages/services/api';
+import { timetableApi, academicYearApi } from '@/pages/services/api';
+import { useEffect, useState } from 'react';
 
 interface ClassTimetableViewProps {
   classId: string;
@@ -48,6 +49,22 @@ const getSubjectColor = (subjectName: string) => {
 };
 
 export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimetableViewProps) {
+  const [academicSessionId, setAcademicSessionId] = useState('');
+
+  useEffect(() => {
+    const loadCurrentSession = async () => {
+      try {
+        const response = await academicYearApi.getCurrent();
+        const currentSession = response.data?.data || response.data;
+        setAcademicSessionId(currentSession?._id || '');
+      } catch {
+        setAcademicSessionId('');
+      }
+    };
+
+    loadCurrentSession();
+  }, []);
+
   const {
     data: timetableData,
     isLoading,
@@ -55,10 +72,10 @@ export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimeta
   } = useQuery({
     queryKey: ['timetable', 'class', classId, sectionId],
     queryFn: async () => {
-      const response = await timetableApi.getByClass(classId, sectionId);
+      const response = await timetableApi.getByClass(classId, sectionId, academicSessionId);
       return response.data;
     },
-    enabled: !!classId && !!sectionId,
+    enabled: !!classId && !!sectionId && !!academicSessionId,
   });
 
   if (isLoading) {

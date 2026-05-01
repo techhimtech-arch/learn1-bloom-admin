@@ -37,7 +37,7 @@ export interface NavItem {
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
     '/', '/users', '/admission', '/enrollment', '/classes', '/subjects',
-    '/attendance', '/academic-years', '/teacher-assignments',
+    '/attendance', '/academic-years', '/teacher-assignments', '/timetable',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
     '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
     '/certificates', '/admin/quizzes',
@@ -72,6 +72,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Class Management', url: '/classes', icon: School },
   { title: 'Subject Management', url: '/subjects', icon: BookOpen },
   { title: 'Teacher Assignments', url: '/teacher-assignments', icon: UserCheck },
+  { title: 'Timetable Management', url: '/timetable', icon: CalendarDays },
   { title: 'Exam Management', url: '/exams', icon: FileText },
   { title: 'Announcements', url: '/announcements', icon: Send },
   { title: 'Assignments', url: '/assignments', icon: Edit },

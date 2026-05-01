@@ -170,12 +170,12 @@ const AdminDashboard = () => {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatWidget title="Total Students" value={stats.totalStudents.toLocaleString()} change="12% this month" changeType="positive" icon={GraduationCap} iconColor="bg-primary/10 text-primary" />
-        <StatWidget title="Total Teachers" value={stats.totalTeachers} change="3% this month" changeType="positive" icon={Users} iconColor="bg-secondary/10 text-secondary" />
-        <StatWidget title="Total Classes" value={stats.totalClasses} change="Same as last" changeType="neutral" icon={School} iconColor="bg-accent/10 text-accent" />
-        <StatWidget title="Today's Attendance" value={`${stats.attendancePercentage}%`} change="1,150 present" changeType="positive" icon={ClipboardCheck} iconColor="bg-success/10 text-success" />
-        <StatWidget title="Pending Fees" value={stats.pendingFees} change="125 students" changeType="negative" icon={IndianRupee} iconColor="bg-warning/10 text-warning" />
-        <StatWidget title="Upcoming Exams" value={stats.upcomingExams} change="Next week" changeType="neutral" icon={FileText} iconColor="bg-destructive/10 text-destructive" />
+        <StatWidget title="Total Students" value={stats.totalStudents.toLocaleString()} icon={GraduationCap} iconColor="bg-primary/10 text-primary" />
+        <StatWidget title="Total Teachers" value={stats.totalTeachers} icon={Users} iconColor="bg-secondary/10 text-secondary" />
+        <StatWidget title="Total Classes" value={stats.totalClasses} icon={School} iconColor="bg-accent/10 text-accent" />
+        <StatWidget title="Today's Attendance" value={`${stats.attendancePercentage}%`} icon={ClipboardCheck} iconColor="bg-success/10 text-success" />
+        <StatWidget title="Pending Fees" value={stats.pendingFees} icon={IndianRupee} iconColor="bg-warning/10 text-warning" />
+        <StatWidget title="Upcoming Exams" value={stats.upcomingExams} icon={FileText} iconColor="bg-destructive/10 text-destructive" />
       </div>
 
       <Card>
