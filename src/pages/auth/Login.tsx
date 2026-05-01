@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { GraduationCap, Eye, EyeOff } from 'lucide-react';
 import { showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';
+import InstallAppButton from '@/components/InstallAppButton';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -100,6 +101,7 @@ const Login = () => {
                   Register School
                 </Link>
               </p>
+              <InstallAppButton className="w-full" />
             </CardFooter>
           </form>
         </Card>
