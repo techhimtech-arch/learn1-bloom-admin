@@ -56,7 +56,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/parent/dashboard', '/parent/student/:studentId',
   ],
   student: [
-    '/', '/attendance', '/profile', '/sessions', '/results', '/announcements', '/assignments',
+    '/', '/profile', '/sessions', '/results',
     '/student/dashboard', '/student/attendance', '/student/results', '/student/fees',
     '/student/materials', '/student/assignments', '/student/announcements', '/student/timetable', '/student/certificates', '/student/quizzes',
   ],

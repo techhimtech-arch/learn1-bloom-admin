@@ -474,6 +474,7 @@ export const studentApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string; classId?: string; sectionId?: string }) =>
     apiClient.get('/students', { params }),
   getById: (id: string) => apiClient.get(`/students/${id}`),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/students/${id}`, data),
   getByClass: (classId: string, sectionId?: string) => 
     apiClient.get(`/students/class/${classId}${sectionId ? `?sectionId=${sectionId}` : ''}`),
 };

@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { admissionApi, classApi, sectionApi, academicYearApi } from '@/pages/services/api';
-import { UserPlus, Users, ClipboardList, Eye, CheckCircle } from 'lucide-react';
+import { admissionApi, classApi, sectionApi, academicYearApi, studentApi } from '@/pages/services/api';
+import { UserPlus, Users, ClipboardList, Eye, CheckCircle, Edit } from 'lucide-react';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
 const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -17,6 +17,9 @@ const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 interface ClassOption { _id: string; name: string; }
 interface SectionOption { _id: string; name: string; classId: string | { _id: string; name: string }; }
 interface AcademicYearOption { _id: string; year: string; name?: string; label?: string; isActive?: boolean; }
+
+const getStudentIdFromRecord = (record: any) =>
+  record?.studentId?._id || record?.studentId || record?._id || '';
 
 const StudentAdmission = () => {
   const [activeTab, setActiveTab] = useState('partial');
@@ -55,6 +58,23 @@ const StudentAdmission = () => {
   // Detail dialog
   const [detailDialog, setDetailDialog] = useState(false);
   const [studentDetail, setStudentDetail] = useState<any>(null);
+
+  // Edit dialog
+  const [editDialog, setEditDialog] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState('');
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    gender: '',
+    dateOfBirth: '',
+    classId: '',
+    sectionId: '',
+    parentName: '',
+    parentPhone: '',
+    parentEmail: '',
+    address: '',
+    rollNumber: '',
+  });
 
   useEffect(() => {
     classApi.getAll().then(r => setClasses(r.data?.data || [])).catch(() => {});
@@ -200,11 +220,17 @@ const StudentAdmission = () => {
 
   const handleComplete = async () => {
     if (!selectedPartial) return;
+    const studentId = getStudentIdFromRecord(selectedPartial);
+    if (!studentId) {
+      showApiError({ response: { data: { message: 'Student ID not found for this admission record' } } }, '');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...completeForm };
       if (completeForm.rollNumber) payload.rollNumber = parseInt(completeForm.rollNumber);
-      const res = await admissionApi.completePartial(selectedPartial._id, payload);
+      const res = await admissionApi.completePartial(studentId, payload);
       showApiSuccess(res, 'Admission completed successfully.');
       setCompleteDialog(false);
       setSelectedPartial(null);
@@ -223,6 +249,80 @@ const StudentAdmission = () => {
     } catch (err: any) {
       showApiError(err, 'Failed to load student details');
     }
+  };
+
+  const openEditStudent = async (row: any) => {
+    const studentId = getStudentIdFromRecord(row);
+    if (!studentId) {
+      showApiError({ response: { data: { message: 'Student ID not found' } } }, '');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await studentApi.getById(studentId);
+      const student = res.data?.data || row;
+      const currentEnrollment = student.currentEnrollment || row.currentEnrollment || {};
+
+      setEditingStudentId(student._id || studentId);
+      setEditForm({
+        firstName: student.firstName || row.firstName || '',
+        lastName: student.lastName || row.lastName || '',
+        gender: student.gender || row.gender || '',
+        dateOfBirth: student.dateOfBirth ? String(student.dateOfBirth).slice(0, 10) : '',
+        classId: currentEnrollment.classId?._id || '',
+        sectionId: currentEnrollment.sectionId?._id || '',
+        parentName: student.parentName || student.parentUserId?.name || '',
+        parentPhone: student.parentPhone || student.parentUserId?.phone || '',
+        parentEmail: student.parentEmail || student.parentUserId?.email || '',
+        address: student.address || '',
+        rollNumber: currentEnrollment.rollNumber ? String(currentEnrollment.rollNumber) : '',
+      });
+      setEditDialog(true);
+    } catch (err: any) {
+      showApiError(err, 'Failed to load student for editing');
+    }
+    setLoading(false);
+  };
+
+  const handleSaveStudentEdit = async () => {
+    if (!editingStudentId) {
+      showApiError({ response: { data: { message: 'Student ID is missing' } } }, '');
+      return;
+    }
+    if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
+      showApiError({ response: { data: { message: 'First name and last name are required' } } }, '');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload: Record<string, unknown> = {
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim(),
+        gender: editForm.gender || undefined,
+        dateOfBirth: editForm.dateOfBirth || undefined,
+        classId: editForm.classId || undefined,
+        sectionId: editForm.sectionId || undefined,
+        parentName: editForm.parentName || undefined,
+        parentPhone: editForm.parentPhone || undefined,
+        parentEmail: editForm.parentEmail || undefined,
+        address: editForm.address || undefined,
+      };
+
+      if (editForm.rollNumber) {
+        payload.rollNumber = parseInt(editForm.rollNumber);
+      }
+
+      const res = await studentApi.update(editingStudentId, payload);
+      showApiSuccess(res, 'Student profile updated successfully.');
+      setEditDialog(false);
+      setEditingStudentId('');
+      fetchAdmitted();
+    } catch (err: any) {
+      showApiError(err, 'Failed to update student profile');
+    }
+    setLoading(false);
   };
 
   const selectField = (name: string, value: string, onChange: (e: any) => void, options: { value: string; label: string }[], required = false) => (
@@ -250,6 +350,8 @@ const StudentAdmission = () => {
     { key: 'gender', label: 'Gender' },
     { key: 'bloodGroup', label: 'Blood Group', render: (_: any, row: any) => row.bloodGroup || '-' },
     { key: 'currentEnrollment', label: 'Class', render: (_: any, row: any) => row.currentEnrollment?.classId?.name || '-' },
+    { key: 'currentEnrollmentSection', label: 'Section', render: (_: any, row: any) => row.currentEnrollment?.sectionId?.name || '-' },
+    { key: 'currentEnrollmentRoll', label: 'Roll No.', render: (_: any, row: any) => row.currentEnrollment?.rollNumber || '-' },
     { key: 'address', label: 'Address', render: (_: any, row: any) => row.address || '-' },
     { key: 'status', label: 'Status', render: (v: string) => (
       <Badge variant={v === 'completed' ? 'default' : 'secondary'}>{v}</Badge>
@@ -364,9 +466,14 @@ const StudentAdmission = () => {
             loading={admittedLoading}
             searchPlaceholder="Search admitted students..."
             actions={(row) => (
-              <Button size="sm" variant="ghost" onClick={() => viewDetail(row._id)}>
-                <Eye className="h-4 w-4 mr-1" /> View
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" variant="ghost" onClick={() => openEditStudent(row)}>
+                  <Edit className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => viewDetail(getStudentIdFromRecord(row))}>
+                  <Eye className="h-4 w-4 mr-1" /> View
+                </Button>
+              </div>
             )}
           />
         </TabsContent>
@@ -419,6 +526,30 @@ const StudentAdmission = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT STUDENT DIALOG */}
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Edit Student Profile</DialogTitle></DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2"><Label>First Name *</Label><Input value={editForm.firstName} onChange={e => setEditForm({ ...editForm, firstName: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Last Name *</Label><Input value={editForm.lastName} onChange={e => setEditForm({ ...editForm, lastName: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Gender</Label>{selectField('gender', editForm.gender, e => setEditForm({ ...editForm, gender: e.target.value }), GENDER_OPTIONS.map(g => ({ value: g, label: g })))}</div>
+            <div className="space-y-2"><Label>Date of Birth</Label><Input type="date" value={editForm.dateOfBirth} onChange={e => setEditForm({ ...editForm, dateOfBirth: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Class</Label>{selectField('classId', editForm.classId, e => setEditForm({ ...editForm, classId: e.target.value, sectionId: '' }), classes.map(c => ({ value: c._id, label: c.name })))}</div>
+            <div className="space-y-2"><Label>Section</Label>{selectField('sectionId', editForm.sectionId, e => setEditForm({ ...editForm, sectionId: e.target.value }), getSectionsForClass(editForm.classId).map(s => ({ value: s._id, label: s.name })))}</div>
+            <div className="space-y-2"><Label>Roll Number</Label><Input type="number" value={editForm.rollNumber} onChange={e => setEditForm({ ...editForm, rollNumber: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Parent Name</Label><Input value={editForm.parentName} onChange={e => setEditForm({ ...editForm, parentName: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Parent Phone</Label><Input value={editForm.parentPhone} onChange={e => setEditForm({ ...editForm, parentPhone: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Parent Email</Label><Input type="email" value={editForm.parentEmail} onChange={e => setEditForm({ ...editForm, parentEmail: e.target.value })} /></div>
+            <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Input value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveStudentEdit} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
