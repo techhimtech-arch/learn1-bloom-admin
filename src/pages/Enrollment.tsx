@@ -176,12 +176,12 @@ const Enrollment = () => {
         _id: item._id,
         studentName: getStudentDisplayName(item.studentId),
         admissionNumber: item.studentId?.admissionNumber || item.admissionNumber || '-',
-        academicYearName: getDisplayName(item.academicYearId, '-'),
+        // academicYearName: getDisplayName(item.academicYearId, '-'),
         className: getDisplayName(item.classId, '-'),
         sectionName: getDisplayName(item.sectionId, '-'),
         rollNumber: item.rollNumber ?? '-',
         status: item.status || 'ENROLLED',
-        schoolName: getDisplayName(item.schoolId, '-'),
+        // schoolName: getDisplayName(item.schoolId, '-'),
         raw: item,
       }));
       setClassEnrollments(rows);
