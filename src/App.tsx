@@ -40,7 +40,6 @@ const Profile = lazy(() => import("@/pages/Profile"));
 const SessionManagement = lazy(() => import("@/pages/SessionManagement"));
 
 const ExamManagement = lazy(() => import("@/pages/ExamManagement"));
-const ExamSubjectPapers = lazy(() => import("@/pages/ExamSubjectPapers"));
 const MarksEntry = lazy(() => import("@/pages/MarksEntry"));
 const ResultDashboard = lazy(() => import("@/pages/ResultDashboard"));
 const StudentResults = lazy(() => import("@/pages/StudentResults"));
@@ -176,7 +175,6 @@ const AppContent = () => {
             
             {/* Exam Routes */}
             <Route path="/exams" element={<ExamManagement />} />
-            <Route path="/exams/:examId/papers" element={<ExamSubjectPapers />} />
             <Route path="/exams/:examId/marks" element={<MarksEntry />} />
             <Route path="/exams/:examId/results" element={<ResultDashboard />} />
             

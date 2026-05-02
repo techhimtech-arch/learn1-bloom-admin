@@ -24,7 +24,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 const examSchema = z.object({
   name: z.string().min(1, 'Exam name is required'),
   examType: z.string().min(1, 'Exam type is required'),
-  classId: z.string().min(1, 'Class is required'),
+  classes: z.array(z.string()).min(1, 'At least one class is required'),
   sections: z.array(z.string()).min(1, 'At least one section is required'),
   sessionId: z.string().min(1, 'Session is required'),
   startDate: z.string().min(1, 'Start date is required'),
@@ -49,7 +49,7 @@ interface Exam {
   id: string;
   name: string;
   examType: string;
-  classId: string | { _id: string; id?: string };
+  classes?: string[];
   sections?: string[];
   sectionId?: string | { _id: string; id?: string };
   sessionId?: string | { _id: string; id?: string };
@@ -100,7 +100,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
     defaultValues: {
       name: '',
       examType: '',
-      classId: '',
+      classes: [],
       sections: [],
       sessionId: '',
       startDate: '',
@@ -135,26 +135,33 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
     },
   });
 
-  const selectedClassId = form.watch('classId');
+  const selectedClassIds = form.watch('classes') as string[];
 
   const { data: classSectionsData } = useQuery({
-    queryKey: ['sections', 'class', selectedClassId],
+    queryKey: ['sections', 'classes', ...(selectedClassIds || [])],
     queryFn: async () => {
-      if (!selectedClassId) return { data: [] };
-      const response = await sectionApi.getByClass(selectedClassId);
-      return response.data;
+      if (!selectedClassIds || selectedClassIds.length === 0) return { data: [] };
+      const responses = await Promise.all(selectedClassIds.map((c) => sectionApi.getByClass(c)));
+      const lists = responses.flatMap((r: any) => (r?.data?.data || r?.data || []));
+      // unique by _id
+      const map: Record<string, any> = {};
+      lists.forEach((s: any) => { map[s._id || s.id] = s; });
+      return { data: Object.values(map) };
     },
-    enabled: !!selectedClassId,
+    enabled: !!selectedClassIds && selectedClassIds.length > 0,
   });
 
   const { data: classSubjectsData } = useQuery({
-    queryKey: ['subjects', 'class', selectedClassId],
+    queryKey: ['subjects', 'classes', ...(selectedClassIds || [])],
     queryFn: async () => {
-      if (!selectedClassId) return { data: [] };
-      const response = await subjectApi.getByClass(selectedClassId);
-      return response.data;
+      if (!selectedClassIds || selectedClassIds.length === 0) return { data: [] };
+      const responses = await Promise.all(selectedClassIds.map((c) => subjectApi.getByClass(c)));
+      const lists = responses.flatMap((r: any) => (r?.data?.data || r?.data || []));
+      const map: Record<string, any> = {};
+      lists.forEach((s: any) => { map[s._id || s.id] = s; });
+      return { data: Object.values(map) };
     },
-    enabled: !!selectedClassId,
+    enabled: !!selectedClassIds && selectedClassIds.length > 0,
   });
 
   useEffect(() => {
@@ -165,7 +172,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       form.reset({
         name: exam.name,
         examType: exam.examType,
-        classId: extractId(exam.classId),
+        classes: exam.classes || (exam.classId ? [extractId(exam.classId)] : []),
         sections: exam.sections || (exam.sectionId ? [extractId(exam.sectionId)] : []),
         sessionId: extractId(exam.sessionId),
         startDate: formattedStartDate,
@@ -186,14 +193,15 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   }, [exam, form, academicYearsData]);
 
   useEffect(() => {
-    if (selectedClassId && extractId(exam?.classId) !== selectedClassId) {
-      // Clear selections when class changes to prevent mismatches
+    // Clear selections when classes change to prevent mismatches
+    const examClassesFirst = Array.isArray(exam?.classes) ? (exam.classes[0] || '') : extractId(exam?.classId);
+    if (selectedClassIds && examClassesFirst !== (selectedClassIds[0] || '')) {
       if (!exam) {
         form.setValue('sections', []);
         form.setValue('subjects', [{ subject_id: '', max_marks: 100 }]);
       }
     }
-  }, [selectedClassId, form, exam]);
+  }, [selectedClassIds, form, exam]);
 
   const createMutation = useMutation({
     mutationFn: examApi.create,
@@ -229,7 +237,9 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
 
     const payload = {
       name: data.name,
-      class_id: data.classId,
+      // Support multiple classes while keeping single-class compatibility
+      classes: data.classes || [],
+      class_id: (data.classes && data.classes.length > 0) ? data.classes[0] : undefined,
       exam_type: data.examType,
       sections: data.sections,
       subjects: data.subjects,
@@ -371,24 +381,28 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
 
               <FormField
                 control={form.control}
-                name="classId"
+                name="classes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={`class-${extractId(cls)}`} value={extractId(cls)}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Classes *</FormLabel>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border p-3 rounded-md">
+                      {classesData?.data?.length === 0 && (
+                        <p className="text-sm text-muted-foreground col-span-full">No classes available.</p>
+                      )}
+                      {classesData?.data?.map((cls: any) => (
+                        <div key={`class-${extractId(cls)}`} className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={field.value?.includes(extractId(cls))}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...(field.value || []), extractId(cls)])
+                                : field.onChange((field.value || []).filter((v: string) => v !== extractId(cls)));
+                            }}
+                          />
+                          <div className="text-sm">{cls.name}</div>
+                        </div>
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

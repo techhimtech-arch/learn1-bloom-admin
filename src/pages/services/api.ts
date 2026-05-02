@@ -280,8 +280,11 @@ export const examApi = {
   lockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/lock`),
   unlockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/unlock`),
   
-  // Results
-  getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/results`, { params }),
+  // Results (Refactored API as per spec)
+  getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/results/${examId}`, { params }),
+  // Legacy getResults endpoint (kept for backward compatibility)
+  getResultsLegacy: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/results`, { params }),
+  
   getStudentResults: (studentId: string, params?: Record<string, any>) => apiClient.get(`/results/student/${studentId}`, { params }),
   getClassResults: (classId: string, params?: Record<string, any>) => apiClient.get(`/results/class/${classId}`, { params }),
   

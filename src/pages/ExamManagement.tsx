@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, FileText, Calendar, Users, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Calendar, Users, Clock, ClipboardEdit, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,7 @@ export default function ExamManagement() {
   const [deletingExam, setDeletingExam] = useState<Exam | null>(null);
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const {
     data: examsData,
@@ -254,10 +256,31 @@ export default function ExamManagement() {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => navigate(`/exams/${exam._id || exam.id}/marks`)}
+                              title="Enter Marks"
+                            >
+                              <ClipboardEdit className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard resource="exam" action="read">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/exams/${exam._id || exam.id}/results`)}
+                              title="View Results"
+                            >
+                              <BarChart2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard resource="exam" action="edit">
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleEdit({
                                 ...exam,
                                 id: exam._id || exam.id || '',
                               } as Exam)}
+                              title="Edit Exam"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
