@@ -28,22 +28,25 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 interface StudentResult {
-  id: string;
+  id?: string;
   studentId?: string;
-  examId: string;
-  totalMarks: number;
+  examId?: string;
+  enrollment_id?: string;
+  student_name?: string;
+  total?: number;
+  totalMarks?: number;
   obtainedMarks?: number;
-  maxTotalMarks: number;
+  maxTotalMarks?: number;
   percentage: number;
-  grade: string;
-  status: 'pass' | 'fail';
+  grade?: string;
+  status?: 'pass' | 'fail';
   rank?: number;
   student?: {
-    id: string;
-    name: string;
-    rollNumber: string;
-    class: string;
-    section: string;
+    id?: string;
+    name?: string;
+    rollNumber?: string;
+    class?: string;
+    section?: string;
   };
   subjectResults?: Array<{
     subjectId: string;
@@ -54,6 +57,10 @@ interface StudentResult {
     passingMarks: number;
     grade: string;
     status: 'pass' | 'fail';
+  }>;
+  subject_marks?: Array<{
+    subject_name: string;
+    marks_obtained: number;
   }>;
 }
 
@@ -222,16 +229,16 @@ export default function ResultDashboard() {
     const headers = ['Roll Number', 'Student Name', 'Class', 'Section', 'Total Marks', 'Max Marks', 'Percentage', 'Grade', 'Status'];
     const csvContent = [
       headers.join(','),
-      ...results.map(result => [
+      ...results.map((result: StudentResult) => [
         result.student?.rollNumber || '',
-        result.student?.name || '',
+        result.student_name || result.student?.name || '',
         result.student?.class || '',
         result.student?.section || '',
-        result.totalMarks,
-        result.maxTotalMarks,
-        result.percentage.toFixed(2),
-        result.grade,
-        result.status
+        result.total !== undefined ? result.total : result.totalMarks,
+        result.maxTotalMarks || '',
+        result.percentage?.toFixed(2) || '0.00',
+        result.grade || '',
+        result.status || ''
       ].join(','))
     ].join('\n');
 
@@ -455,38 +462,38 @@ export default function ResultDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {results.map((result: StudentResult, index) => (
-                    <TableRow key={result.id}>
+                  {results.map((result: StudentResult, index: number) => (
+                    <TableRow key={result.enrollment_id || result.id || index}>
                       <TableCell>
                         <div className="font-medium">
                           {result.rank || index + 1}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{result.student?.name || '-'}</div>
+                        <div className="font-medium">{result.student_name || result.student?.name || '-'}</div>
                       </TableCell>
                       <TableCell>
                         <span className="font-mono text-sm">{result.student?.rollNumber || '-'}</span>
                       </TableCell>
                       <TableCell>
-                        {result.student?.class} - {result.student?.section}
+                        {result.student?.class ? `${result.student.class} - ${result.student.section}` : '-'}
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {result.totalMarks} / {result.maxTotalMarks}
+                          {result.total !== undefined ? result.total : result.totalMarks} {result.maxTotalMarks ? `/ ${result.maxTotalMarks}` : ''}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{result.percentage.toFixed(1)}%</div>
+                        <div className="font-medium">{result.percentage !== undefined ? result.percentage.toFixed(1) : 0}%</div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getGradeColor(result.grade)}>
-                          {result.grade}
+                        <Badge className={getGradeColor(result.grade || 'N/A')}>
+                          {result.grade || '-'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(result.status)}>
-                          {result.status}
+                        <Badge className={getStatusColor(result.status || 'unknown')}>
+                          {result.status || '-'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

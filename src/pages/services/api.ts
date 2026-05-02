@@ -272,8 +272,10 @@ export const examApi = {
   deletePaper: (examId: string, paperId: string) => apiClient.delete(`/exams/${examId}/papers/${paperId}`),
   
   // Marks Entry
+  getStudentsForExam: (examId: string) => apiClient.get(`/exams/${examId}/students`),
   getMarks: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/marks`, { params }),
   createMarks: (examId: string, data: Record<string, unknown>) => apiClient.post(`/exams/${examId}/marks`, data),
+  bulkCreateMarks: (data: Record<string, unknown>) => apiClient.post(`/marks/bulk`, data),
   updateMarks: (examId: string, markId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/marks/${markId}`, data),
   lockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/lock`),
   unlockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/unlock`),

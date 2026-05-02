@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -15,24 +15,29 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { examApi, academicYearApi, classApi, sectionApi } from '@/pages/services/api';
+import { Checkbox } from '@/components/ui/checkbox';
+import { examApi, academicYearApi, classApi, sectionApi, subjectApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 const examSchema = z.object({
   name: z.string().min(1, 'Exam name is required'),
   examType: z.string().min(1, 'Exam type is required'),
   classId: z.string().min(1, 'Class is required'),
-  sectionId: z.string().min(1, 'Section is required'),
+  sections: z.array(z.string()).min(1, 'At least one section is required'),
   sessionId: z.string().min(1, 'Session is required'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
   status: z.enum(['DRAFT', 'SCHEDULED', 'COMPLETED', 'PUBLISHED']).default('DRAFT'),
   description: z.string().optional(),
   instructions: z.string().optional(),
-  passingPercentage: z.number().min(0).max(100).optional(),
-  duration: z.number().min(1).optional(),
+  passingPercentage: z.coerce.number().min(0).max(100).optional(),
+  duration: z.coerce.number().min(1).optional(),
+  subjects: z.array(z.object({
+    subject_id: z.string().min(1, 'Subject is required'),
+    max_marks: z.coerce.number().min(1, 'Required'),
+  })).min(1, 'At least one subject is required'),
 }).refine((data) => new Date(data.startDate) < new Date(data.endDate), {
   message: 'End date must be after start date',
   path: ['endDate'],
@@ -44,9 +49,10 @@ interface Exam {
   id: string;
   name: string;
   examType: string;
-  classId: string;
-  sectionId: string;
-  sessionId?: string;
+  classId: string | { _id: string; id?: string };
+  sections?: string[];
+  sectionId?: string | { _id: string; id?: string };
+  sessionId?: string | { _id: string; id?: string };
   startDate: string;
   endDate: string;
   status: 'DRAFT' | 'SCHEDULED' | 'COMPLETED' | 'PUBLISHED';
@@ -54,6 +60,7 @@ interface Exam {
   instructions?: string;
   passingPercentage?: number;
   duration?: number;
+  subjects?: Array<{ subject_id: string; max_marks: number }>;
 }
 
 interface ExamFormProps {
@@ -79,6 +86,12 @@ const statusOptions = [
   { value: 'PUBLISHED', label: 'Published' },
 ];
 
+function extractId(val: any): string {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  return val.id || val._id || '';
+}
+
 export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   const [open, setOpen] = useState(true);
 
@@ -88,7 +101,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       name: '',
       examType: '',
       classId: '',
-      sectionId: '',
+      sections: [],
       sessionId: '',
       startDate: '',
       endDate: '',
@@ -97,7 +110,13 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
       instructions: '',
       passingPercentage: 50,
       duration: 60,
+      subjects: [{ subject_id: '', max_marks: 100 }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'subjects',
   });
 
   const { data: academicYearsData } = useQuery({
@@ -116,15 +135,8 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
     },
   });
 
-  const { data: sectionsData } = useQuery({
-    queryKey: ['sections'],
-    queryFn: async () => {
-      const response = await sectionApi.getAll();
-      return response.data;
-    },
-  });
-
   const selectedClassId = form.watch('classId');
+
   const { data: classSectionsData } = useQuery({
     queryKey: ['sections', 'class', selectedClassId],
     queryFn: async () => {
@@ -135,35 +147,51 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
     enabled: !!selectedClassId,
   });
 
+  const { data: classSubjectsData } = useQuery({
+    queryKey: ['subjects', 'class', selectedClassId],
+    queryFn: async () => {
+      if (!selectedClassId) return { data: [] };
+      const response = await subjectApi.getByClass(selectedClassId);
+      return response.data;
+    },
+    enabled: !!selectedClassId,
+  });
+
   useEffect(() => {
     if (exam) {
+      const formattedStartDate = exam.startDate ? new Date(exam.startDate).toISOString().slice(0, 16) : '';
+      const formattedEndDate = exam.endDate ? new Date(exam.endDate).toISOString().slice(0, 16) : '';
+
       form.reset({
         name: exam.name,
         examType: exam.examType,
-        classId: exam.classId,
-        sectionId: exam.sectionId,
-        sessionId: exam.sessionId,
-        startDate: exam.startDate,
-        endDate: exam.endDate,
+        classId: extractId(exam.classId),
+        sections: exam.sections || (exam.sectionId ? [extractId(exam.sectionId)] : []),
+        sessionId: extractId(exam.sessionId),
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         status: exam.status,
         description: exam.description,
         instructions: exam.instructions,
         passingPercentage: exam.passingPercentage || 50,
         duration: exam.duration || 60,
+        subjects: exam.subjects?.length ? exam.subjects : [{ subject_id: '', max_marks: 100 }],
       });
     } else {
-      // Set default session
       const currentYear = academicYearsData?.data?.find((year: any) => year.isActive);
       if (currentYear) {
-        form.setValue('sessionId', currentYear.id || currentYear._id);
+        form.setValue('sessionId', extractId(currentYear));
       }
     }
   }, [exam, form, academicYearsData]);
 
   useEffect(() => {
-    // Reset section when class changes
-    if (selectedClassId && exam?.classId !== selectedClassId) {
-      form.setValue('sectionId', '');
+    if (selectedClassId && extractId(exam?.classId) !== selectedClassId) {
+      // Clear selections when class changes to prevent mismatches
+      if (!exam) {
+        form.setValue('sections', []);
+        form.setValue('subjects', [{ subject_id: '', max_marks: 100 }]);
+      }
     }
   }, [selectedClassId, form, exam]);
 
@@ -179,7 +207,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ExamFormData }) =>
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
       examApi.update(id, data),
     onSuccess: () => {
       toast.success('Exam updated successfully');
@@ -191,20 +219,28 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
   });
 
   const onSubmit = (data: ExamFormData) => {
-    // Format dates to ISO8601 and ensure endDate > startDate
     const startDateTime = new Date(data.startDate);
     const endDateTime = new Date(data.endDate);
-    
+
     if (endDateTime <= startDateTime) {
       toast.error('End date must be after start date');
       return;
     }
 
     const payload = {
-      ...data,
-      sessionId: data.sessionId,
-      startDate: startDateTime.toISOString(),
-      endDate: endDateTime.toISOString(),
+      name: data.name,
+      class_id: data.classId,
+      exam_type: data.examType,
+      sections: data.sections,
+      subjects: data.subjects,
+      session_id: data.sessionId,
+      start_date: startDateTime.toISOString(),
+      end_date: endDateTime.toISOString(),
+      status: data.status,
+      description: data.description,
+      instructions: data.instructions,
+      passing_percentage: data.passingPercentage,
+      duration: data.duration,
     };
 
     if (exam) {
@@ -221,13 +257,12 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
     setTimeout(onClose, 300);
   };
 
-  const filteredSections = selectedClassId 
-    ? (Array.isArray(classSectionsData?.data) ? classSectionsData.data : Array.isArray(classSectionsData) ? classSectionsData : [])
-    : (Array.isArray(sectionsData?.data) ? sectionsData.data : Array.isArray(sectionsData) ? sectionsData : []);
+  const availableSections = Array.isArray(classSectionsData?.data) ? classSectionsData.data : (Array.isArray(classSectionsData) ? classSectionsData : []);
+  const availableSubjects = Array.isArray(classSubjectsData?.data) ? classSubjectsData.data : (Array.isArray(classSubjectsData) ? classSubjectsData : []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {exam ? 'Edit Exam' : 'Create New Exam'}
@@ -263,7 +298,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Exam Type *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select exam type" />
@@ -288,7 +323,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -308,14 +343,14 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="sessionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Session *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select session" />
@@ -323,7 +358,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                       </FormControl>
                       <SelectContent>
                         {academicYearsData?.data?.map((year: any) => (
-                          <SelectItem key={`year-${year.id || year._id}`} value={year.id || year._id}>
+                          <SelectItem key={`year-${extractId(year)}`} value={extractId(year)}>
                             {year.name} {year.isActive && '(Current)'}
                           </SelectItem>
                         ))}
@@ -340,7 +375,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Class *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select class" />
@@ -348,7 +383,7 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                       </FormControl>
                       <SelectContent>
                         {classesData?.data?.map((cls: any) => (
-                          <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
+                          <SelectItem key={`class-${extractId(cls)}`} value={extractId(cls)}>
                             {cls.name}
                           </SelectItem>
                         ))}
@@ -358,31 +393,125 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
 
-              <FormField
-                control={form.control}
-                name="sectionId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Section *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select section" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {filteredSections.map((section: any) => (
-                          <SelectItem key={`section-${section.id || section._id}`} value={section.id || section._id}>
-                            {section.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="sections"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4 text-sm font-medium">Sections *</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border p-4 rounded-md">
+                    {availableSections.length === 0 && (
+                      <p className="text-sm text-muted-foreground col-span-full">No sections available or select a class first.</p>
+                    )}
+                    {availableSections.map((section: any) => (
+                      <FormField
+                        key={extractId(section)}
+                        control={form.control}
+                        name="sections"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={extractId(section)}
+                              className="flex flex-row items-center space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(extractId(section))}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, extractId(section)])
+                                      : field.onChange(
+                                          field.value?.filter((value) => value !== extractId(section))
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {section.name}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Subjects *</span>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => append({ subject_id: '', max_marks: 100 })}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Subject
+                </Button>
+              </div>
+              <div className="space-y-3">
+                 {fields.map((field, index) => (
+                   <div key={field.id} className="flex items-start gap-3">
+                     <div className="flex-1">
+                       <FormField
+                         control={form.control}
+                         name={`subjects.${index}.subject_id`}
+                         render={({ field }) => (
+                           <FormItem>
+                             <Select onValueChange={field.onChange} value={field.value}>
+                               <FormControl>
+                                 <SelectTrigger>
+                                   <SelectValue placeholder="Select Subject" />
+                                 </SelectTrigger>
+                               </FormControl>
+                               <SelectContent>
+                                  {availableSubjects.map((sub: any) => (
+                                    <SelectItem key={`sub-${extractId(sub)}`} value={extractId(sub)}>
+                                      {sub.name} {sub.code && `(${sub.code})`}
+                                    </SelectItem>
+                                  ))}
+                               </SelectContent>
+                             </Select>
+                             <FormMessage />
+                           </FormItem>
+                         )}
+                       />
+                     </div>
+                     <div className="w-32">
+                       <FormField
+                         control={form.control}
+                         name={`subjects.${index}.max_marks`}
+                         render={({ field }) => (
+                           <FormItem>
+                             <FormControl>
+                               <Input type="number" placeholder="Max Marks" {...field} />
+                             </FormControl>
+                             <FormMessage />
+                           </FormItem>
+                         )}
+                       />
+                     </div>
+                     <Button 
+                       type="button" 
+                       variant="ghost" 
+                       size="icon" 
+                       className="text-destructive h-10 w-10 shrink-0"
+                       onClick={() => remove(index)}
+                       disabled={fields.length === 1}
+                     >
+                       <Trash2 className="h-4 w-4" />
+                     </Button>
+                   </div>
+                 ))}
+                 <FormMessage>
+                    {form.formState.errors.subjects?.message}
+                 </FormMessage>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -435,7 +564,6 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                         max="100"
                         placeholder="e.g., 50"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -455,7 +583,6 @@ export function ExamForm({ exam, onClose, onSuccess }: ExamFormProps) {
                         min="1"
                         placeholder="e.g., 60"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                     </FormControl>
                     <FormMessage />
