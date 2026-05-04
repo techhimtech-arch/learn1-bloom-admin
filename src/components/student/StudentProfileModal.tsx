@@ -55,7 +55,10 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
       queryClient.invalidateQueries({ queryKey: ['linked-parents'] });
       setParentSearch('');
     },
-    onError: (err: any) => showApiError(err, 'Failed to link parent'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'This parent is already linked to the student or an error occurred.';
+      showApiError(err, msg);
+    },
   });
 
   const unlinkMutation = useMutation({

@@ -1,241 +1,303 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Link, Users, Search, Trash2, UserPlus } from 'lucide-react';
+import { Link, Users, Search, Trash2, UserPlus, Phone, Mail, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
-import { studentApi, classApi, sectionApi, parentLinkingApi, userApi } from '@/pages/services/api';
+import { studentApi, parentLinkingApi, userApi } from '@/pages/services/api';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { StudentProfileModal } from '@/components/student/StudentProfileModal';
 
 export default function ParentLinking() {
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState({ classId: '', sectionId: '', search: '' });
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('unlinked');
+  
+  // Tab A State
+  const [studentSearch, setStudentSearch] = useState('');
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+
+  // Tab B State
   const [parentSearch, setParentSearch] = useState('');
+  const [selectedParent, setSelectedParent] = useState<any>(null);
 
-  const { data: classesData } = useQuery({
-    queryKey: ['classes'],
-    queryFn: async () => (await classApi.getAll()).data,
-  });
-
-  const { data: sectionsData } = useQuery({
-    queryKey: ['sections'],
-    queryFn: async () => (await sectionApi.getAll()).data,
-  });
-
+  // Fetch all students (Audit view - ideal to have backend filter, but filtering client side for now)
   const { data: studentsData, isLoading: isLoadingStudents } = useQuery({
-    queryKey: ['students', filters.classId, filters.sectionId, filters.search],
+    queryKey: ['students-audit', studentSearch],
     queryFn: async () => {
-      const response = await studentApi.getAll(filters);
+      const response = await studentApi.getAll({ search: studentSearch, limit: 100 });
       return response.data;
     },
   });
 
-  const { data: linkedParentsData } = useQuery({
-    queryKey: ['linked-parents', selectedStudent?._id || selectedStudent?.id],
-    queryFn: async () => {
-      const id = selectedStudent?._id || selectedStudent?.id;
-      if (!id) return { data: [] };
-      return (await parentLinkingApi.getLinkedParents(id)).data;
-    },
-    enabled: !!selectedStudent,
-  });
+  const students = studentsData?.data?.users || studentsData?.data || [];
+  // For the demo, we assume students without `parents` array or specific field are unlinked.
+  // We'll show all students here and let the admin link them.
 
-  const { data: searchedParentsData } = useQuery({
-    queryKey: ['parents-search', parentSearch],
+  // Fetch Parent Search
+  const { data: searchedParentsData, isLoading: searchParentLoading } = useQuery({
+    queryKey: ['parents-search-global', parentSearch],
     queryFn: async () => {
       if (!parentSearch || parentSearch.length < 3) return { data: { users: [] } };
       return (await parentLinkingApi.searchParents({ search: parentSearch })).data;
     },
     enabled: parentSearch.length >= 3,
   });
+  const searchedParents = searchedParentsData?.data?.users || searchedParentsData?.data || [];
 
-  const linkMutation = useMutation({
-    mutationFn: (parentId: string) => {
-      const studentId = selectedStudent?._id || selectedStudent?.id;
-      return parentLinkingApi.linkParent(studentId, parentId);
+  // Fetch Students for selected Parent
+  const { data: parentStudentsData, isLoading: parentStudentsLoading } = useQuery({
+    queryKey: ['parent-students', selectedParent?._id || selectedParent?.id],
+    queryFn: async () => {
+      const id = selectedParent?._id || selectedParent?.id;
+      if (!id) return { data: [] };
+      // Depending on API, it might be: GET /parent-linking/parent/{parentId}/students
+      // We will use standard api client if the function is there, otherwise raw apiClient.
+      try {
+        const res = await parentLinkingApi.getLinkedStudents(id);
+        return res.data;
+      } catch {
+        return { data: [] };
+      }
     },
-    onSuccess: () => {
-      toast.success('Parent linked successfully');
-      queryClient.invalidateQueries({ queryKey: ['linked-parents'] });
-      setParentSearch('');
-    },
-    onError: (err: any) => handleApiError(err, 'Failed to link parent'),
+    enabled: !!selectedParent,
   });
+  const linkedStudents = parentStudentsData?.data || [];
 
-  const unlinkMutation = useMutation({
-    mutationFn: (parentId: string) => {
-      const studentId = selectedStudent?._id || selectedStudent?.id;
+  const unlinkChildMutation = useMutation({
+    mutationFn: (studentId: string) => {
+      const parentId = selectedParent?._id || selectedParent?.id;
       return parentLinkingApi.unlinkParent(studentId, parentId);
     },
     onSuccess: () => {
-      toast.success('Parent unlinked successfully');
-      queryClient.invalidateQueries({ queryKey: ['linked-parents'] });
+      toast.success('Child unlinked successfully');
+      queryClient.invalidateQueries({ queryKey: ['parent-students'] });
     },
-    onError: (err: any) => handleApiError(err, 'Failed to unlink parent'),
+    onError: (err: any) => handleApiError(err, 'Failed to unlink child'),
   });
-
-  const classes = classesData?.data || [];
-  const sections = sectionsData?.data || [];
-  const students = studentsData?.data?.users || studentsData?.data || [];
-  const linkedParents = linkedParentsData?.data || [];
-  const searchedParents = searchedParentsData?.data?.users || searchedParentsData?.data || [];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Parent Linking</h1>
-          <p className="text-muted-foreground">Link parents to their children accounts</p>
+          <h1 className="text-3xl font-bold">Family Management</h1>
+          <p className="text-muted-foreground">Audit unlinked students and manage family trees</p>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Find Students
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Input
-              placeholder="Search student by name or admission number..."
-              value={filters.search}
-              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-            />
-            <Select value={filters.classId} onValueChange={(v) => setFilters((p) => ({ ...p, classId: v, sectionId: '' }))}>
-              <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {classes.map((cls: any) => (
-                  <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>{cls.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filters.sectionId} onValueChange={(v) => setFilters((p) => ({ ...p, sectionId: v }))} disabled={!filters.classId || filters.classId === 'all'}>
-              <SelectTrigger><SelectValue placeholder="Select section" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sections</SelectItem>
-                {sections.filter((s: any) => s.classId === filters.classId || s.classId?._id === filters.classId).map((sec: any) => (
-                  <SelectItem key={sec._id || sec.id} value={sec._id || sec.id}>{sec.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="unlinked"><Users className="h-4 w-4 mr-2" /> Unlinked Students</TabsTrigger>
+          <TabsTrigger value="family-tree"><Link className="h-4 w-4 mr-2" /> Family Tree Search</TabsTrigger>
+        </TabsList>
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Admission No</TableHead>
-                  <TableHead>Class & Section</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingStudents ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">Loading...</TableCell></TableRow>
-                ) : students.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No students found.</TableCell></TableRow>
-                ) : (
-                  students.map((student: any) => (
-                    <TableRow key={student._id || student.id}>
-                      <TableCell className="font-medium">{student.name || `${student.firstName} ${student.lastName}`}</TableCell>
-                      <TableCell>{student.admissionNumber || '-'}</TableCell>
-                      <TableCell>{student.class?.name || '-'} - {student.section?.name || '-'}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => { setSelectedStudent(student); setLinkModalOpen(true); }}>
-                          <Link className="h-4 w-4 mr-2" />
-                          Manage Parents
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Manage Parents for {selectedStudent?.name || `${selectedStudent?.firstName || ''} ${selectedStudent?.lastName || ''}`}</DialogTitle>
-            <DialogDescription>View linked parents or search to link a new parent account.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 mt-4">
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2"><Users className="h-4 w-4" /> Linked Parents</h3>
-              {linkedParents.length === 0 ? (
-                <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">No parents linked yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {linkedParents.map((parent: any) => (
-                    <div key={parent._id || parent.id} className="flex items-center justify-between bg-muted/50 p-3 rounded-md border">
-                      <div>
-                        <div className="font-medium">{parent.name || `${parent.firstName} ${parent.lastName}`}</div>
-                        <div className="text-sm text-muted-foreground">{parent.email} • {parent.phone || '-'}</div>
-                      </div>
-                      <Button variant="destructive" size="sm" onClick={() => unlinkMutation.mutate(parent._id || parent.id)} disabled={unlinkMutation.isPending}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2"><UserPlus className="h-4 w-4" /> Link New Parent</h3>
-              <div className="flex gap-2">
+        {/* TAB A: Unlinked Students Audit */}
+        <TabsContent value="unlinked" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Students Audit</CardTitle>
+              <CardDescription>Search and link parents to students</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4 mb-6 max-w-md">
                 <Input
-                  placeholder="Search parent by name, email, or phone (min 3 chars)..."
-                  value={parentSearch}
-                  onChange={(e) => setParentSearch(e.target.value)}
-                  className="flex-1"
+                  placeholder="Search student by name or admission number..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
                 />
               </div>
 
-              {parentSearch.length >= 3 && (
-                <div className="mt-4 space-y-2">
-                  {searchedParents.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No matching parents found.</p>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Admission No</TableHead>
+                      <TableHead>Class & Section</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingStudents ? (
+                      <TableRow><TableCell colSpan={4} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+                    ) : students.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No students found.</TableCell></TableRow>
+                    ) : (
+                      students.map((student: any) => (
+                        <TableRow key={student._id || student.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8"><AvatarFallback className="text-xs bg-primary/10 text-primary">{(student.firstName?.[0] || student.name?.[0] || 'S').toUpperCase()}</AvatarFallback></Avatar>
+                              <span className="font-medium">{student.name || `${student.firstName} ${student.lastName}`}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{student.admissionNumber || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {student.class?.name || student.currentEnrollment?.classId?.name || '-'} {student.section?.name || student.currentEnrollment?.sectionId?.name || ''}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="default" size="sm" onClick={() => { setSelectedStudentId(student._id || student.id); setProfileModalOpen(true); }}>
+                              <Link className="h-4 w-4 mr-2" /> Link Parent
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB B: Family Tree Search */}
+        <TabsContent value="family-tree" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Left Col: Search & Parent List */}
+            <div className="md:col-span-1 space-y-4">
+              <Card className="h-[600px] flex flex-col">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2"><Search className="h-4 w-4" /> Find Parent</CardTitle>
+                  <Input
+                    placeholder="Search by name, email, or phone..."
+                    value={parentSearch}
+                    onChange={(e) => setParentSearch(e.target.value)}
+                    className="mt-2"
+                  />
+                </CardHeader>
+                <CardContent className="flex-1 overflow-y-auto">
+                  {parentSearch.length < 3 ? (
+                    <div className="text-center text-sm text-muted-foreground py-8">
+                      Type at least 3 characters to search for parents
+                    </div>
+                  ) : searchParentLoading ? (
+                    <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+                  ) : searchedParents.length === 0 ? (
+                    <div className="text-center text-sm text-muted-foreground py-8">
+                      No parents found.
+                    </div>
                   ) : (
-                    searchedParents.map((parent: any) => {
-                      const isLinked = linkedParents.some((p: any) => (p._id || p.id) === (parent._id || parent.id));
-                      return (
-                        <div key={parent._id || parent.id} className="flex items-center justify-between border p-3 rounded-md">
-                          <div>
-                            <div className="font-medium">{parent.name || `${parent.firstName} ${parent.lastName}`}</div>
-                            <div className="text-sm text-muted-foreground">{parent.email}</div>
+                    <div className="space-y-2">
+                      {searchedParents.map((parent: any) => (
+                        <div 
+                          key={parent._id || parent.id} 
+                          className={`p-3 rounded-lg border cursor-pointer transition-colors ${selectedParent?._id === (parent._id || parent.id) ? 'bg-primary/10 border-primary shadow-sm' : 'hover:bg-muted'}`}
+                          onClick={() => setSelectedParent(parent)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-primary/10 text-primary">{(parent.firstName?.[0] || parent.name?.[0] || 'P').toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="overflow-hidden">
+                              <div className="font-medium truncate">{parent.name || `${parent.firstName} ${parent.lastName}`}</div>
+                              <div className="text-xs text-muted-foreground truncate">{parent.email}</div>
+                            </div>
                           </div>
-                          <Button
-                            size="sm"
-                            disabled={isLinked || linkMutation.isPending}
-                            onClick={() => linkMutation.mutate(parent._id || parent.id)}
-                          >
-                            {isLinked ? 'Linked' : 'Link'}
-                          </Button>
                         </div>
-                      );
-                    })
+                      ))}
+                    </div>
                   )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Col: Parent Details & Linked Children */}
+            <div className="md:col-span-2">
+              {!selectedParent ? (
+                <Card className="h-[600px] flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <p>Select a parent to view their family tree</p>
+                  </div>
+                </Card>
+              ) : (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader className="bg-muted/30 border-b">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16 shadow-sm border-2 border-background">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                            {(selectedParent.firstName?.[0] || selectedParent.name?.[0] || 'P').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-2xl">{selectedParent.name || `${selectedParent.firstName} ${selectedParent.lastName}`}</CardTitle>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {selectedParent.email}</span>
+                            {selectedParent.phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {selectedParent.phone}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        Linked Children
+                        <Badge variant="secondary" className="ml-2 rounded-full">{linkedStudents.length}</Badge>
+                      </h3>
+                      
+                      {parentStudentsLoading ? (
+                        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+                      ) : linkedStudents.length === 0 ? (
+                        <div className="text-center py-8 bg-muted/30 rounded-lg border border-dashed">
+                          <p className="text-muted-foreground">This parent has no linked children.</p>
+                        </div>
+                      ) : (
+                        <div className="grid gap-4">
+                          {linkedStudents.map((student: any) => (
+                            <div key={student._id || student.id} className="flex items-center justify-between p-4 rounded-lg border bg-card shadow-sm">
+                              <div className="flex items-center gap-4">
+                                <Avatar className="h-12 w-12 border">
+                                  <AvatarFallback className="bg-secondary/10 text-secondary font-medium">
+                                    {(student.firstName?.[0] || student.name?.[0] || 'S').toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-semibold text-base">{student.name || `${student.firstName} ${student.lastName}`}</div>
+                                  <div className="text-sm text-muted-foreground flex items-center gap-3 mt-1">
+                                    <span className="bg-muted px-2 py-0.5 rounded text-xs font-medium border">Adm: {student.admissionNumber || '-'}</span>
+                                    <span>Class: {student.class?.name || student.currentEnrollment?.classId?.name || '-'}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to unlink ${student.firstName} from this parent?`)) {
+                                    unlinkChildMutation.mutate(student._id || student.id);
+                                  }
+                                }}
+                                disabled={unlinkChildMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Unlink
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </TabsContent>
+      </Tabs>
+
+      {/* Shared Student Profile Modal for Linking */}
+      <StudentProfileModal
+        open={profileModalOpen}
+        onOpenChange={(v) => setProfileModalOpen(v)}
+        studentId={selectedStudentId}
+      />
     </div>
   );
 }
