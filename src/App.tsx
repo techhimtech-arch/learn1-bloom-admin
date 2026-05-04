@@ -27,6 +27,7 @@ import NotFound from "@/pages/NotFound";
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Enrollment = lazy(() => import("@/pages/Enrollment"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
+const ParentLinking = lazy(() => import("@/pages/ParentLinking"));
 const StudentAdmission = lazy(() => import("@/pages/StudentAdmission"));
 const ClassManagement = lazy(() => import("@/pages/ClassManagement"));
 const AttendanceManagement = lazy(() => import("@/pages/AttendanceManagement"));
@@ -160,6 +161,7 @@ const AppContent = () => {
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/users" element={<UserManagement />} />
+            <Route path="/parent-linking" element={<ParentLinking />} />
             <Route path="/admission" element={<StudentAdmission />} />
             <Route path="/enrollment" element={<Enrollment />} />
             <Route path="/classes" element={<ClassManagement />} />

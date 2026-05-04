@@ -6,8 +6,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, XCircle, Award } from 'lucide-react';
+import { CheckCircle, XCircle, Award, Printer } from 'lucide-react';
 
 interface Result {
   id?: string;
@@ -72,13 +73,24 @@ export function ResultDetailModal({ result, onClose }: ResultDetailModalProps) {
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Result Details</DialogTitle>
-          <DialogDescription>
-            Detailed breakdown of results for {result.student_name || result.student?.name || 'Student'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto print-area">
+        <div className="flex items-center justify-between print:hidden">
+          <DialogHeader>
+            <DialogTitle>Result Details</DialogTitle>
+            <DialogDescription>
+              Detailed breakdown of results for {result.student_name || result.student?.name || 'Student'}
+            </DialogDescription>
+          </DialogHeader>
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print
+          </Button>
+        </div>
+        {/* Print-only header */}
+        <div className="hidden print:block mb-6 text-center">
+          <h1 className="text-2xl font-bold">Student Report Card</h1>
+          <p className="text-muted-foreground">Official Academic Result</p>
+        </div>
 
         <div className="space-y-6">
           {/* Student Information */}

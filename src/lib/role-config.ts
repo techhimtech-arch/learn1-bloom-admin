@@ -36,7 +36,7 @@ export interface NavItem {
 // Which roles can access which routes
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
   school_admin: [
-    '/', '/users', '/admission', '/enrollment', '/classes', '/subjects',
+    '/', '/users', '/parent-linking', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments', '/timetable',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
     '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
@@ -66,6 +66,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
 const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'User Management', url: '/users', icon: Users },
+  { title: 'Parent Linking', url: '/parent-linking', icon: UsersRound },
   { title: 'Student Admission', url: '/admission', icon: GraduationCap },
   { title: 'Student Enrollment', url: '/enrollment', icon: GraduationCap },
   { title: 'Academic Years', url: '/academic-years', icon: CalendarDays },

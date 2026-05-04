@@ -20,6 +20,8 @@ import { announcementApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Upload, X } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const announcementSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(200),
@@ -199,11 +201,14 @@ export function AnnouncementForm({
                 <FormItem>
                   <FormLabel>Content *</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter your announcement content (min 10 chars)"
-                      rows={4}
-                      {...field}
-                    />
+                    <div className="bg-background">
+                      <ReactQuill
+                        theme="snow"
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="min-h-[150px]"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

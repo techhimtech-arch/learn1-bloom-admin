@@ -58,6 +58,12 @@ apiClient.interceptors.response.use(
       // Route-level access is enforced by ProtectedRoute + role-config.
       // Silently reject so individual queries can handle the error locally.
     }
+    // Handle 500 Server Error globally
+    if (error.response?.status >= 500) {
+      import('@/lib/api-toast').then(({ showApiError }) => {
+        showApiError(error, 'Something went wrong on our end. Please try again later.');
+      });
+    }
     return Promise.reject(error);
   },
 );
@@ -483,6 +489,18 @@ export const studentApi = {
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/students/${id}`, data),
   getByClass: (classId: string, sectionId?: string) => 
     apiClient.get(`/students/class/${classId}${sectionId ? `?sectionId=${sectionId}` : ''}`),
+};
+
+// ── Parent Linking API ─────────────────────────────────────
+export const parentLinkingApi = {
+  linkParent: (studentId: string, parentId: string) => 
+    apiClient.post(`/parent-linking/${studentId}/link/${parentId}`),
+  unlinkParent: (studentId: string, parentId: string) => 
+    apiClient.post(`/parent-linking/${studentId}/unlink/${parentId}`),
+  getLinkedParents: (studentId: string) => 
+    apiClient.get(`/parent-linking/${studentId}/parents`),
+  searchParents: (params: { search: string }) => 
+    apiClient.get(`/users`, { params: { ...params, role: 'parent' } }),
 };
 
 // ── Certificate API ─────────────────────────────────────
