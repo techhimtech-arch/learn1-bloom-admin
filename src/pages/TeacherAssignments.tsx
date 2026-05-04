@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, BookOpen, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Teacher { _id: string; name: string; email: string; }
 interface ClassItem { _id: string; name: string; }
@@ -157,7 +158,16 @@ const TeacherAssignments = () => {
                       <Label>Teacher</Label>
                       <Select value={subjectForm.teacherId} onValueChange={v => setSubjectForm(p => ({ ...p, teacherId: v }))}>
                         <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
-                        <SelectContent>{teachers.map(t => <SelectItem key={t._id} value={t._id}>{t.name}</SelectItem>)}</SelectContent>
+                        <SelectContent>
+                          {teachers.map(t => (
+                            <SelectItem key={t._id} value={t._id}>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6"><AvatarFallback className="text-[10px]">{t.name.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                                {t.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
@@ -211,7 +221,12 @@ const TeacherAssignments = () => {
                   <TableBody>
                     {assignments.map(a => (
                       <TableRow key={a._id}>
-                        <TableCell className="font-medium">{getName(a.teacherId)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 font-medium">
+                            <Avatar className="h-7 w-7"><AvatarFallback className="text-xs">{getName(a.teacherId).substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                            {getName(a.teacherId)}
+                          </div>
+                        </TableCell>
                         <TableCell>{getName(a.classId)}</TableCell>
                         <TableCell>{getName(a.sectionId)}</TableCell>
                         <TableCell>{getName(a.subjectId)}</TableCell>
@@ -252,7 +267,16 @@ const TeacherAssignments = () => {
                       <Label>Teacher</Label>
                       <Select value={ctForm.teacherId} onValueChange={v => setCtForm(p => ({ ...p, teacherId: v }))}>
                         <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
-                        <SelectContent>{teachers.map(t => <SelectItem key={t._id} value={t._id}>{t.name}</SelectItem>)}</SelectContent>
+                        <SelectContent>
+                          {teachers.map(t => (
+                            <SelectItem key={t._id} value={t._id}>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6"><AvatarFallback className="text-[10px]">{t.name.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                                {t.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
@@ -309,7 +333,12 @@ const TeacherAssignments = () => {
                   <TableBody>
                     {ctAssignments.map(a => (
                       <TableRow key={a._id}>
-                        <TableCell className="font-medium">{getName(a.teacherId)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 font-medium">
+                            <Avatar className="h-7 w-7"><AvatarFallback className="text-xs">{getName(a.teacherId).substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                            {getName(a.teacherId)}
+                          </div>
+                        </TableCell>
                         <TableCell>{getName(a.classId)}</TableCell>
                         <TableCell>{getName(a.sectionId)}</TableCell>
                         <TableCell>{a.academicYear || '—'}</TableCell>

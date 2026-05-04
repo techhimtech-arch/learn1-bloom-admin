@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { admissionApi, classApi, sectionApi, academicYearApi } from '@/pages/services/api';
+import { admissionApi, classApi, sectionApi, academicYearApi, studentApi } from '@/pages/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
+import Confetti from 'react-confetti';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
 const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -42,6 +44,7 @@ interface FullAdmissionFormProps {
 
 export function FullAdmissionForm({ onSuccess }: FullAdmissionFormProps) {
   const queryClient = useQueryClient();
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const { data: academicYearsResp } = useQuery({ queryKey: ['academic-years'], queryFn: academicYearApi.getAll });
   const { data: classesResp } = useQuery({ queryKey: ['classes'], queryFn: classApi.getAll });
@@ -61,10 +64,28 @@ export function FullAdmissionForm({ onSuccess }: FullAdmissionFormProps) {
   });
 
   const selectedClassId = form.watch('classId');
+  const selectedSectionId = form.watch('sectionId');
+  
   const availableSections = sections.filter((s: any) => {
     const cId = typeof s.classId === 'object' ? s.classId._id : s.classId;
     return cId === selectedClassId;
   });
+
+  // Auto-generate roll number wow factor
+  useEffect(() => {
+    if (selectedClassId && selectedSectionId) {
+      studentApi.getByClass(selectedClassId, selectedSectionId)
+        .then(res => {
+          const students = res.data?.data?.users || res.data?.data || [];
+          const currentMax = students.reduce((max: number, student: any) => {
+            const roll = parseInt(student.currentEnrollment?.rollNumber || student.rollNumber || '0');
+            return roll > max ? roll : max;
+          }, 0);
+          form.setValue('rollNumber', String(currentMax + 1));
+        })
+        .catch(console.error);
+    }
+  }, [selectedClassId, selectedSectionId, form]);
 
   const mutation = useMutation({
     mutationFn: (data: FullFormValues) => {
@@ -75,6 +96,8 @@ export function FullAdmissionForm({ onSuccess }: FullAdmissionFormProps) {
     },
     onSuccess: (res) => {
       showApiSuccess(res, 'Student admitted successfully.');
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ['full-admissions'] });
       if (onSuccess) onSuccess();
@@ -89,7 +112,9 @@ export function FullAdmissionForm({ onSuccess }: FullAdmissionFormProps) {
   };
 
   return (
-    <Card>
+    <>
+      {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
+      <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <UserPlus className="h-5 w-5 text-primary" /> Full Admission Form
@@ -218,5 +243,6 @@ export function FullAdmissionForm({ onSuccess }: FullAdmissionFormProps) {
         </Form>
       </CardContent>
     </Card>
+    </>
   );
 }

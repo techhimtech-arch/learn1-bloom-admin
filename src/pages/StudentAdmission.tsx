@@ -13,6 +13,7 @@ import { PartialAdmissionForm } from '@/components/admission/PartialAdmissionFor
 import { FullAdmissionForm } from '@/components/admission/FullAdmissionForm';
 import { EditStudentDialog } from '@/components/admission/EditStudentDialog';
 import { CompletePartialDialog } from '@/components/admission/CompletePartialDialog';
+import { StudentProfileModal } from '@/components/student/StudentProfileModal';
 
 const getStudentIdFromRecord = (record: any) =>
   record?.studentId?._id || record?.studentId || record?._id || '';
@@ -25,9 +26,7 @@ export default function StudentAdmission() {
   const [editDialog, setEditDialog] = useState<{ open: boolean; studentId: string | null; initialData: any | null }>({ open: false, studentId: null, initialData: null });
   
   // Detached Detail View State
-  const [detailDialog, setDetailDialog] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [studentDetail, setStudentDetail] = useState<any>(null);
+  const [profileModal, setProfileModal] = useState<{ open: boolean; studentId: string | null }>({ open: false, studentId: null });
 
   // Queries
   const { data: partialData, isLoading: partialLoading, refetch: refetchPartial } = useQuery({
@@ -52,16 +51,8 @@ export default function StudentAdmission() {
   const admittedList = Array.isArray(admittedData) ? admittedData : [];
 
   // Handlers
-  const viewDetail = async (id: string) => {
-    setDetailLoading(true);
-    try {
-      const res = await admissionApi.getById(id);
-      setStudentDetail(res.data?.data?.studentProfile || res.data?.data);
-      setDetailDialog(true);
-    } catch (err: any) {
-      showApiError(err, 'Failed to load student details');
-    }
-    setDetailLoading(false);
+  const viewDetail = (id: string) => {
+    setProfileModal({ open: true, studentId: id });
   };
 
   const openEditStudent = async (row: any) => {
@@ -147,8 +138,8 @@ export default function StudentAdmission() {
                 <Button size="sm" variant="ghost" onClick={() => openEditStudent(row)}>
                   <Edit className="h-4 w-4 mr-1" /> Edit
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => viewDetail(getStudentIdFromRecord(row))} disabled={detailLoading}>
-                  {detailLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Eye className="h-4 w-4 mr-1" />}
+                <Button size="sm" variant="ghost" onClick={() => viewDetail(getStudentIdFromRecord(row))}>
+                  <Eye className="h-4 w-4 mr-1" />
                   View
                 </Button>
               </div>
@@ -174,36 +165,11 @@ export default function StudentAdmission() {
       />
 
       {/* STUDENT DETAIL DIALOG */}
-      <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Student Details</DialogTitle></DialogHeader>
-          {studentDetail && (
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <div><span className="text-muted-foreground">Name:</span> {studentDetail.firstName} {studentDetail.lastName}</div>
-                <div><span className="text-muted-foreground">Gender:</span> {studentDetail.gender}</div>
-                <div><span className="text-muted-foreground">DOB:</span> {studentDetail.dateOfBirth ? new Date(studentDetail.dateOfBirth).toLocaleDateString() : '-'}</div>
-                <div><span className="text-muted-foreground">Blood Group:</span> {studentDetail.bloodGroup || '-'}</div>
-                <div><span className="text-muted-foreground">Email:</span> {studentDetail.email || '-'}</div>
-                <div><span className="text-muted-foreground">Phone:</span> {studentDetail.phone || '-'}</div>
-                <div><span className="text-muted-foreground">Admission No:</span> {studentDetail.admissionNumber || '-'}</div>
-                <div><span className="text-muted-foreground">Status:</span> <Badge variant={studentDetail.status === 'completed' ? 'default' : 'secondary'}>{studentDetail.status}</Badge></div>
-                <div className="col-span-2"><span className="text-muted-foreground">Address:</span> {studentDetail.address || '-'}</div>
-                {studentDetail.currentEnrollment && (
-                  <>
-                    <div><span className="text-muted-foreground">Class:</span> {studentDetail.currentEnrollment.classId?.name || '-'}</div>
-                    <div><span className="text-muted-foreground">Section:</span> {studentDetail.currentEnrollment.sectionId?.name || '-'}</div>
-                    <div><span className="text-muted-foreground">Roll No:</span> {studentDetail.currentEnrollment.rollNumber || '-'}</div>
-                  </>
-                )}
-                {studentDetail.parentUserId && (
-                  <div className="col-span-2"><span className="text-muted-foreground">Parent:</span> {studentDetail.parentUserId.name || studentDetail.parentUserId.email || '-'}</div>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <StudentProfileModal
+        open={profileModal.open}
+        onOpenChange={(v) => setProfileModal({ ...profileModal, open: v })}
+        studentId={profileModal.studentId}
+      />
     </div>
   );
 }

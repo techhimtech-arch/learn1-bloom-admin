@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +50,9 @@ const ClassManagement = () => {
   const [classDialogOpen, setClassDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ClassItem | null>(null);
   const [className, setClassName] = useState('');
+  const [sectionsInput, setSectionsInput] = useState('');
   const [classSaving, setClassSaving] = useState(false);
+  const navigate = useNavigate();
 
   // Section dialog
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
@@ -114,17 +118,50 @@ const ClassManagement = () => {
     if (!className.trim()) return;
     setClassSaving(true);
     try {
+      let createdClassId = editingClass?._id;
+      
       if (editingClass) {
         const res = await classApi.update(editingClass._id, { name: className.trim() });
         showApiSuccess(res.data, 'Class updated successfully');
       } else {
         const res = await classApi.create({ name: className.trim() });
-        showApiSuccess(res.data, 'Class created successfully');
+        createdClassId = res.data?.data?._id || res.data?.data?.id;
+        
+        // Auto create sections if provided
+        if (sectionsInput.trim() && createdClassId) {
+          const sectionNames = sectionsInput.split(',').map(s => s.trim()).filter(s => s);
+          const currentYearId = academicYears.find(y => y.isCurrent || y.isActive)?._id;
+          
+          if (currentYearId) {
+            await Promise.all(
+              sectionNames.map(name => 
+                sectionApi.create({
+                  name,
+                  classId: createdClassId,
+                  academicSessionId: currentYearId,
+                  capacity: 40
+                })
+              )
+            );
+          }
+        }
+        
+        toast.success('Class created successfully', {
+          action: {
+            label: 'Assign Teacher',
+            onClick: () => navigate('/teacher-assignments')
+          }
+        });
       }
+      
       setClassDialogOpen(false);
       setEditingClass(null);
       setClassName('');
+      setSectionsInput('');
       fetchClasses();
+      if (!editingClass && sectionsInput.trim()) {
+        fetchSections();
+      }
     } catch (err) {
       showApiError(err);
     } finally {
@@ -356,6 +393,13 @@ const ClassManagement = () => {
               <Label>Class Name <span className="text-destructive">*</span></Label>
               <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="e.g. Class 10" />
             </div>
+            {!editingClass && (
+              <div className="space-y-2">
+                <Label>Sections (comma separated) <span className="text-muted-foreground font-normal ml-2">Optional</span></Label>
+                <Input value={sectionsInput} onChange={e => setSectionsInput(e.target.value)} placeholder="e.g. A, B, C" />
+                <p className="text-xs text-muted-foreground">Auto-generates these sections for the new class</p>
+              </div>
+            )}
             <Button onClick={handleSaveClass} className="w-full" disabled={classSaving}>
               {classSaving ? 'Saving...' : editingClass ? 'Update Class' : 'Create Class'}
             </Button>

@@ -226,6 +226,11 @@ const TeacherAttendance = () => {
     });
   };
 
+  const presentCount = attendanceRecords.filter(r => r.status === 'Present').length;
+  const absentCount = attendanceRecords.filter(r => r.status === 'Absent').length;
+  const lateCount = attendanceRecords.filter(r => r.status === 'Late').length;
+  const leaveCount = attendanceRecords.filter(r => r.status === 'Leave').length;
+
   if (classesLoading) {
     return (
       <div className="space-y-6">
@@ -424,16 +429,24 @@ const TeacherAttendance = () => {
                         </>
                       )}
                       
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setAttendanceDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleSubmitAttendance}
-                          disabled={markAttendanceMutation.isPending || !classTeacherAssignment || attendanceRecords.length === 0}
-                        >
-                          {markAttendanceMutation.isPending ? 'Saving...' : 'Save Attendance'}
-                        </Button>
+                      <div className="flex justify-between items-center gap-2 sticky bottom-0 z-10 bg-background/95 backdrop-blur-sm p-4 border-t mt-4 -mx-6 -mb-6 shadow-sm">
+                        <div className="flex gap-4 text-sm font-semibold">
+                          <span className="text-green-600">{presentCount} Present</span>
+                          {absentCount > 0 && <span className="text-red-600">{absentCount} Absent</span>}
+                          {lateCount > 0 && <span className="text-yellow-600">{lateCount} Late</span>}
+                          {leaveCount > 0 && <span className="text-blue-600">{leaveCount} Leave</span>}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" onClick={() => setAttendanceDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleSubmitAttendance}
+                            disabled={markAttendanceMutation.isPending || !classTeacherAssignment || attendanceRecords.length === 0}
+                          >
+                            {markAttendanceMutation.isPending ? 'Saving...' : 'Submit Attendance'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </DialogContent>
