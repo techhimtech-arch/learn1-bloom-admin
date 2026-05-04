@@ -494,11 +494,11 @@ export const studentApi = {
 // ── Parent Linking API ─────────────────────────────────────
 export const parentLinkingApi = {
   linkParent: (studentId: string, parentId: string) => 
-    apiClient.post(`/parent-linking/${studentId}/link/${parentId}`),
+    apiClient.post(`/parent-linking/student/${studentId}/link/${parentId}`),
   unlinkParent: (studentId: string, parentId: string) => 
-    apiClient.post(`/parent-linking/${studentId}/unlink/${parentId}`),
+    apiClient.post(`/parent-linking/student/${studentId}/unlink/${parentId}`),
   getLinkedParents: (studentId: string) => 
-    apiClient.get(`/parent-linking/${studentId}/parents`),
+    apiClient.get(`/parent-linking/student/${studentId}/parents`),
   searchParents: (params: { search: string }) => 
     apiClient.get(`/users`, { params: { ...params, role: 'parent' } }),
 };

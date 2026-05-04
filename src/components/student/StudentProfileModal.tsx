@@ -45,7 +45,9 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
   });
 
   const studentDetail = studentRes?.data?.data?.studentProfile || studentRes?.data?.data;
-  const linkedParents = linkedParentsRes?.data || [];
+  const linkedParents = Array.isArray(linkedParentsRes?.data?.data) ? linkedParentsRes?.data?.data : 
+                        Array.isArray(linkedParentsRes?.data) ? linkedParentsRes?.data : 
+                        Array.isArray(linkedParentsRes) ? linkedParentsRes : [];
   const searchedParents = searchRes?.data?.users || searchRes?.data || [];
 
   const linkMutation = useMutation({
