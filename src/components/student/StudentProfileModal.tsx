@@ -45,9 +45,24 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
   });
 
   const studentDetail = studentRes?.data?.data?.studentProfile || studentRes?.data?.data;
-  const linkedParents = Array.isArray(linkedParentsRes?.data?.data) ? linkedParentsRes?.data?.data : 
-                        Array.isArray(linkedParentsRes?.data) ? linkedParentsRes?.data : 
-                        Array.isArray(linkedParentsRes) ? linkedParentsRes : [];
+  
+  // Debug: Log the API response to understand the structure
+  console.log('linkedParentsRes:', linkedParentsRes);
+  
+  // Ensure linkedParents is always an array with multiple fallbacks
+  let linkedParents = [];
+  if (linkedParentsRes?.data?.data && Array.isArray(linkedParentsRes.data.data)) {
+    linkedParents = linkedParentsRes.data.data;
+  } else if (linkedParentsRes?.data && Array.isArray(linkedParentsRes.data)) {
+    linkedParents = linkedParentsRes.data;
+  } else if (linkedParentsRes && Array.isArray(linkedParentsRes)) {
+    linkedParents = linkedParentsRes;
+  } else if (linkedParentsRes?.data?.parents && Array.isArray(linkedParentsRes.data.parents)) {
+    linkedParents = linkedParentsRes.data.parents;
+  } else if (linkedParentsRes?.data?.linkedParents && Array.isArray(linkedParentsRes.data.linkedParents)) {
+    linkedParents = linkedParentsRes.data.linkedParents;
+  }
+  
   const searchedParents = searchRes?.data?.users || searchRes?.data || [];
 
   const linkMutation = useMutation({
