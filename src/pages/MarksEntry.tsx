@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Save, Lock, Unlock, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,7 @@ interface StudentEnrollment {
 export default function MarksEntry() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
   // markValues[enrollment_id][subject_id] = marks
@@ -106,7 +107,11 @@ export default function MarksEntry() {
   const allSubjects = subjectsData?.data || subjectsData || [];
   const existingResults = resultsData?.data || resultsData || [];
   
-  const examSubjects = exam?.subjects || [];
+  const filterSubjectId = searchParams.get('subjectId');
+  let examSubjects = exam?.subjects || [];
+  if (filterSubjectId) {
+    examSubjects = examSubjects.filter((s: any) => s.subject_id === filterSubjectId);
+  }
   const isLocked = exam?.status === 'COMPLETED' || exam?.status === 'PUBLISHED';
 
   // Helper to extract subject name

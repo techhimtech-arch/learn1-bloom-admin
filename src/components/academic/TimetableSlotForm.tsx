@@ -65,7 +65,7 @@ const normalizeArray = (value: any) => {
 
 export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlotFormProps) {
   const [open, setOpen] = useState(true);
-  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkMode, setBulkMode] = useState(true);
   const [bulkSlots, setBulkSlots] = useState<TimetableSlotFormData[]>([]);
   const [academicYearId, setAcademicYearId] = useState<string>('');
 

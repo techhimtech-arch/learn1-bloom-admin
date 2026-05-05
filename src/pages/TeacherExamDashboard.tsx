@@ -292,7 +292,7 @@ export default function TeacherExamDashboard() {
                                 size="sm"
                                 asChild
                               >
-                                <Link to={`/exams/${paper.examId}/marks`}>
+                                <Link to={`/exams/${paper.examId}/marks?subjectId=${paper.subjectId}`}>
                                   <Edit className="h-4 w-4" />
                                 </Link>
                               </Button>
