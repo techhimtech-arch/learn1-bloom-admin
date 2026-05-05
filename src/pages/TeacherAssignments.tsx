@@ -24,7 +24,7 @@ interface Assignment {
   classId: { _id: string; name: string } | string;
   sectionId: { _id: string; name: string } | string;
   subjectId?: { _id: string; name: string } | string;
-  academicYear?: string;
+  academicYearId?: string;
   isActive: boolean;
 }
 
@@ -41,7 +41,7 @@ const TeacherAssignments = () => {
   // Subject assignment form
   const [subjectForm, setSubjectForm] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '' });
   // Class teacher form
-  const [ctForm, setCtForm] = useState({ teacherId: '', classId: '', sectionId: '', academicYear: '' });
+  const [ctForm, setCtForm] = useState({ teacherId: '', classId: '', sectionId: '', academicYearId: '' });
 
   // Fetch data
   const { data: teachersRes } = useQuery({ 
@@ -115,7 +115,7 @@ const TeacherAssignments = () => {
       toast.success('Class teacher assigned');
       queryClient.invalidateQueries({ queryKey: ['class-teacher-assignments'] });
       setClassTeacherDialogOpen(false);
-      setCtForm({ teacherId: '', classId: '', sectionId: '', academicYear: '' });
+      setCtForm({ teacherId: '', classId: '', sectionId: '', academicYearId: '' });
     },
     onError: (err: any) => handleApiError(err, 'Failed to assign class teacher'),
   });
@@ -295,7 +295,7 @@ const TeacherAssignments = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Academic Year</Label>
-                      <Select value={ctForm.academicYear} onValueChange={v => setCtForm(p => ({ ...p, academicYear: v }))}>
+                      <Select value={ctForm.academicYearId} onValueChange={v => setCtForm(p => ({ ...p, academicYearId: v }))}>
                         <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="2024-25">2024-25</SelectItem>
@@ -306,7 +306,7 @@ const TeacherAssignments = () => {
                     </div>
                     <Button
                       onClick={() => createCTAssignment.mutate(ctForm)}
-                      disabled={!ctForm.teacherId || !ctForm.classId || !ctForm.sectionId || !ctForm.academicYear || createCTAssignment.isPending}
+                      disabled={!ctForm.teacherId || !ctForm.classId || !ctForm.sectionId || !ctForm.academicYearId || createCTAssignment.isPending}
                     >
                       {createCTAssignment.isPending ? 'Assigning…' : 'Assign Class Teacher'}
                     </Button>
@@ -341,7 +341,7 @@ const TeacherAssignments = () => {
                         </TableCell>
                         <TableCell>{getName(a.classId)}</TableCell>
                         <TableCell>{getName(a.sectionId)}</TableCell>
-                        <TableCell>{a.academicYear || '—'}</TableCell>
+                        <TableCell>{a.academicYearId || '—'}</TableCell>
                         <TableCell>
                           <Badge variant={a.isActive ? 'default' : 'secondary'}>{a.isActive ? 'Active' : 'Inactive'}</Badge>
                         </TableCell>

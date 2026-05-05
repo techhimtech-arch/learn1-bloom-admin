@@ -132,7 +132,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
         <DialogHeader>
           <DialogTitle>Process Payment</DialogTitle>
           <DialogDescription>
-            Record payment for {fee.feeHead} - {student.name}
+            Record payment for {fee.feeHead} - {student.firstName} {student.lastName}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +167,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>
-                  <div className="font-medium">{student.name}</div>
+                  <div className="font-medium">{student.firstName} {student.lastName}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Roll Number:</span>

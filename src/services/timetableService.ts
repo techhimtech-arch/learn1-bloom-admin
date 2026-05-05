@@ -42,28 +42,28 @@ export const adminTimetableService = {
   },
 
   // Delete all timetable entries for a class/section/session
-  deleteClassTimetable: async (classId: string, sectionId: string, academicSessionId: string): Promise<ApiResponse> => {
-    const response = await apiClient.delete(`/api/v1/timetable/class/${classId}/section/${sectionId}/session/${academicSessionId}`);
+  deleteClassTimetable: async (classId: string, sectionId: string, academicYearId: string): Promise<ApiResponse> => {
+    const response = await apiClient.delete(`/api/v1/timetable/class/${classId}/section/${sectionId}/session/${academicYearId}`);
     return response.data;
   },
 
   // Get class timetable (for admin overview)
-  getClassTimetable: async (classId: string, sectionId: string, academicSessionId: string): Promise<ApiResponse<TimetableEntry[]>> => {
-    const response = await apiClient.get(`/api/v1/timetable/class/${classId}/section/${sectionId}?academicSessionId=${academicSessionId}`);
+  getClassTimetable: async (classId: string, sectionId: string, academicYearId: string): Promise<ApiResponse<TimetableEntry[]>> => {
+    const response = await apiClient.get(`/api/v1/timetable/class/${classId}/section/${sectionId}?academicYearId=${academicYearId}`);
     return response.data;
   },
 
   // Get weekly timetable (grid format)
-  getWeeklyTimetable: async (classId: string, sectionId: string, academicSessionId: string): Promise<ApiResponse<WeeklyTimetable>> => {
-    const response = await apiClient.get(`/api/v1/timetable/weekly/class/${classId}/section/${sectionId}?academicSessionId=${academicSessionId}`);
+  getWeeklyTimetable: async (classId: string, sectionId: string, academicYearId: string): Promise<ApiResponse<WeeklyTimetable>> => {
+    const response = await apiClient.get(`/api/v1/timetable/weekly/class/${classId}/section/${sectionId}?academicYearId=${academicYearId}`);
     return response.data;
   },
 
   // Get teacher timetable (for admin overview)
-  getTeacherTimetable: async (teacherId: string, academicSessionId: string, day?: string): Promise<ApiResponse<TimetableEntry[]>> => {
+  getTeacherTimetable: async (teacherId: string, academicYearId: string, day?: string): Promise<ApiResponse<TimetableEntry[]>> => {
     const url = day 
-      ? `/api/v1/timetable/teacher/${teacherId}?academicSessionId=${academicSessionId}&day=${day}`
-      : `/api/v1/timetable/teacher/${teacherId}?academicSessionId=${academicSessionId}`;
+      ? `/api/v1/timetable/teacher/${teacherId}?academicYearId=${academicYearId}&day=${day}`
+      : `/api/v1/timetable/teacher/${teacherId}?academicYearId=${academicYearId}`;
     const response = await apiClient.get(url);
     return response.data;
   }
@@ -72,10 +72,10 @@ export const adminTimetableService = {
 // TEACHER TIMETABLE APIS
 export const teacherTimetableService = {
   // Get own timetable
-  getOwnTimetable: async (academicSessionId: string, day?: string): Promise<ApiResponse<TimetableEntry[]>> => {
+  getOwnTimetable: async (academicYearId: string, day?: string): Promise<ApiResponse<TimetableEntry[]>> => {
     const url = day 
-      ? `/api/v1/timetable/teacher/me?academicSessionId=${academicSessionId}&day=${day}`
-      : `/api/v1/timetable/teacher/me?academicSessionId=${academicSessionId}`;
+      ? `/api/v1/timetable/teacher/me?academicYearId=${academicYearId}&day=${day}`
+      : `/api/v1/timetable/teacher/me?academicYearId=${academicYearId}`;
     const response = await apiClient.get(url);
     return response.data;
   }
@@ -84,14 +84,14 @@ export const teacherTimetableService = {
 // STUDENT TIMETABLE APIS
 export const studentTimetableService = {
   // Get class timetable
-  getClassTimetable: async (classId: string, sectionId: string, academicSessionId: string): Promise<ApiResponse<TimetableEntry[]>> => {
-    const response = await apiClient.get(`/api/v1/timetable/class/${classId}/section/${sectionId}?academicSessionId=${academicSessionId}`);
+  getClassTimetable: async (classId: string, sectionId: string, academicYearId: string): Promise<ApiResponse<TimetableEntry[]>> => {
+    const response = await apiClient.get(`/api/v1/timetable/class/${classId}/section/${sectionId}?academicYearId=${academicYearId}`);
     return response.data;
   },
 
   // Get weekly timetable (grid format)
-  getWeeklyTimetable: async (classId: string, sectionId: string, academicSessionId: string): Promise<ApiResponse<WeeklyTimetable>> => {
-    const response = await apiClient.get(`/api/v1/timetable/weekly/class/${classId}/section/${sectionId}?academicSessionId=${academicSessionId}`);
+  getWeeklyTimetable: async (classId: string, sectionId: string, academicYearId: string): Promise<ApiResponse<WeeklyTimetable>> => {
+    const response = await apiClient.get(`/api/v1/timetable/weekly/class/${classId}/section/${sectionId}?academicYearId=${academicYearId}`);
     return response.data;
   }
 };
@@ -111,9 +111,9 @@ export const timetableDataService = {
   },
 
   // Get all classes
-  getClasses: async (academicSessionId?: string): Promise<ApiResponse<Class[]>> => {
-    const url = academicSessionId 
-      ? `/api/v1/classes?academicSessionId=${academicSessionId}`
+  getClasses: async (academicYearId?: string): Promise<ApiResponse<Class[]>> => {
+    const url = academicYearId 
+      ? `/api/v1/classes?academicYearId=${academicYearId}`
       : '/api/v1/classes';
     const response = await apiClient.get(url);
     return response.data;

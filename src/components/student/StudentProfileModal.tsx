@@ -63,7 +63,7 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
     linkedParents = linkedParentsRes.data.linkedParents;
   }
   
-  const searchedParents = searchRes?.data?.users || searchRes?.data || [];
+  const searchedParents = searchRes?.data?.users || searchRes?.data?.data || searchRes?.data || [];
 
   const linkMutation = useMutation({
     mutationFn: (parentId: string) => parentLinkingApi.linkParent(studentId!, parentId),

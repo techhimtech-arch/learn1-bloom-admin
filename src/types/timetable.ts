@@ -12,7 +12,7 @@ export interface TimetableEntry {
   startTime: string;
   endTime: string;
   room: string;
-  academicSessionId: string;
+  academicYearId: string;
   semester: 'FIRST' | 'SECOND';
   createdAt: string;
   updatedAt: string;
@@ -41,14 +41,14 @@ export interface Class {
   name: string;
   grade: number;
   section?: string;
-  academicSessionId: string;
+  academicYearId: string;
 }
 
 export interface Section {
   _id: string;
   name: string;
   classId: string;
-  academicSessionId: string;
+  academicYearId: string;
 }
 
 export interface AcademicSession {
@@ -73,12 +73,12 @@ export interface TimetableCreateRequest {
   startTime: string;
   endTime: string;
   room: string;
-  academicSessionId: string;
+  academicYearId: string;
   semester?: string;
 }
 
 export interface TimetableBulkCreateRequest {
-  academicSessionId: string;
+  academicYearId: string;
   timetableSlots: Partial<TimetableCreateRequest>[];
 }
 
@@ -117,7 +117,7 @@ export interface TimetableFilters {
   classId?: string;
   sectionId?: string;
   teacherId?: string;
-  academicSessionId?: string;
+  academicYearId?: string;
   semester?: string;
   day?: string;
 }
@@ -139,7 +139,7 @@ export interface TimetableFormData {
   startTime: string;
   endTime: string;
   room: string;
-  academicSessionId: string;
+  academicYearId: string;
   semester: string;
 }
 

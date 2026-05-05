@@ -21,7 +21,7 @@ import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 const timetableSlotSchema = z.object({
-  academicSessionId: z.string().min(1, 'Academic session is required'),
+  academicYearId: z.string().min(1, 'Academic year is required'),
   classId: z.string().min(1, 'Class is required'),
   sectionId: z.string().min(1, 'Section is required'),
   subjectId: z.string().min(1, 'Subject is required'),
@@ -58,12 +58,12 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
   const [open, setOpen] = useState(true);
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkSlots, setBulkSlots] = useState<TimetableSlotFormData[]>([]);
-  const [academicSessionId, setAcademicSessionId] = useState<string>('');
+  const [academicYearId, setAcademicYearId] = useState<string>('');
 
   const form = useForm<TimetableSlotFormData>({
     resolver: zodResolver(timetableSlotSchema),
     defaultValues: {
-      academicSessionId: '',
+      academicYearId: '',
       classId: '',
       sectionId: '',
       subjectId: '',
@@ -83,8 +83,8 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
         const resp = await academicYearApi.getCurrent();
         const id = resp?.data?._id || resp?.data?.id || '';
         if (mounted) {
-          setAcademicSessionId(id);
-          if (id) form.setValue('academicSessionId', id);
+          setAcademicYearId(id);
+          if (id) form.setValue('academicYearId', id);
         }
       } catch (err) {
         // ignore - optional
@@ -176,23 +176,23 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
       return;
     }
 
-    // prefer form value for academic session
-    const sessionId = data.academicSessionId || academicSessionId || '';
-    if (!sessionId) {
-      toast.error('Please select an academic session');
+    // prefer form value for academic year
+    const yearId = data.academicYearId || academicYearId || '';
+    if (!yearId) {
+      toast.error('Please select an academic year');
       return;
     }
 
     if (bulkMode) {
-      createMutation.mutate({ academicSessionId: sessionId, timetableSlots: bulkSlots });
+      createMutation.mutate({ academicYearId: yearId, timetableSlots: bulkSlots });
     } else {
-      createMutation.mutate({ ...data, academicSessionId: sessionId });
+      createMutation.mutate({ ...data, academicYearId: yearId });
     }
   };
 
   const addBulkSlot = () => {
     const currentData = form.getValues();
-    if (!currentData.academicSessionId || !currentData.classId || !currentData.sectionId || !currentData.subjectId || !currentData.teacherId || !currentData.day || !currentData.startTime || !currentData.endTime || !currentData.room) {
+    if (!currentData.academicYearId || !currentData.classId || !currentData.sectionId || !currentData.subjectId || !currentData.teacherId || !currentData.day || !currentData.startTime || !currentData.endTime || !currentData.room) {
       toast.error('Please fill all fields before adding to bulk list');
       return;
     }
@@ -272,13 +272,13 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div>
-                <FormField control={form.control} name="academicSessionId" render={({ field }) => (
+                <FormField control={form.control} name="academicYearId" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Academic Session *</FormLabel>
+                    <FormLabel>Academic Year *</FormLabel>
                     <Select value={field.value} onValueChange={(v) => field.onChange(v)}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select academic session" />
+                          <SelectValue placeholder="Select academic year" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

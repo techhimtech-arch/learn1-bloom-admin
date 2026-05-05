@@ -1067,9 +1067,9 @@ export default function ParentStudentDetail() {
           Back
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{student.name}</h1>
+          <h1 className="text-3xl font-bold">{student.firstName} {student.lastName}</h1>
           <p className="text-muted-foreground">
-            {student.class?.name} {student.section?.name} • Roll: {student.rollNumber || student.admissionNumber}
+            {student.currentEnrollment?.classId?.name} {student.currentEnrollment?.sectionId?.name} • Roll: {student.rollNumber || student.admissionNumber}
           </p>
         </div>
       </div>
@@ -1080,11 +1080,11 @@ export default function ParentStudentDetail() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex gap-4">
               <div className="h-16 w-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold flex-shrink-0">
-                {student.name.charAt(0).toUpperCase()}
+                {(student.firstName?.[0] || student.lastName?.[0] || 'S').toUpperCase()}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold">{student.name}</h3>
-                <p className="text-sm text-muted-foreground">{student.class?.name} {student.section?.name}</p>
+                <h3 className="font-semibold">{student.firstName} {student.lastName}</h3>
+                <p className="text-sm text-muted-foreground">{student.currentEnrollment?.classId?.name} {student.currentEnrollment?.sectionId?.name}</p>
               </div>
             </div>
             <div className="text-sm space-y-2">
