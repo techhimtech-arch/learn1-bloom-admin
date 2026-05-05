@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { FeeStructureForm } from '@/components/fee/FeeStructureForm';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 
@@ -34,6 +35,8 @@ export default function AccountantFeeStructure() {
     academicYearId: '',
     search: '',
   });
+  const [showForm, setShowForm] = useState(false);
+  const [editingFee, setEditingFee] = useState<any>(null);
 
   // Fetch academic years
   const { data: yearData } = useQuery({
@@ -68,7 +71,7 @@ export default function AccountantFeeStructure() {
   const structures = Array.isArray(feeStructureData) ? feeStructureData : [];
   const filteredStructures = filters.search
     ? structures.filter((s: any) =>
-        (s.feeName || '').toLowerCase().includes(filters.search.toLowerCase())
+        (s.feeHead || '').toLowerCase().includes(filters.search.toLowerCase())
       )
     : structures;
 
@@ -94,7 +97,7 @@ export default function AccountantFeeStructure() {
             <p className="text-muted-foreground">Configure and view fee structures for classes</p>
           </div>
         </div>
-        <Button onClick={() => navigate('/fees/structure/new')}>
+        <Button onClick={() => setShowForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create New
         </Button>
@@ -215,11 +218,11 @@ export default function AccountantFeeStructure() {
                           <TableRow key={structure.id || structure._id}>
                             <TableCell>
                               <Badge variant="outline">
-                                {(structure.feeType || '').toUpperCase()}
+                                {(structure.frequency || '').toUpperCase()}
                               </Badge>
                             </TableCell>
                             <TableCell className="font-medium">
-                              {structure.feeName}
+                              {structure.feeHead}
                             </TableCell>
                             <TableCell className="text-right font-bold">
                               {formatINR(structure.amount)}
@@ -231,17 +234,27 @@ export default function AccountantFeeStructure() {
                               {structure.concessionPercentage || 0}%
                             </TableCell>
                             <TableCell>
-                              <Badge variant={structure.isActive ? 'default' : 'secondary'}>
-                                {structure.isActive ? 'Active' : 'Inactive'}
+                              <Badge variant={structure.isMandatory ? 'default' : 'secondary'}>
+                                {structure.isMandatory ? 'Mandatory' : 'Optional'}
                               </Badge>
                             </TableCell>
                             <TableCell>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => navigate(`/fees/structure/${structure.id || structure._id}`)}
+                                onClick={() => {
+                                  setEditingFee({
+                                    id: structure.id || structure._id,
+                                    feeHead: structure.feeHead,
+                                    amount: structure.amount,
+                                    frequency: structure.frequency,
+                                    isMandatory: structure.isMandatory,
+                                    applicableTo: structure.applicableTo || 'all'
+                                  });
+                                  setShowForm(true);
+                                }}
                               >
-                                <Eye className="h-4 w-4" />
+                                <Edit className="h-4 w-4" />
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -283,6 +296,21 @@ export default function AccountantFeeStructure() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {showForm && (
+        <FeeStructureForm
+          fee={editingFee}
+          onClose={() => {
+            setShowForm(false);
+            setEditingFee(null);
+          }}
+          onSuccess={() => {
+            setShowForm(false);
+            setEditingFee(null);
+            // Can add refetch here if needed, or query invalidation
+          }}
+        />
       )}
     </div>
   );

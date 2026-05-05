@@ -249,11 +249,13 @@ export default function ParentDashboard() {
 
           {/* Student Details Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="fees">Fees</TabsTrigger>
+              <TabsTrigger value="homework">Homework</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -408,6 +410,58 @@ export default function ParentDashboard() {
                       <Link to={`/parent/student/${selectedStudent.id}/fees`}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Fee Details
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="homework" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Homework & Assignments
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Homework Overview</h3>
+                    <p className="text-muted-foreground mb-4">
+                      View pending and submitted homework for {selectedStudent.name}
+                    </p>
+                    <Button asChild>
+                      <Link to={`/parent/student/${selectedStudent.id}/homework`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Homework
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="performance" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Performance Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Performance Details</h3>
+                    <p className="text-muted-foreground mb-4">
+                      View detailed performance analytics and insights for {selectedStudent.name}
+                    </p>
+                    <Button asChild>
+                      <Link to={`/parent/student/${selectedStudent.id}/performance`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Performance
                       </Link>
                     </Button>
                   </div>

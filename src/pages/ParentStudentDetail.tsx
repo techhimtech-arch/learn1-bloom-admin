@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -1000,9 +1000,21 @@ function PerformanceTab({ studentId }: { studentId: string }) {
 // ─────────────────────────────────────────────────────────
 
 export default function ParentStudentDetail() {
-  const { studentId } = useParams<{ studentId: string }>();
+  const { studentId, tab } = useParams<{ studentId: string; tab?: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('attendance');
+  const [activeTab, setActiveTab] = useState(tab || 'attendance');
+
+  // Update tab when URL changes
+  useEffect(() => {
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [tab, activeTab]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    navigate(`/parent/student/${studentId}/${newTab}`, { replace: true });
+  };
 
   const {
     data: studentData,
@@ -1120,7 +1132,7 @@ export default function ParentStudentDetail() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="attendance" className="text-xs sm:text-sm">Attendance</TabsTrigger>
           <TabsTrigger value="fees" className="text-xs sm:text-sm">Fees</TabsTrigger>
