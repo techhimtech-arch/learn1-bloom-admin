@@ -92,9 +92,18 @@ export function AcademicFilters({
     enabled: !!filters.classId,
   });
 
-  const academicYears = Array.isArray(academicYearsData) ? academicYearsData : academicYearsData?.data || [];
-  const classes = Array.isArray(classesData) ? classesData : classesData?.data || [];
-  const sections = Array.isArray(sectionsData) ? sectionsData : sectionsData?.data || [];
+  const normalizeArray = (maybe: any) => {
+    if (Array.isArray(maybe)) return maybe;
+    if (Array.isArray(maybe?.data)) return maybe.data;
+    if (Array.isArray(maybe?.data?.data)) return maybe.data.data;
+    if (Array.isArray(maybe?.rows)) return maybe.rows;
+    if (Array.isArray(maybe?.classes)) return maybe.classes;
+    return [];
+  };
+
+  const academicYears = normalizeArray(academicYearsData);
+  const classes = normalizeArray(classesData);
+  const sections = normalizeArray(sectionsData);
   const dataLoading = yearsLoading || classesLoading;
 
   // Set default academic year once data loads
