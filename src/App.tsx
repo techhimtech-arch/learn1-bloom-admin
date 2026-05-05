@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { TeacherProvider } from "@/contexts/TeacherContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ROLE_LABELS, canTakeTour, getTourLocalStorageKey, getDefaultRoute } from '@/lib/role-config';
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -23,68 +22,33 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
 
-// Lazy loaded dashboard pages
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Enrollment = lazy(() => import("@/pages/Enrollment"));
-const UserManagement = lazy(() => import("@/pages/UserManagement"));
-const ParentLinking = lazy(() => import("@/pages/ParentLinking"));
-const StudentAdmission = lazy(() => import("@/pages/StudentAdmission"));
-const ClassManagement = lazy(() => import("@/pages/ClassManagement"));
-const AttendanceManagement = lazy(() => import("@/pages/AttendanceManagement"));
-const AcademicYearManagement = lazy(() => import("@/pages/AcademicYearManagement"));
-const SubjectManagement = lazy(() => import("@/pages/SubjectManagement"));
-const TimetableManagement = lazy(() => import("@/pages/TimetableManagement"));
-const AcademicCalendar = lazy(() => import("@/pages/AcademicCalendar"));
-const RollNumberManagement = lazy(() => import("@/pages/RollNumberManagement"));
-const TeacherAssignmentManagement = lazy(() => import("@/pages/TeacherAssignments"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const SessionManagement = lazy(() => import("@/pages/SessionManagement"));
+// Lazy loaded role-based routes
+const AdminRoutes = lazy(() => import("@/routes/AdminRoutes"));
+const TeacherRoutes = lazy(() => import("@/routes/TeacherRoutes"));
+const ParentRoutes = lazy(() => import("@/routes/ParentRoutes"));
+const StudentRoutes = lazy(() => import("@/routes/StudentRoutes"));
+const AccountantRoutes = lazy(() => import("@/routes/AccountantRoutes"));
 
-const ExamManagement = lazy(() => import("@/pages/ExamManagement"));
-const MarksEntry = lazy(() => import("@/pages/MarksEntry"));
-const ResultDashboard = lazy(() => import("@/pages/ResultDashboard"));
-const StudentResults = lazy(() => import("@/pages/StudentResults"));
-const TeacherExamDashboard = lazy(() => import("@/pages/TeacherExamDashboard"));
-const AnnouncementsPage = lazy(() => import("@/pages/Announcements"));
-
-const AssignmentManagement = lazy(() => import("@/pages/AssignmentManagement"));
-const StudentAssignmentSubmission = lazy(() => import("@/pages/StudentAssignmentSubmission"));
-const TeacherAssignmentGrading = lazy(() => import("@/pages/TeacherAssignmentGrading"));
-
-const FeeStructureManagement = lazy(() => import("@/pages/FeeStructureManagement"));
-const StudentFeeManagement = lazy(() => import("@/pages/StudentFeeManagement"));
-const FeeReports = lazy(() => import("@/pages/FeeReports"));
-
-const ParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
-const ParentStudentDetail = lazy(() => import("@/pages/ParentStudentDetail"));
-
-const AccountantPayments = lazy(() => import("@/pages/accountant/AccountantPayments"));
-const AccountantDues = lazy(() => import("@/pages/accountant/AccountantDues"));
-const AccountantDashboard = lazy(() => import("@/pages/accountant/AccountantDashboard"));
-const AccountantPaymentForm = lazy(() => import("@/pages/accountant/AccountantPaymentForm"));
-const AccountantFeeStructure = lazy(() => import("@/pages/accountant/AccountantFeeStructure"));
-const AccountantReports = lazy(() => import("@/pages/accountant/AccountantReports"));
-
-const CertificateGenerator = lazy(() => import("@/pages/CertificateGenerator"));
-
-const StudentAttendance = lazy(() => import("@/pages/StudentAttendance"));
-const StudentStudyMaterials = lazy(() => import("@/pages/StudentStudyMaterials"));
-const StudentCertificates = lazy(() => import("@/pages/StudentCertificates"));
-const StudentAssignmentsView = lazy(() => import("@/pages/StudentAssignmentsView"));
-const StudentAnnouncementsView = lazy(() => import("@/pages/StudentAnnouncementsView"));
-const StudentTimetableView = lazy(() => import("@/pages/StudentTimetableView"));
-
-const TeacherAttendance = lazy(() => import("@/pages/TeacherAttendance"));
-const TeacherDashboard = lazy(() => import("@/pages/dashboards/TeacherDashboard"));
-const TeacherProfile = lazy(() => import("@/pages/teacher/TeacherProfile"));
-const TeacherStudents = lazy(() => import("@/pages/teacher/TeacherStudents"));
-const TeacherExams = lazy(() => import("@/pages/teacher/TeacherExams"));
-const TeacherResults = lazy(() => import("@/pages/teacher/TeacherResults"));
-const TeacherAssignments = lazy(() => import("@/pages/teacher/TeacherAssignments"));
-const TeacherQuizzes = lazy(() => import("@/pages/teacher/TeacherQuizzes"));
-
-const StudentQuizzes = lazy(() => import("@/pages/StudentQuizzes"));
-const AdminQuizzes = lazy(() => import("@/pages/admin/AdminQuizzes"));
+const RoleBasedRoutes = ({ setRunTour }: { setRunTour: any }) => {
+  const { user } = useAuth();
+  
+  if (!user) return null;
+  
+  switch (user.role) {
+    case 'school_admin':
+      return <AdminRoutes setRunTour={setRunTour} />;
+    case 'teacher':
+      return <TeacherRoutes setRunTour={setRunTour} />;
+    case 'parent':
+      return <ParentRoutes setRunTour={setRunTour} />;
+    case 'student':
+      return <StudentRoutes setRunTour={setRunTour} />;
+    case 'accountant':
+      return <AccountantRoutes setRunTour={setRunTour} />;
+    default:
+      return <Navigate to="/unauthorized" replace />;
+  }
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -159,89 +123,7 @@ const AppContent = () => {
 
           {/* Protected routes with layout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/parent-linking" element={<ParentLinking />} />
-            <Route path="/admission" element={<StudentAdmission />} />
-            <Route path="/enrollment" element={<Enrollment />} />
-            <Route path="/classes" element={<ClassManagement />} />
-            <Route path="/subjects" element={<SubjectManagement />} />
-            <Route path="/teacher-assignments" element={<TeacherAssignmentManagement />} />
-            <Route path="/attendance" element={<AttendanceManagement />} />
-            <Route path="/academic-years" element={<AcademicYearManagement />} />
-            <Route path="/timetable" element={<TimetableManagement />} />
-            <Route path="/academic-calendar" element={<AcademicCalendar />} />
-            <Route path="/roll-numbers" element={<RollNumberManagement />} />
-            <Route path="/profile" element={<Profile setRunTour={setRunTour} />} />
-            <Route path="/sessions" element={<SessionManagement />} />
-            
-            {/* Exam Routes */}
-            <Route path="/exams" element={<ExamManagement />} />
-            <Route path="/exams/:examId/marks" element={<MarksEntry />} />
-            <Route path="/exams/:examId/results" element={<ResultDashboard />} />
-            
-            {/* Announcement Routes */}
-            <Route path="/announcements" element={<AnnouncementsPage />} />
-            
-            {/* Assignment Routes */}
-            <Route path="/assignments" element={<AssignmentManagement />} />
-            <Route path="/assignments/:assignmentId/submit" element={<StudentAssignmentSubmission />} />
-            <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
-            
-            {/* Quiz Routes */}
-            <Route path="/student/quizzes" element={<StudentQuizzes />} />
-            <Route path="/admin/quizzes" element={<AdminQuizzes />} />
-            
-            {/* Fee Management Routes */}
-            <Route path="/fees/structure" element={<FeeStructureManagement />} />
-            <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
-            <Route path="/fees/reports" element={<FeeReports />} />
-            <Route path="/fees/payments" element={<AccountantPayments />} />
-            <Route path="/fees/dues" element={<AccountantDues />} />
-            
-            {/* Accountant Portal Routes */}
-            <Route path="/accountant/dashboard" element={<AccountantDashboard />} />
-            <Route path="/accountant/record-payment" element={<AccountantPaymentForm />} />
-            <Route path="/accountant/fee-structure" element={<AccountantFeeStructure />} />
-            <Route path="/accountant/reports" element={<AccountantReports />} />
-            
-            {/* Parent Portal Routes */}
-            <Route path="/parent/dashboard" element={<ParentDashboard />} />
-            <Route path="/parent/student/:studentId" element={<ParentStudentDetail />} />
-            <Route path="/parent/student/:studentId/:tab" element={<ParentStudentDetail />} />
-            
-            {/* Certificate Routes */}
-            <Route path="/certificates" element={<CertificateGenerator />} />
-            
-            {/* Student Portal Routes */}
-            <Route path="/student/dashboard" element={<Dashboard />} />
-            <Route path="/student/attendance" element={<StudentAttendance />} />
-            <Route path="/student/results" element={<StudentResults />} />
-            <Route path="/student/fees" element={<StudentFeeManagement />} />
-            <Route path="/student/materials" element={<StudentStudyMaterials />} />
-            <Route path="/student/assignments" element={<StudentAssignmentsView />} />
-            <Route path="/student/announcements" element={<StudentAnnouncementsView />} />
-            <Route path="/student/timetable" element={<StudentTimetableView />} />
-            <Route path="/student/certificates" element={<StudentCertificates />} />
-            
-            {/* Student Results Routes */}
-            <Route path="/results" element={<StudentResults />} />
-            
-            {/* Teacher Routes */}
-            <Route path="/teacher/*" element={
-              <TeacherProvider>
-                <Routes>
-                  <Route path="attendance" element={<TeacherAttendance />} />
-                  <Route path="dashboard" element={<TeacherDashboard />} />
-                  <Route path="profile" element={<TeacherProfile />} />
-                  <Route path="students" element={<TeacherStudents />} />
-                  <Route path="exams" element={<TeacherExams />} />
-                  <Route path="results" element={<TeacherResults />} />
-                  <Route path="assignments" element={<TeacherAssignments />} />
-                  <Route path="quizzes" element={<TeacherQuizzes />} />
-                </Routes>
-              </TeacherProvider>
-            } />
+            <Route path="/*" element={<RoleBasedRoutes setRunTour={setRunTour} />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
