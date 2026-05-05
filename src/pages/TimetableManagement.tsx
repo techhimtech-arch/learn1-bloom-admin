@@ -10,6 +10,15 @@ import { TeacherTimetableView } from '@/components/academic/TeacherTimetableView
 import { TimetableSlotForm } from '@/components/academic/TimetableSlotForm';
 import { classApi, userApi } from '@/pages/services/api';
 
+const normalizeArray = (value: any) => {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.data)) return value.data;
+  if (Array.isArray(value?.data?.data)) return value.data.data;
+  if (Array.isArray(value?.data?.users)) return value.data.users;
+  if (Array.isArray(value?.users)) return value.users;
+  return [];
+};
+
 export default function TimetableManagement() {
   const [filters, setFilters] = useState<AcademicFiltersState>({
     search: '',
@@ -27,7 +36,7 @@ export default function TimetableManagement() {
     queryKey: ['classes'],
     queryFn: async () => {
       const response = await classApi.getAll();
-      return response.data;
+      return normalizeArray(response.data);
     },
   });
 
@@ -35,7 +44,7 @@ export default function TimetableManagement() {
     queryKey: ['teachers'],
     queryFn: async () => {
       const response = await userApi.getAll({ role: 'teacher' });
-      return response.data;
+      return normalizeArray(response.data);
     },
   });
 
@@ -131,7 +140,7 @@ export default function TimetableManagement() {
             </CardHeader>
             <CardContent>
               <TeacherTimetableView
-                teachers={teachersData?.data || []}
+                teachers={teachersData || []}
                 viewMode={viewMode}
               />
             </CardContent>
@@ -141,7 +150,7 @@ export default function TimetableManagement() {
 
       {showSlotForm && (
         <TimetableSlotForm
-          classes={classesData?.data || []}
+          classes={classesData || []}
           onClose={() => setShowSlotForm(false)}
           onSuccess={() => setShowSlotForm(false)}
         />

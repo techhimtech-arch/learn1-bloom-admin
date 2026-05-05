@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { timetableApi, subjectApi, sectionApi, userApi, academicYearApi } from '@/pages/services/api';
+import { timetableApi, teacherAssignmentApi, sectionApi, academicYearApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -27,9 +27,9 @@ const timetableSlotSchema = z.object({
   subjectId: z.string().min(1, 'Subject is required'),
   teacherId: z.string().min(1, 'Teacher is required'),
   day: z.string().min(1, 'Day is required'),
-  period: z.number().min(1).max(8),
-  startTime: z.string().min(1, 'Start time is required'),
-  endTime: z.string().min(1, 'End time is required'),
+  periodNumber: z.number().min(1).max(12),
+  startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
+  endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
   room: z.string().min(1, 'Room is required'),
 });
 
@@ -42,17 +42,26 @@ type TimetableSlotFormProps = {
 };
 
 const days = [
-  { value: 'Monday', label: 'Monday' },
-  { value: 'Tuesday', label: 'Tuesday' },
-  { value: 'Wednesday', label: 'Wednesday' },
-  { value: 'Thursday', label: 'Thursday' },
-  { value: 'Friday', label: 'Friday' },
-  { value: 'Saturday', label: 'Saturday' },
+  { value: 'MONDAY', label: 'Monday' },
+  { value: 'TUESDAY', label: 'Tuesday' },
+  { value: 'WEDNESDAY', label: 'Wednesday' },
+  { value: 'THURSDAY', label: 'Thursday' },
+  { value: 'FRIDAY', label: 'Friday' },
+  { value: 'SATURDAY', label: 'Saturday' },
 ];
 
-const periods = Array.from({ length: 8 }, (_, i) => ({ value: i + 1, label: `Period ${i + 1}` }));
+const periods = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `Period ${i + 1}` }));
 
 const timeSlots = ['08:00', '08:45', '09:30', '10:15', '11:00', '11:45', '12:30', '13:15', '14:00', '14:45', '15:30', '16:15'];
+
+const normalizeArray = (value: any) => {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.data)) return value.data;
+  if (Array.isArray(value?.data?.data)) return value.data.data;
+  if (Array.isArray(value?.data?.users)) return value.data.users;
+  if (Array.isArray(value?.users)) return value.users;
+  return [];
+};
 
 export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlotFormProps) {
   const [open, setOpen] = useState(true);
@@ -69,7 +78,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
       subjectId: '',
       teacherId: '',
       day: '',
-      period: 1,
+      periodNumber: 1,
       startTime: '',
       endTime: '',
       room: '',
@@ -81,7 +90,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
     (async () => {
       try {
         const resp = await academicYearApi.getCurrent();
-        const id = resp?.data?._id || resp?.data?.id || '';
+        const id = resp?.data?.data?._id || resp?.data?._id || resp?.data?.data?.id || resp?.data?.id || '';
         if (mounted) {
           setAcademicYearId(id);
           if (id) form.setValue('academicYearId', id);
@@ -97,40 +106,14 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
     queryKey: ['timetable-form', 'academic-years'],
     queryFn: async () => {
       const response = await academicYearApi.getAll();
-      const result = response.data?.data || response.data || [];
-      return Array.isArray(result) ? result : [];
-    },
-  });
-
-  const { data: sectionsData } = useQuery({
-    queryKey: ['timetable-form', 'sections'],
-    queryFn: async () => {
-      const response = await sectionApi.getAll();
-      const result = response.data?.data || response.data || [];
-      return Array.isArray(result) ? result : [];
-    },
-  });
-
-  const { data: subjectsData } = useQuery({
-    queryKey: ['timetable-form', 'subjects'],
-    queryFn: async () => {
-      const response = await subjectApi.getAll();
-      const result = response.data?.data || response.data || [];
-      return Array.isArray(result) ? result : [];
-    },
-  });
-
-  const { data: teachersData } = useQuery({
-    queryKey: ['timetable-form', 'teachers'],
-    queryFn: async () => {
-      const response = await userApi.getAll({ role: 'teacher' });
-      const result = response.data?.data || response.data || [];
-      return Array.isArray(result) ? result : [];
+      return normalizeArray(response.data);
     },
   });
 
   const selectedClassId = form.watch('classId');
+  const selectedSectionId = form.watch('sectionId');
   const selectedSubjectId = form.watch('subjectId');
+  const selectedAcademicYearId = form.watch('academicYearId');
 
   const normalizedClasses = (Array.isArray(classes) ? classes : [])
     .map((cls: any, idx: number) => {
@@ -148,10 +131,24 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
     queryFn: async () => {
       if (!selectedClassId) return [];
       const response = await sectionApi.getByClass(selectedClassId);
-      const result = response.data?.data || response.data || [];
-      return Array.isArray(result) ? result : [];
+      return normalizeArray(response.data);
     },
     enabled: !!selectedClassId,
+  });
+
+  const { data: assignmentsData } = useQuery({
+    queryKey: ['timetable-form', 'teacher-assignments', selectedClassId, selectedSectionId, selectedAcademicYearId],
+    queryFn: async () => {
+      if (!selectedClassId || !selectedSectionId || !selectedAcademicYearId) return [];
+      const response = await teacherAssignmentApi.getAll({
+        classId: selectedClassId,
+        sectionId: selectedSectionId,
+        academicYearId: selectedAcademicYearId,
+        isActive: true,
+      });
+      return normalizeArray(response.data);
+    },
+    enabled: !!selectedClassId && !!selectedSectionId && !!selectedAcademicYearId,
   });
 
   const createMutation = useMutation({
@@ -183,10 +180,35 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
       return;
     }
 
+    const payloadSlot = {
+      classId: data.classId,
+      sectionId: data.sectionId,
+      day: data.day,
+      periodNumber: data.periodNumber,
+      subjectId: data.subjectId,
+      teacherId: data.teacherId,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      room: data.room,
+    };
+
     if (bulkMode) {
-      createMutation.mutate({ academicYearId: yearId, timetableSlots: bulkSlots });
+      createMutation.mutate({
+        academicYearId: yearId,
+        timetableSlots: bulkSlots.map((slot) => ({
+          classId: slot.classId,
+          sectionId: slot.sectionId,
+          day: slot.day,
+          periodNumber: slot.periodNumber,
+          subjectId: slot.subjectId,
+          teacherId: slot.teacherId,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          room: slot.room,
+        })),
+      });
     } else {
-      createMutation.mutate({ ...data, academicYearId: yearId });
+      createMutation.mutate({ academicYearId: yearId, ...payloadSlot });
     }
   };
 
@@ -197,7 +219,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
       return;
     }
 
-    const existingIndex = bulkSlots.findIndex(slot => slot.day === currentData.day && slot.period === currentData.period && slot.classId === currentData.classId && slot.sectionId === currentData.sectionId);
+    const existingIndex = bulkSlots.findIndex(slot => slot.day === currentData.day && slot.periodNumber === currentData.periodNumber && slot.classId === currentData.classId && slot.sectionId === currentData.sectionId);
 
     if (existingIndex !== -1) {
       const updated = [...bulkSlots];
@@ -220,38 +242,47 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
   };
 
   const filteredSections = selectedClassId ? (Array.isArray(classSectionsData) ? classSectionsData : []) : [];
-  const normalizedSubjects = Array.isArray(subjectsData)
-    ? subjectsData
-    : Array.isArray((subjectsData as any)?.data)
-      ? (subjectsData as any).data
-      : Array.isArray((subjectsData as any)?.subjects)
-        ? (subjectsData as any).subjects
-        : [];
+  const normalizedAssignments = Array.isArray(assignmentsData) ? assignmentsData : [];
 
-  const normalizedTeachers = (Array.isArray(teachersData) ? teachersData : [])
-    .map((teacher: any) => ({
-      ...teacher,
-      teacherId: teacher._id || teacher.id || '',
-    }))
-    .filter((teacher: any) => teacher.teacherId && (teacher.name || teacher.email));
+  const subjectOptions = normalizedAssignments.reduce<Array<{ id: string; name: string }>>((items, assignment: any) => {
+    const subject = assignment?.subjectId;
+    const id = subject?._id || subject?.id || subject;
+    const name = subject?.name || subject?.title || '';
+    if (!id || !name || items.some((item) => item.id === id)) return items;
+    items.push({ id, name });
+    return items;
+  }, []);
 
-  const selectedSubject = normalizedSubjects.find(
-    (subject: any) => (subject._id || subject.id) === selectedSubjectId,
-  );
-  const subjectAssignedTeachers = Array.isArray(selectedSubject?.teachers)
-    ? selectedSubject.teachers
-    : Array.isArray(selectedSubject?.assignedTeachers)
-      ? selectedSubject.assignedTeachers
-      : [];
+  const teacherOptions = normalizedAssignments
+    .filter((assignment: any) => {
+      const subject = assignment?.subjectId;
+      const id = subject?._id || subject?.id || subject;
+      return !selectedSubjectId || id === selectedSubjectId;
+    })
+    .reduce<Array<{ id: string; name: string }>>((items, assignment: any) => {
+      const teacher = assignment?.teacherId;
+      const id = teacher?._id || teacher?.id || teacher;
+      const name = teacher?.name || teacher?.email || '';
+      if (!id || !name || items.some((item) => item.id === id)) return items;
+      items.push({ id, name });
+      return items;
+    }, []);
 
-  const filteredTeachers = selectedSubjectId && subjectAssignedTeachers.length > 0
-    ? normalizedTeachers.filter((teacher: any) =>
-        subjectAssignedTeachers.some((assigned: any) => {
-          const assignedId = assigned?._id || assigned?.id || assigned?.teacherId;
-          return assignedId === teacher.teacherId;
-        }),
-      )
-    : normalizedTeachers;
+  useEffect(() => {
+    if (!selectedSubjectId) return;
+
+    const matchingAssignment = normalizedAssignments.find((assignment: any) => {
+      const subject = assignment?.subjectId;
+      const id = subject?._id || subject?.id || subject;
+      return id === selectedSubjectId;
+    });
+
+    const teacher = matchingAssignment?.teacherId;
+    const teacherId = teacher?._id || teacher?.id || teacher;
+    if (teacherId && form.getValues('teacherId') !== teacherId) {
+      form.setValue('teacherId', teacherId);
+    }
+  }, [form, normalizedAssignments, selectedSubjectId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -300,6 +331,8 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                       onValueChange={(value) => {
                         field.onChange(value);
                         form.setValue('sectionId', '');
+                        form.setValue('subjectId', '');
+                        form.setValue('teacherId', '');
                       }}
                     >
                       <FormControl>
@@ -320,7 +353,11 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                 <FormField control={form.control} name="sectionId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Section *</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedClassId}>
+                    <Select value={field.value} onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('subjectId', '');
+                      form.setValue('teacherId', '');
+                    }} disabled={!selectedClassId}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={selectedClassId ? 'Select section' : 'Select class first'} />
@@ -354,8 +391,8 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {normalizedSubjects.map((subject: any) => (
-                          <SelectItem key={`subject-${subject.id || subject._id}`} value={subject.id || subject._id}>{subject.name} ({subject.code})</SelectItem>
+                        {subjectOptions.map((subject) => (
+                          <SelectItem key={`subject-${subject.id}`} value={subject.id}>{subject.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -366,15 +403,15 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                 <FormField control={form.control} name="teacherId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Teacher *</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedSubjectId}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select teacher" />
+                          <SelectValue placeholder={selectedSubjectId ? 'Select teacher' : 'Select subject first'} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {filteredTeachers.map((teacher: any) => (
-                          <SelectItem key={`teacher-${teacher.teacherId}`} value={teacher.teacherId}>{teacher.name || teacher.email}</SelectItem>
+                        {teacherOptions.map((teacher) => (
+                          <SelectItem key={`teacher-${teacher.id}`} value={teacher.id}>{teacher.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -401,7 +438,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                   </FormItem>
                 )} />
 
-                <FormField control={form.control} name="period" render={({ field }) => (
+                <FormField control={form.control} name="periodNumber" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Period *</FormLabel>
                     <Select onValueChange={(v) => field.onChange(parseInt(v))} defaultValue={String(field.value)}>
@@ -479,7 +516,7 @@ export function TimetableSlotForm({ classes, onClose, onSuccess }: TimetableSlot
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {bulkSlots.map((slot, index) => (
                         <div key={index} className="flex items-center justify-between p-2 border rounded">
-                          <div className="text-sm">{slot.day} - Period {slot.period} - {slot.room}</div>
+                          <div className="text-sm">{slot.day} - Period {slot.periodNumber} - {slot.room}</div>
                           <Button type="button" variant="outline" size="sm" onClick={() => removeBulkSlot(index)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>

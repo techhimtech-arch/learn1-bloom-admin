@@ -329,12 +329,12 @@ export const reportApi = {
 export const timetableApi = {
   create: (data: Record<string, unknown>) => apiClient.post('/timetable', data),
   createBulk: (data: Record<string, unknown>) => apiClient.post('/timetable/bulk', data),
-  getByClass: (classId: string, sectionId: string, academicSessionId?: string) => 
-    apiClient.get(`/timetable/class/${classId}/section/${sectionId}`, { params: academicSessionId ? { academicSessionId } : undefined }),
-  getByTeacher: (teacherId: string, academicSessionId?: string, day?: string) => 
-    apiClient.get(`/timetable/teacher/${teacherId}`, { params: { ...(academicSessionId ? { academicSessionId } : {}), ...(day ? { day } : {}) } }),
-  getWeekly: (classId: string, sectionId: string, academicSessionId?: string) => 
-    apiClient.get(`/timetable/weekly/class/${classId}/section/${sectionId}`, { params: academicSessionId ? { academicSessionId } : undefined }),
+  getByClass: (classId: string, sectionId: string, academicYearId?: string) => 
+    apiClient.get(`/timetable/class/${classId}/section/${sectionId}`, { params: academicYearId ? { academicYearId } : undefined }),
+  getByTeacher: (teacherId: string, academicYearId?: string, day?: string) => 
+    apiClient.get(`/timetable/teacher/${teacherId}`, { params: { ...(academicYearId ? { academicYearId } : {}), ...(day ? { day } : {}) } }),
+  getWeekly: (classId: string, sectionId: string, academicYearId?: string) => 
+    apiClient.get(`/timetable/weekly/class/${classId}/section/${sectionId}`, { params: academicYearId ? { academicYearId } : undefined }),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/timetable/${id}`, data),
   delete: (id: string) => apiClient.delete(`/timetable/${id}`),
 };

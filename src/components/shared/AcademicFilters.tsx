@@ -190,7 +190,7 @@ export function AcademicFilters({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {showSession && (
             <Select
-              value={filters.academicYearId || undefined}
+              value={filters.academicYearId}
               onValueChange={(value) => updateFilter('academicYearId', value)}
               disabled={loading || dataLoading}
             >
@@ -209,7 +209,7 @@ export function AcademicFilters({
 
           {showClass && (
             <Select
-              value={filters.classId || undefined}
+              value={filters.classId}
               onValueChange={(value) => updateFilter('classId', value)}
               disabled={loading || dataLoading}
             >
@@ -228,7 +228,7 @@ export function AcademicFilters({
 
           {showSection && (
             <Select
-              value={filters.sectionId || undefined}
+              value={filters.sectionId}
               onValueChange={(value) => updateFilter('sectionId', value)}
               disabled={loading || dataLoading || !filters.classId}
             >
@@ -247,7 +247,7 @@ export function AcademicFilters({
 
           {showDepartment && (
             <Select
-              value={filters.department || undefined}
+              value={filters.department}
               onValueChange={(value) => updateFilter('department', value)}
               disabled={loading || dataLoading}
             >
@@ -266,7 +266,7 @@ export function AcademicFilters({
 
           {showStatus && (
             <Select
-              value={filters.status || undefined}
+              value={filters.status}
               onValueChange={(value) => updateFilter('status', value)}
               disabled={loading || dataLoading}
             >
