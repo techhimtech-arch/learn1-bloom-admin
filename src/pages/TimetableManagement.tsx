@@ -36,7 +36,7 @@ export default function TimetableManagement() {
     queryKey: ['classes'],
     queryFn: async () => {
       const response = await classApi.getAll();
-      return normalizeArray(response.data);
+      return response.data;
     },
   });
 
@@ -150,7 +150,7 @@ export default function TimetableManagement() {
 
       {showSlotForm && (
         <TimetableSlotForm
-          classes={classesData || []}
+          classes={normalizeArray(classesData)}
           onClose={() => setShowSlotForm(false)}
           onSuccess={() => setShowSlotForm(false)}
         />

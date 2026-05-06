@@ -15,15 +15,24 @@ interface ClassTimetableViewProps {
 interface TimetableSlot {
   id: string;
   day: string;
-  period: number;
+  periodNumber: number;
   startTime: string;
   endTime: string;
-  subject: {
+  subjectId?: {
+    _id: string;
+    name: string;
+    code: string;
+  };
+  subject?: {
     id: string;
     name: string;
     code: string;
   };
-  teacher: {
+  teacherId?: {
+    _id: string;
+    name: string;
+  };
+  teacher?: {
     id: string;
     name: string;
   };
@@ -118,13 +127,24 @@ export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimeta
   const timetable = timetableData?.data || [];
   const slotsByDayAndPeriod = new Map<string, TimetableSlot>();
 
-  timetable.forEach((slot: TimetableSlot) => {
-    const key = `${slot.day}-${slot.period}`;
-    slotsByDayAndPeriod.set(key, slot);
+  timetable.forEach((slot: any) => {
+    // Backend uses periodNumber, handle both just in case
+    const pNum = slot.periodNumber || slot.period;
+    const dayName = (slot.day || '').toUpperCase();
+    const key = `${dayName}-${pNum}`;
+    
+    // Normalize nested objects (handle both populated and raw)
+    const normalizedSlot: TimetableSlot = {
+      ...slot,
+      periodNumber: pNum,
+      subject: slot.subject || slot.subjectId || { name: 'N/A' },
+      teacher: slot.teacher || slot.teacherId || { name: 'N/A' }
+    };
+    slotsByDayAndPeriod.set(key, normalizedSlot);
   });
 
   const getSlotForDayAndPeriod = (day: string, period: number) => {
-    return slotsByDayAndPeriod.get(`${day}-${period}`);
+    return slotsByDayAndPeriod.get(`${day.toUpperCase()}-${period}`);
   };
 
   if (viewMode === 'list') {
@@ -145,25 +165,25 @@ export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimeta
                   {daySlots.map((slot) => (
                     <div
                       key={slot!.id}
-                      className={`p-3 rounded-lg border ${getSubjectColor(slot!.subject.name)}`}
+                      className={`p-3 rounded-lg border ${getSubjectColor(slot!.subject?.name || 'Empty')}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">
-                              Period {slot!.period}
-                            </Badge>
-                            <span className="text-sm font-medium">
-                              {slot!.startTime} - {slot!.endTime}
-                            </span>
-                          </div>
-                          <div className="font-medium">{slot!.subject.name}</div>
-                          <div className="text-sm opacity-75">{slot!.subject.code}</div>
+                             <Badge variant="outline" className="text-xs">
+                               Period {slot!.periodNumber}
+                             </Badge>
+                             <span className="text-sm font-medium">
+                               {slot!.startTime} - {slot!.endTime}
+                             </span>
+                           </div>
+                           <div className="font-medium">{slot!.subject?.name || 'N/A'}</div>
+                           <div className="text-sm opacity-75">{slot!.subject?.code || ''}</div>
                           <div className="flex items-center gap-4 mt-2 text-sm">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {slot!.teacher.name}
-                            </div>
+                             <div className="flex items-center gap-1">
+                               <User className="h-3 w-3" />
+                               {slot!.teacher?.name || 'N/A'}
+                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
                               {slot!.room}
@@ -217,21 +237,21 @@ export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimeta
                 return (
                   <div
                     key={period}
-                    className={`p-2 border rounded min-h-[80px] ${getSubjectColor(slot.subject.name)}`}
+                    className={`p-2 border rounded min-h-[80px] ${getSubjectColor(slot.subject?.name || 'Empty')}`}
                   >
                     <div className="text-xs font-medium mb-1">
                       {slot.startTime}
                     </div>
-                    <div className="font-medium text-sm mb-1 leading-tight">
-                      {slot.subject.name}
-                    </div>
-                    <div className="text-xs opacity-75 mb-1">
-                      {slot.subject.code}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <User className="h-3 w-3" />
-                      <span className="truncate">{slot.teacher.name}</span>
-                    </div>
+                     <div className="font-medium text-sm mb-1 leading-tight">
+                       {slot.subject?.name || 'N/A'}
+                     </div>
+                     <div className="text-xs opacity-75 mb-1">
+                       {slot.subject?.code || ''}
+                     </div>
+                     <div className="flex items-center gap-1 text-xs">
+                       <User className="h-3 w-3" />
+                       <span className="truncate">{slot.teacher?.name || 'N/A'}</span>
+                     </div>
                     <div className="flex items-center gap-1 text-xs mt-1">
                       <MapPin className="h-3 w-3" />
                       <span className="truncate">{slot.room}</span>

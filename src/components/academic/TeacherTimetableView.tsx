@@ -20,19 +20,32 @@ interface TeacherTimetableViewProps {
 interface TimetableSlot {
   id: string;
   day: string;
-  period: number;
+  periodNumber: number;
   startTime: string;
   endTime: string;
-  subject: {
+  subjectId?: {
+    _id: string;
+    name: string;
+    code: string;
+  };
+  subject?: {
     id: string;
     name: string;
     code: string;
   };
-  class: {
+  classId?: {
+    _id: string;
+    name: string;
+  };
+  class?: {
     id: string;
     name: string;
   };
-  section: {
+  sectionId?: {
+    _id: string;
+    name: string;
+  };
+  section?: {
     id: string;
     name: string;
   };
@@ -169,13 +182,23 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
 
   const slotsByDayAndPeriod = new Map<string, TimetableSlot>();
 
-  timetable.forEach((slot: TimetableSlot) => {
-    const key = `${slot.day}-${slot.period}`;
-    slotsByDayAndPeriod.set(key, slot);
+  timetable.forEach((slot: any) => {
+    const pNum = slot.periodNumber || slot.period;
+    const dayName = (slot.day || '').toUpperCase();
+    const key = `${dayName}-${pNum}`;
+    
+    const normalizedSlot: TimetableSlot = {
+      ...slot,
+      periodNumber: pNum,
+      subject: slot.subject || slot.subjectId || { name: 'N/A' },
+      class: slot.class || slot.classId || { name: 'N/A' },
+      section: slot.section || slot.sectionId || { name: 'N/A' }
+    };
+    slotsByDayAndPeriod.set(key, normalizedSlot);
   });
 
   const getSlotForDayAndPeriod = (day: string, period: number) => {
-    return slotsByDayAndPeriod.get(`${day}-${period}`);
+    return slotsByDayAndPeriod.get(`${day.toUpperCase()}-${period}`);
   };
 
   if (viewMode === 'list') {
@@ -222,18 +245,18 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Badge variant="outline" className="text-xs">
-                              Period {slot!.period}
+                              Period {slot!.periodNumber}
                             </Badge>
                             <span className="text-sm font-medium">
                               {slot!.startTime} - {slot!.endTime}
                             </span>
                           </div>
-                          <div className="font-medium">{slot!.subject.name}</div>
-                          <div className="text-sm opacity-75">{slot!.subject.code}</div>
+                          <div className="font-medium">{slot!.subject?.name || 'N/A'}</div>
+                          <div className="text-sm opacity-75">{slot!.subject?.code || ''}</div>
                           <div className="flex items-center gap-4 mt-2 text-sm">
                             <div className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {slot!.class.name} - {slot!.section.name}
+                              {slot!.class?.name || 'N/A'} - {slot!.section?.name || 'N/A'}
                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
@@ -329,13 +352,13 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
                         {slot.startTime}
                       </div>
                       <div className="font-medium text-sm mb-1 leading-tight">
-                        {slot.subject.name}
+                        {slot.subject?.name || 'N/A'}
                       </div>
                       <div className="text-xs opacity-75 mb-1">
-                        {slot.subject.code}
+                        {slot.subject?.code || ''}
                       </div>
                       <div className="text-xs mb-1">
-                        {slot.class.name} - {slot.section.name}
+                        {slot.class?.name || 'N/A'} - {slot.section?.name || 'N/A'}
                       </div>
                       <div className="flex items-center gap-1 text-xs">
                         <MapPin className="h-3 w-3" />

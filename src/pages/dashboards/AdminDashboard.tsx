@@ -263,6 +263,37 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
+      {/* Class-wise Attendance Trends */}
+      {attendanceAnalytics?.classWiseTrends && attendanceAnalytics.classWiseTrends.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Class-wise Attendance Trends</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={attendanceAnalytics.classWiseTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="className" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Attendance']}
+                />
+                <Bar 
+                  dataKey="attendancePercentage" 
+                  fill="hsl(160, 60%, 45%)" 
+                  radius={[4, 4, 0, 0]}
+                  name="Attendance %"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              Showing attendance percentage for each class over the last {attendanceAnalytics.period?.months || 6} months
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Academic Summary Charts */}
       {academicSummary && (
         <div className="grid gap-4 lg:grid-cols-2">

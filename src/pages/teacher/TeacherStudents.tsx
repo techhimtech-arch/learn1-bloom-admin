@@ -27,8 +27,10 @@ interface Student {
   phone: string;
   gender: string;
   dateOfBirth: string;
-  classId: { _id: string; name: string };
-  sectionId: { _id: string; name: string };
+  currentEnrollment?: {
+    classId: { _id: string; name: string };
+    sectionId: { _id: string; name: string };
+  };
 }
 
 interface ClassAssignment {
@@ -250,7 +252,9 @@ const TeacherStudents = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{student.classId.name} - {student.sectionId.name}</span>
+                          <span>
+                            {student.currentEnrollment?.classId?.name || 'No Class'} - {student.currentEnrollment?.sectionId?.name || 'No Section'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -261,7 +265,7 @@ const TeacherStudents = () => {
                     
                     <div className="flex items-center gap-2 ml-4">
                       <Badge variant="outline">
-                        {student.classId.name}
+                        {student.currentEnrollment?.classId?.name || 'N/A'}
                       </Badge>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />
