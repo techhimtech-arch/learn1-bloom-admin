@@ -1,8 +1,10 @@
 import axios from "axios";
 
- const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
-
-// const API_BASE_URL = import.meta.env.VITE_API_URL || "https://sms-backend-d19v.onrender.com/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.DEV 
+    ? "http://localhost:5000/api/v1" 
+    : "https://sms-backend-d19v.onrender.com/api/v1"
+);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -227,17 +229,17 @@ export const subjectApi = {
   getByTeacher: (teacherId: string) => apiClient.get(`/subjects/teacher/${teacherId}`),
   getOptional: (classId: string) => apiClient.get(`/subjects/optional/${classId}`),
   create: (data: Record<string, unknown>) => apiClient.post('/subjects', data),
-  bulkCreate: (data: { classId: string; academicYearId: string; subjects: Array<Record<string, unknown>> }) => 
+  bulkCreate: (data: { classId: string; academicYearId: string; subjects: Array<Record<string, unknown>> }) =>
     apiClient.post('/subjects/bulk', data),
-  clone: (data: { sourceClassId: string; targetClassId: string; academicYearId: string }) => 
+  clone: (data: { sourceClassId: string; targetClassId: string; academicYearId: string }) =>
     apiClient.post('/subjects/clone', data),
-  migrate: (data: { sourceAcademicYearId: string; targetAcademicYearId: string }) => 
+  migrate: (data: { sourceAcademicYearId: string; targetAcademicYearId: string }) =>
     apiClient.post('/subjects/migrate', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/subjects/${id}`, data),
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
-  assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) => 
+  assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) =>
     apiClient.post(`/subjects/${subjectId}/assign-teacher`, data),
-  removeTeacher: (subjectId: string, teacherId: string) => 
+  removeTeacher: (subjectId: string, teacherId: string) =>
     apiClient.delete(`/subjects/${subjectId}/remove-teacher/${teacherId}`),
 };
 
@@ -248,19 +250,19 @@ export const feeApi = {
   createStructure: (data: Record<string, unknown>) => apiClient.post("/fees/structure", data),
   updateStructure: (data: Record<string, unknown>) => apiClient.put("/fees/structure", data),
   deleteStructure: (id: string) => apiClient.delete(`/fees/structure/${id}`),
-  
+
   // Student Fees
   generateStudentFees: (data: Record<string, unknown>) => apiClient.post("/fees/generate-student-fees", data),
   getStudentFees: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
-  
+
   // Payments
   pay: (data: Record<string, unknown>) => apiClient.post("/fees/pay", data),
   getPayments: (params?: Record<string, any>) => apiClient.get("/fees/payments", { params }),
   getReceipt: (paymentId: string) => apiClient.get(`/fees/receipt/${paymentId}`),
-  
+
   // Dues
   getDues: (params?: Record<string, any>) => apiClient.get("/fees/dues", { params }),
-  
+
   // Legacy endpoints (keep for backward compatibility)
   getByStudent: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
   recordPayment: (data: Record<string, unknown>) => apiClient.post("/fees/payment", data),
@@ -275,14 +277,14 @@ export const examApi = {
   create: (data: Record<string, unknown>) => apiClient.post("/exams", data),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/exams/${id}`, data),
   delete: (id: string) => apiClient.delete(`/exams/${id}`),
-  
+
   // Exam Subject Papers
   getPapers: (examId: string) => apiClient.get(`/exams/${examId}/papers`),
   getPaper: (examId: string, paperId: string) => apiClient.get(`/exams/${examId}/papers/${paperId}`),
   createPaper: (examId: string, data: Record<string, unknown>) => apiClient.post(`/exams/${examId}/papers`, data),
   updatePaper: (examId: string, paperId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/papers/${paperId}`, data),
   deletePaper: (examId: string, paperId: string) => apiClient.delete(`/exams/${examId}/papers/${paperId}`),
-  
+
   // Marks Entry
   getStudentsForExam: (examId: string) => apiClient.get(`/exams/${examId}/students`),
   getMarks: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/marks`, { params }),
@@ -291,19 +293,19 @@ export const examApi = {
   updateMarks: (examId: string, markId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/marks/${markId}`, data),
   lockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/lock`),
   unlockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/unlock`),
-  
+
   // Results (Refactored API as per spec)
   getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/results/${examId}`, { params }),
   // Legacy getResults endpoint (kept for backward compatibility)
   getResultsLegacy: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/results`, { params }),
-  
+
   getStudentResults: (studentId: string, params?: Record<string, any>) => apiClient.get(`/results/student/${studentId}`, { params }),
   getClassResults: (classId: string, params?: Record<string, any>) => apiClient.get(`/results/class/${classId}`, { params }),
-  
+
   // Publish Control
   publishResults: (examId: string) => apiClient.post(`/exams/${examId}/publish`),
   unpublishResults: (examId: string) => apiClient.post(`/exams/${examId}/unpublish`),
-  
+
   // Legacy endpoints (keep for backward compatibility)
   enterResults: (data: Record<string, unknown>) => apiClient.post("/results/enter", data),
 };
@@ -312,7 +314,7 @@ export const examApi = {
 export const announcementApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/announcements", { params }),
   getById: (id: string) => apiClient.get(`/announcements/${id}`),
-create: (data: FormData | Record<string, unknown>) => apiClient.post("/announcements", data, {
+  create: (data: FormData | Record<string, unknown>) => apiClient.post("/announcements", data, {
     headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
   }),
   update: (id: string, data: FormData | Record<string, unknown>) => apiClient.put(`/announcements/${id}`, data, {
@@ -335,11 +337,11 @@ export const reportApi = {
 export const timetableApi = {
   create: (data: Record<string, unknown>) => apiClient.post('/timetable', data),
   createBulk: (data: Record<string, unknown>) => apiClient.post('/timetable/bulk', data),
-  getByClass: (classId: string, sectionId: string, academicYearId?: string) => 
+  getByClass: (classId: string, sectionId: string, academicYearId?: string) =>
     apiClient.get(`/timetable/class/${classId}/section/${sectionId}`, { params: academicYearId ? { academicYearId } : undefined }),
-  getByTeacher: (teacherId: string, academicYearId?: string, day?: string) => 
+  getByTeacher: (teacherId: string, academicYearId?: string, day?: string) =>
     apiClient.get(`/timetable/teacher/${teacherId}`, { params: { ...(academicYearId ? { academicYearId } : {}), ...(day ? { day } : {}) } }),
-  getWeekly: (classId: string, sectionId: string, academicYearId?: string) => 
+  getWeekly: (classId: string, sectionId: string, academicYearId?: string) =>
     apiClient.get(`/timetable/weekly/class/${classId}/section/${sectionId}`, { params: academicYearId ? { academicYearId } : undefined }),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/timetable/${id}`, data),
   delete: (id: string) => apiClient.delete(`/timetable/${id}`),
@@ -348,7 +350,7 @@ export const timetableApi = {
 // Academic Calendar API
 export const academicCalendarApi = {
   getAll: () => apiClient.get('/academic-calendar'),
-  getMonthly: (year: number, month: number) => 
+  getMonthly: (year: number, month: number) =>
     apiClient.get(`/academic-calendar/monthly/${year}/${month}`),
   getUpcoming: () => apiClient.get('/academic-calendar/upcoming'),
   getHolidays: (year: number) => apiClient.get(`/academic-calendar/holidays/${year}`),
@@ -383,10 +385,10 @@ export const studentAssignmentApi = {
     sortBy?: string;
     sortOrder?: string;
   }) => apiClient.get("/assignments", { params }),
-  
+
   // Get single assignment details
   getById: (assignmentId: string) => apiClient.get(`/assignments/${assignmentId}`),
-  
+
   // Submit assignment
   submit: (assignmentId: string, data: {
     submissionText?: string;
@@ -396,7 +398,7 @@ export const studentAssignmentApi = {
     };
     lateSubmissionReason?: string;
   }) => apiClient.post(`/assignments/${assignmentId}/submit`, data),
-  
+
   // Get submission status for an assignment
   getSubmissionStatus: (assignmentId: string) => apiClient.get(`/assignments/${assignmentId}/submission-status`),
 };
@@ -414,39 +416,39 @@ export const parentApi = {
   getDashboard: () => apiClient.get("/parent/dashboard"),
   getStudents: () => apiClient.get("/parent/students"),
   getProfile: () => apiClient.get("/parent/profile"),
-  
+
   // Get specific student details (for header info)
   getStudent: (studentId: string) => apiClient.get(`/parent/student/${studentId}`),
-  
+
   // Child-specific data endpoints (with hasAccess verification)
-  getChildAttendance: (studentId: string, params?: Record<string, any>) => 
+  getChildAttendance: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/children/${studentId}/attendance`, { params }),
-  getChildFees: (studentId: string) => 
+  getChildFees: (studentId: string) =>
     apiClient.get(`/parent/children/${studentId}/fees`),
-  getChildResults: (studentId: string, params?: Record<string, any>) => 
+  getChildResults: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/children/${studentId}/results`, { params }),
-  getChildAnnouncements: (studentId: string, params?: Record<string, any>) => 
+  getChildAnnouncements: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/children/${studentId}/announcements`, { params }),
-  getChildTimetable: (studentId: string) => 
+  getChildTimetable: (studentId: string) =>
     apiClient.get(`/parent/children/${studentId}/timetable`),
-  
+
   // Additional child data endpoints
-  getChildHomework: (studentId: string, params?: Record<string, any>) => 
+  getChildHomework: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/children/${studentId}/homework`, { params }),
-  getChildRemarks: (studentId: string, params?: Record<string, any>) => 
+  getChildRemarks: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/children/${studentId}/remarks`, { params }),
-  getChildPerformance: (studentId: string) => 
+  getChildPerformance: (studentId: string) =>
     apiClient.get(`/parent/children/${studentId}/performance`),
-  
+
   // Legacy endpoints (deprecated but keeping for compatibility)
   getAttendance: (params?: Record<string, any>) => apiClient.get("/parent/attendance", { params }),
   getFees: () => apiClient.get("/parent/fees"),
   getResults: (params?: Record<string, any>) => apiClient.get("/parent/results", { params }),
-  getStudentAttendance: (studentId: string, params?: Record<string, any>) => 
+  getStudentAttendance: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/student/${studentId}/attendance`, { params }),
-  getStudentResults: (studentId: string, params?: Record<string, any>) => 
+  getStudentResults: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/student/${studentId}/results`, { params }),
-  getStudentAssignments: (studentId: string, params?: Record<string, any>) => 
+  getStudentAssignments: (studentId: string, params?: Record<string, any>) =>
     apiClient.get(`/parent/student/${studentId}/assignments`, { params }),
   getStudentFees: (studentId: string) => apiClient.get(`/parent/student/${studentId}/fees`),
 };
@@ -456,19 +458,19 @@ export const teacherApi = {
   // Dashboard & Profile
   getDashboard: () => apiClient.get("/teacher/dashboard"),
   getProfile: () => apiClient.get("/teacher/profile"),
-  
+
   // Classes & Students
   getClasses: (params?: Record<string, any>) => apiClient.get("/teacher/classes", { params }),
   getStudents: (params?: Record<string, any>) => apiClient.get("/teacher/students", { params }),
-  
+
   // Attendance Management
   getAttendance: (params?: Record<string, any>) => apiClient.get("/teacher/attendance", { params }),
   markAttendance: (data: Record<string, unknown>) => apiClient.post("/teacher/attendance/mark", data),
   updateAttendance: (data: Record<string, unknown>) => apiClient.put("/teacher/attendance/update", data),
-  
+
   // Profile Management
   updateProfile: (data: Record<string, unknown>) => apiClient.patch("/teacher/profile", data),
-  
+
   // Assignments
   getAssignments: (params?: Record<string, any>) => apiClient.get("/assignments", { params }),
   createAssignment: (data: Record<string, unknown>) => apiClient.post("/assignments", data),
@@ -477,7 +479,7 @@ export const teacherApi = {
   publishAssignment: (id: string) => apiClient.post(`/assignments/${id}/publish`, {}),
   getAssignmentSubmissions: (assignmentId: string) => apiClient.get(`/assignments/${assignmentId}/submissions`),
   gradeSubmission: (assignmentId: string, data: Record<string, unknown>) => apiClient.post(`/assignments/${assignmentId}/grade`, data),
-  
+
   // Exams & Results
   getExams: (params?: Record<string, any>) => apiClient.get("/teacher/exams", { params }),
   createExam: (data: Record<string, unknown>) => apiClient.post("/teacher/exams", data),
@@ -493,19 +495,19 @@ export const studentApi = {
     apiClient.get('/students', { params }),
   getById: (id: string) => apiClient.get(`/students/${id}`),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/students/${id}`, data),
-  getByClass: (classId: string, sectionId?: string) => 
+  getByClass: (classId: string, sectionId?: string) =>
     apiClient.get(`/students/class/${classId}${sectionId ? `?sectionId=${sectionId}` : ''}`),
 };
 
 // ── Parent Linking API ─────────────────────────────────────
 export const parentLinkingApi = {
-  linkParent: (studentId: string, parentId: string) => 
+  linkParent: (studentId: string, parentId: string) =>
     apiClient.post(`/parent-linking/student/${studentId}/link/${parentId}`),
-  unlinkParent: (studentId: string, parentId: string) => 
+  unlinkParent: (studentId: string, parentId: string) =>
     apiClient.post(`/parent-linking/student/${studentId}/unlink/${parentId}`),
-  getLinkedParents: (studentId: string) => 
+  getLinkedParents: (studentId: string) =>
     apiClient.get(`/parent-linking/student/${studentId}/parents`),
-  searchParents: (params: { search: string }) => 
+  searchParents: (params: { search: string }) =>
     apiClient.get(`/users`, { params: { ...params, role: 'parent' } }),
 };
 
@@ -582,23 +584,25 @@ export const enrollmentApi = {
   }) => apiClient.post("/enrollments/promote", data),
 
   // Bulk enroll students
-  bulkEnroll: (data: { enrollments: Array<{
-    studentId: string;
-    academicYearId: string;
-    classId: string;
-    sectionId: string;
-    schoolId: string;
-    rollNumber: string;
-  }> }) => apiClient.post("/enrollments/bulk", data),
+  bulkEnroll: (data: {
+    enrollments: Array<{
+      studentId: string;
+      academicYearId: string;
+      classId: string;
+      sectionId: string;
+      schoolId: string;
+      rollNumber: string;
+    }>
+  }) => apiClient.post("/enrollments/bulk", data),
 };
 
 // Roll Number API
 export const rollNumberApi = {
   bulkAssign: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/bulk-assign', data),
   reassign: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/reassign', data),
-  getByClass: (classId: string, sectionId: string) => 
+  getByClass: (classId: string, sectionId: string) =>
     apiClient.get(`/roll-numbers/class/${classId}/section/${sectionId}`),
-  autoAssignSession: (data: { academicYearId: string; classId?: string; sectionId?: string }) => 
+  autoAssignSession: (data: { academicYearId: string; classId?: string; sectionId?: string }) =>
     apiClient.post('/roll-numbers/auto-assign-session', data),
   validate: (data: Record<string, unknown>) => apiClient.post('/roll-numbers/validate', data),
 };
@@ -617,19 +621,19 @@ export const accountantApi = {
     apiClient.post("/fees/generate-student-fees", data),
   refund: (paymentId: string, data: Record<string, unknown>) =>
     apiClient.post(`/fees/refund/${paymentId}`, data),
-  
+
   // Additional endpoints for complete portal functionality
-  recordPayment: (data: Record<string, unknown>) => 
+  recordPayment: (data: Record<string, unknown>) =>
     apiClient.post("/fees/pay", data),
-  getFeeStructure: (params?: Record<string, any>) => 
+  getFeeStructure: (params?: Record<string, any>) =>
     apiClient.get("/fees/structure", { params }),
-  getDashboard: (params?: Record<string, any>) => 
+  getDashboard: (params?: Record<string, any>) =>
     apiClient.get("/fees/dashboard", { params }),
-  getClassFeeSummary: (classId: string, academicYearId: string) => 
+  getClassFeeSummary: (classId: string, academicYearId: string) =>
     apiClient.get("/fees/class-summary", { params: { classId, academicYearId } }),
-  getOverdueFees: (params?: Record<string, any>) => 
+  getOverdueFees: (params?: Record<string, any>) =>
     apiClient.get("/fees/overdue", { params }),
-  generateReport: (reportType: string, params?: Record<string, any>) => 
+  generateReport: (reportType: string, params?: Record<string, any>) =>
     apiClient.get(`/fees/reports/${reportType}`, { params }),
 };
 
