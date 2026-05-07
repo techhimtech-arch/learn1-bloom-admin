@@ -95,12 +95,12 @@ const Login = () => {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
-              <p className="text-sm text-muted-foreground">
+              {/* <p className="text-sm text-muted-foreground">
                 Don't have an account?{' '}
                 <Link to="/register" className="font-medium text-primary hover:underline">
                   Register School
                 </Link>
-              </p>
+              </p> */}
               <InstallAppButton className="w-full" />
             </CardFooter>
           </form>
