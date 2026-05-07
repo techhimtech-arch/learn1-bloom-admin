@@ -333,6 +333,14 @@ export const reportApi = {
   students: (params?: Record<string, string>) => apiClient.get('/reports/students', { params }),
 };
 
+// Timetable Period API
+export const timetablePeriodApi = {
+  getAll: (academicYearId: string) =>
+    apiClient.get("/timetable-periods", { params: { academicYearId } }),
+  bulkCreate: (data: Record<string, unknown>) =>
+    apiClient.post("/timetable-periods/bulk", data),
+};
+
 // Timetable API
 export const timetableApi = {
   create: (data: Record<string, unknown>) => apiClient.post('/timetable', data),
@@ -647,6 +655,10 @@ export const academicApi = {
 // Teacher Assignment API
 export const teacherAssignmentApi = {
   getAll: (params?: Record<string, any>) => apiClient.get('/teacher-assignments', { params }),
+  getByClassAndSection: (classId: string, sectionId: string, academicYearId: string) =>
+    apiClient.get(`/teacher-assignments/class/${classId}/section/${sectionId}`, {
+      params: { academicYearId }
+    }),
   create: (data: Record<string, unknown>) => apiClient.post('/teacher-assignments', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/teacher-assignments/${id}`, data),
   delete: (id: string) => apiClient.delete(`/teacher-assignments/${id}`),

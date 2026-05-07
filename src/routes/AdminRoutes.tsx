@@ -13,6 +13,7 @@ const TeacherAssignmentManagement = lazy(() => import("@/pages/TeacherAssignment
 const AttendanceManagement = lazy(() => import("@/pages/AttendanceManagement"));
 const AcademicYearManagement = lazy(() => import("@/pages/AcademicYearManagement"));
 const TimetableManagement = lazy(() => import("@/pages/TimetableManagement"));
+const TimetableBuilderPage = lazy(() => import("@/pages/admin/TimetableBuilderPage"));
 const AcademicCalendar = lazy(() => import("@/pages/AcademicCalendar"));
 const RollNumberManagement = lazy(() => import("@/pages/RollNumberManagement"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -48,6 +49,7 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/attendance" element={<AttendanceManagement />} />
         <Route path="/academic-years" element={<AcademicYearManagement />} />
         <Route path="/timetable" element={<TimetableManagement />} />
+        <Route path="/timetable-builder" element={<TimetableBuilderPage />} />
         <Route path="/academic-calendar" element={<AcademicCalendar />} />
         <Route path="/roll-numbers" element={<RollNumberManagement />} />
         <Route path="/profile" element={<Profile setRunTour={setRunTour} />} />
