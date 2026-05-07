@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { academicYearApi } from '@/pages/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { Plus, Edit, Trash2, CalendarDays, Star, CalendarPlus, Palmtree } from 'lucide-react';
+import { Plus, Edit, Trash2, CalendarDays, Star, CalendarPlus, Palmtree, RefreshCw } from 'lucide-react';
+import { MigrateSubjectsDialog } from '@/components/academic/MigrateSubjectsDialog';
 
 interface Term {
   _id?: string;
@@ -79,6 +80,9 @@ const AcademicYearManagement = () => {
 
   // Detail view
   const [detailYear, setDetailYear] = useState<AcademicYear | null>(null);
+
+  // Migration dialog
+  const [migrationDialogOpen, setMigrationDialogOpen] = useState(false);
 
   const fetchYears = async () => {
     setLoading(true);
@@ -230,9 +234,14 @@ const AcademicYearManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">Academic Year Management</h1>
           <p className="text-sm text-muted-foreground">Manage academic years, terms, and holidays</p>
         </div>
-        <Button onClick={() => { setEditingYear(null); setForm({ name: '', startDate: '', endDate: '', description: '', isCurrent: false, gradingSystem: 'percentage', workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }); setDialogOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" />New Academic Year
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setMigrationDialogOpen(true)} className="border-primary/20 hover:border-primary/50">
+            <RefreshCw className="mr-2 h-4 w-4" /> Migrate Subjects
+          </Button>
+          <Button onClick={() => { setEditingYear(null); setForm({ name: '', startDate: '', endDate: '', description: '', isCurrent: false, gradingSystem: 'percentage', workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }); setDialogOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" />New Academic Year
+          </Button>
+        </div>
       </div>
 
       {/* Current Year Card */}
@@ -449,6 +458,11 @@ const AcademicYearManagement = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <MigrateSubjectsDialog
+        isOpen={migrationDialogOpen}
+        onClose={() => setMigrationDialogOpen(false)}
+      />
     </div>
   );
 };

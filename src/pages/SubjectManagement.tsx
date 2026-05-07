@@ -13,6 +13,15 @@ import { subjectApi, userApi } from '@/pages/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BulkSubjectDialog } from '@/components/academic/BulkSubjectDialog';
+import { CloneSubjectsDialog } from '@/components/academic/CloneSubjectsDialog';
+import { Copy, Layers } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -75,6 +84,8 @@ export default function SubjectManagement() {
   const [showTeacherDialog, setShowTeacherDialog] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [deletingSubject, setDeletingSubject] = useState<Subject | null>(null);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -173,10 +184,30 @@ export default function SubjectManagement() {
           <p className="text-muted-foreground">Manage academic subjects and teacher assignments</p>
         </div>
         <PermissionGuard resource="subject" action="create">
-          <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Subject
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2 border-primary/20 hover:border-primary/50">
+                  <Layers className="h-4 w-4" />
+                  Bulk Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setShowBulkDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bulk Add Subjects
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowCloneDialog(true)}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Clone from Class
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
+              <Plus className="h-4 w-4" />
+              Add Subject
+            </Button>
+          </div>
         </PermissionGuard>
       </div>
 
@@ -385,6 +416,20 @@ export default function SubjectManagement() {
           }}
         />
       )}
+
+      <BulkSubjectDialog
+        isOpen={showBulkDialog}
+        onClose={() => setShowBulkDialog(false)}
+        classId={filters.classId || ''}
+        academicYearId={filters.academicYearId || ''}
+      />
+
+      <CloneSubjectsDialog
+        isOpen={showCloneDialog}
+        onClose={() => setShowCloneDialog(false)}
+        academicYearId={filters.academicYearId || ''}
+        defaultSourceClassId={filters.classId || ''}
+      />
     </div>
   );
 };

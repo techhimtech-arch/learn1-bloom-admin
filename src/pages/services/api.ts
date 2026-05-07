@@ -227,6 +227,12 @@ export const subjectApi = {
   getByTeacher: (teacherId: string) => apiClient.get(`/subjects/teacher/${teacherId}`),
   getOptional: (classId: string) => apiClient.get(`/subjects/optional/${classId}`),
   create: (data: Record<string, unknown>) => apiClient.post('/subjects', data),
+  bulkCreate: (data: { classId: string; academicYearId: string; subjects: Array<Record<string, unknown>> }) => 
+    apiClient.post('/subjects/bulk', data),
+  clone: (data: { sourceClassId: string; targetClassId: string; academicYearId: string }) => 
+    apiClient.post('/subjects/clone', data),
+  migrate: (data: { sourceAcademicYearId: string; targetAcademicYearId: string }) => 
+    apiClient.post('/subjects/migrate', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/subjects/${id}`, data),
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
   assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) => 
