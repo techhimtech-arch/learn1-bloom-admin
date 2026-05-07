@@ -100,11 +100,14 @@ export function CloneSubjectsDialog({ isOpen, onClose, academicYearId, defaultSo
                 <SelectValue placeholder="Select source class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
+                {classes.map((cls: any) => {
+                  const classId = cls._id || cls.id;
+                  return (
+                    <SelectItem key={classId} value={classId}>
+                      {cls.name}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Subjects will be copied from this class.</p>
@@ -124,11 +127,14 @@ export function CloneSubjectsDialog({ isOpen, onClose, academicYearId, defaultSo
                 <SelectValue placeholder="Select target class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((cls: any) => (
-                  <SelectItem key={cls.id} value={cls.id} disabled={cls.id === sourceClassId}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
+                {classes.map((cls: any) => {
+                  const classId = cls._id || cls.id;
+                  return (
+                    <SelectItem key={classId} value={classId} disabled={classId === sourceClassId}>
+                      {cls.name}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Subjects will be added to this class.</p>

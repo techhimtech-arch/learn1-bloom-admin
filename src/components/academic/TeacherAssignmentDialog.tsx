@@ -56,11 +56,12 @@ export function TeacherAssignmentDialog({
 
   const assignMutation = useMutation({
     mutationFn: ({ teacherId, role }: { teacherId: string; role: string }) =>
-      subjectApi.assignTeacher(subject.id, { teacherId, role }),
+      subjectApi.assignTeacher(subject.id || (subject as any)._id, { teacherId, role }),
     onSuccess: () => {
       toast.success('Teacher assigned successfully');
       setSelectedTeacher('');
       setSelectedRole('assistant');
+      onSuccess(); // Refresh the list
     },
     onError: (error: any) => {
       handleApiError(error, 'Failed to assign teacher');
@@ -96,9 +97,12 @@ export function TeacherAssignmentDialog({
     setTimeout(onClose, 300);
   };
 
-  const availableTeachers = teachers.filter(
-    teacher => !subject.teachers?.some(t => t.id === teacher.id)
-  );
+  const availableTeachers = Array.isArray(teachers) ? teachers.filter(
+    teacher => {
+      const tId = (teacher as any)._id || teacher.id;
+      return !subject.teachers?.some(t => (t as any)._id === tId || t.id === tId);
+    }
+  ) : [];
 
   const isLoading = assignMutation.isPending || removeMutation.isPending;
 
@@ -191,24 +195,27 @@ export function TeacherAssignmentDialog({
                           <SelectValue placeholder="Choose a teacher" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableTeachers.map((teacher) => (
-                            <SelectItem key={teacher.id} value={teacher.id}>
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={teacher.avatar} />
-                                  <AvatarFallback className="text-xs">
-                                    {teacher.name.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">{teacher.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {teacher.email}
+                          {availableTeachers.map((teacher) => {
+                            const tId = (teacher as any)._id || teacher.id;
+                            return (
+                              <SelectItem key={tId} value={tId}>
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage src={teacher.avatar} />
+                                    <AvatarFallback className="text-xs">
+                                      {teacher.name.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <div className="font-medium">{teacher.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {teacher.email}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </SelectItem>
-                          ))}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>

@@ -96,15 +96,29 @@ export default function SubjectManagement() {
   } = useQuery({
     queryKey: ['subjects', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.academicYearId) params.append('academicYearId', filters.academicYearId);
-      if (filters.classId) params.append('classId', filters.classId);
-      if (filters.department) params.append('department', filters.department);
-      if (filters.status) params.append('status', filters.status);
+      // If a class is selected, use the dedicated class-based endpoint
+      if (filters.classId) {
+        const response = await subjectApi.getByClass(filters.classId);
+        const data = response.data?.data || response.data || [];
+        return {
+          ...response.data,
+          data: data.map((s: any) => ({ ...s, id: s.id || s._id }))
+        };
+      }
 
-      const response = await subjectApi.getAll();
-      return response.data;
+      // Otherwise use the general getAll with filters
+      const params: Record<string, any> = {};
+      if (filters.search) params.search = filters.search;
+      if (filters.academicYearId) params.academicYearId = filters.academicYearId;
+      if (filters.department) params.department = filters.department;
+      if (filters.status) params.status = filters.status;
+
+      const response = await subjectApi.getAll(params);
+      const data = response.data?.data || response.data || [];
+      return {
+        ...response.data,
+        data: data.map((s: any) => ({ ...s, id: s.id || s._id }))
+      };
     },
   });
 
@@ -404,7 +418,7 @@ export default function SubjectManagement() {
       {showTeacherDialog && selectedSubject && (
         <TeacherAssignmentDialog
           subject={selectedSubject}
-          teachers={teachersData?.data || []}
+          teachers={teachersData?.data?.users || teachersData?.data || []}
           onClose={() => {
             setShowTeacherDialog(false);
             setSelectedSubject(null);

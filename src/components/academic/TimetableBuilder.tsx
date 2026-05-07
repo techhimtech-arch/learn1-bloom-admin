@@ -20,9 +20,10 @@ import { toast } from 'sonner';
 import { 
   timetableApi, 
   timetablePeriodApi, 
-  teacherAssignmentApi,
+  subjectApi,
   academicYearApi 
 } from '@/pages/services/api';
+import { TimetablePeriodForm } from './TimetablePeriodForm';
 
 interface TimetableBuilderProps {
   classId: string;
@@ -72,6 +73,7 @@ const getSubjectColor = (subjectName: string) => {
 export function TimetableBuilder({ classId, sectionId, academicYearId }: TimetableBuilderProps) {
   const queryClient = useQueryClient();
   const [draggedAssignment, setDraggedAssignment] = useState<Assignment | null>(null);
+  const [showPeriodForm, setShowPeriodForm] = useState(false);
 
   // Fetch Academic Year if not provided
   const [activeYearId, setActiveYearId] = useState(academicYearId);
@@ -95,14 +97,15 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
     enabled: !!activeYearId,
   });
 
-  // 2. Fetch Sidebar Inventory (Teacher Assignments for this class)
-  const { data: assignmentsData, isLoading: isLoadingAssignments } = useQuery({
-    queryKey: ['teacher-assignments', classId, sectionId, activeYearId],
+  // 2. Fetch Sidebar Inventory (Subjects for this class)
+  const { data: inventoryData, isLoading: isLoadingInventory } = useQuery({
+    queryKey: ['subjects-class', classId, activeYearId],
     queryFn: async () => {
-      const response = await teacherAssignmentApi.getByClassAndSection(classId, sectionId, activeYearId);
+      const response = await subjectApi.getByClass(classId);
+      // Backend might return subjects with assigned teachers or just subjects
       return response.data?.data || response.data || [];
     },
-    enabled: !!classId && !!sectionId && !!activeYearId,
+    enabled: !!classId && !!activeYearId,
   });
 
   // 3. Fetch Existing Timetable
@@ -152,12 +155,12 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
       periodNumber: period.periodNumber,
       startTime: period.startTime,
       endTime: period.endTime,
-      subjectId: draggedAssignment.subjectId._id,
-      teacherId: draggedAssignment.teacherId._id,
+      subjectId: draggedAssignment.subjectId?._id || draggedAssignment._id,
+      teacherId: draggedAssignment.teacherId?._id || '', // If subject has assigned teacher, use it
       classId,
       sectionId,
       academicYearId: activeYearId,
-      room: 'TBD' // Default or could be prompted
+      room: 'TBD'
     };
 
     createSlotMutation.mutate(payload);
@@ -168,8 +171,16 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
     e.preventDefault();
   };
 
-  if (isLoadingPeriods || isLoadingAssignments || isLoadingTimetable) {
-    return <Skeleton className="w-full h-[600px] rounded-xl" />;
+  if (isLoadingPeriods || isLoadingInventory || isLoadingTimetable) {
+    return (
+      <div className="space-y-4 w-full">
+        <Skeleton className="h-12 w-full" />
+        <div className="flex gap-6">
+          <Skeleton className="w-72 h-[500px]" />
+          <Skeleton className="flex-1 h-[500px]" />
+        </div>
+      </div>
+    );
   }
 
   // Organize timetable data for easy lookup: grid[DAY][PERIOD_NUMBER]
@@ -197,27 +208,27 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Drag cards to the grid</p>
           </CardHeader>
           <CardContent className="p-3 space-y-3 overflow-y-auto max-h-[600px]">
-            {assignmentsData.length === 0 ? (
+            {inventoryData.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed rounded-lg">
                 <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-xs text-muted-foreground">No subjects assigned to this class yet.</p>
+                <p className="text-xs text-muted-foreground">No subjects found for this class.</p>
               </div>
             ) : (
-              assignmentsData.map((assign: Assignment) => (
+              inventoryData.map((item: any) => (
                 <div
-                  key={assign._id}
+                  key={item._id}
                   draggable
-                  onDragStart={() => onDragStart(assign)}
-                  className={`p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:scale-[1.02] relative group ${getSubjectColor(assign.subjectId.name)}`}
+                  onDragStart={() => onDragStart(item)}
+                  className={`p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all hover:shadow-md hover:scale-[1.02] relative group ${getSubjectColor(item.name || item.subjectId?.name || '')}`}
                 >
                   <GripVertical className="h-4 w-4 absolute right-2 top-2 text-muted-foreground opacity-0 group-hover:opacity-50 transition-opacity" />
-                  <div className="font-bold text-sm truncate pr-4">{assign.subjectId.name}</div>
+                  <div className="font-bold text-sm truncate pr-4">{item.name || item.subjectId?.name}</div>
                   <div className="text-xs opacity-80 flex items-center gap-1 mt-1">
                     <Users className="h-3 w-3" />
-                    {assign.teacherId.name}
+                    {item.teacherId?.name || 'No Teacher Assigned'}
                   </div>
                   <Badge variant="outline" className="mt-2 text-[10px] bg-white/50 backdrop-blur-sm border-none font-mono">
-                    {assign.subjectId.code}
+                    {item.code || item.subjectId?.code || 'N/A'}
                   </Badge>
                 </div>
               ))
@@ -251,7 +262,12 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
                 <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
                 <h3 className="text-lg font-medium">No Periods Configured</h3>
                 <p className="text-muted-foreground mb-4">Please set up timetable periods first.</p>
-                <Button size="sm" variant="outline" className="gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={() => setShowPeriodForm(true)}
+                >
                   <Plus className="h-4 w-4" /> Configure Periods
                 </Button>
               </div>
@@ -330,6 +346,14 @@ export function TimetableBuilder({ classId, sectionId, academicYearId }: Timetab
           </div>
         </div>
       </div>
+
+      {showPeriodForm && (
+        <TimetablePeriodForm 
+          academicYearId={activeYearId} 
+          onClose={() => setShowPeriodForm(false)} 
+          onSuccess={() => setShowPeriodForm(false)}
+        />
+      )}
     </div>
   );
 }

@@ -224,7 +224,7 @@ export const attendanceApi = {
 
 // Subject API
 export const subjectApi = {
-  getAll: () => apiClient.get('/subjects'),
+  getAll: (params?: Record<string, any>) => apiClient.get('/subjects', { params }),
   getByClass: (classId: string) => apiClient.get(`/subjects/class/${classId}`),
   getByTeacher: (teacherId: string) => apiClient.get(`/subjects/teacher/${teacherId}`),
   getOptional: (classId: string) => apiClient.get(`/subjects/optional/${classId}`),
