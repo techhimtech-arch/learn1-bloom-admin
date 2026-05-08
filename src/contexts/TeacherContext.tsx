@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { teacherApi } from '@/pages/services/api';
+import { teacherApi } from '@/services/api';
 
 export interface ClassAssignment {
   _id: string;

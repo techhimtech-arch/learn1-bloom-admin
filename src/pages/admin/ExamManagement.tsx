@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ExamFilters, ExamFiltersState } from '@/components/shared/ExamFilters';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { ExamForm } from '@/components/exam/ExamForm';
-import { examApi } from '@/pages/services/api';
+import { examApi } from '@/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

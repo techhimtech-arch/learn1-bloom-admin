@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link, Users, Search, Trash2, UserPlus, Phone, Mail, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
-import { studentApi, parentLinkingApi, userApi } from '@/pages/services/api';
+import { studentApi, parentLinkingApi, userApi } from '@/services/api';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { StudentProfileModal } from '@/components/student/StudentProfileModal';
 

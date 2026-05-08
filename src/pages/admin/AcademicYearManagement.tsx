@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { academicYearApi } from '@/pages/services/api';
+import { academicYearApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, CalendarDays, Star, CalendarPlus, Palmtree, RefreshCw } from 'lucide-react';
 import { MigrateSubjectsDialog } from '@/components/academic/MigrateSubjectsDialog';

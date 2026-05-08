@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { accountantApi } from '@/pages/services/api';
+import { accountantApi } from '@/services/api';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 

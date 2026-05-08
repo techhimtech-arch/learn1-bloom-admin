@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Eye, EyeOff, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
-import { authApi } from '@/pages/services/api';
+import { authApi } from '@/services/api';
 import { showApiError } from '@/lib/api-toast';
 
 const ResetPassword = () => {

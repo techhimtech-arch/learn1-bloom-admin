@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import { showApiError } from '@/lib/api-toast';
-import { admissionApi, studentApi } from '@/pages/services/api';
+import { admissionApi, studentApi } from '@/services/api';
 import { UserPlus, Users, ClipboardList, Eye, CheckCircle, Edit, Loader2 } from 'lucide-react';
 
 import { PartialAdmissionForm } from '@/components/admission/PartialAdmissionForm';

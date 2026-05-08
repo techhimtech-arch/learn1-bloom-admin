@@ -21,7 +21,7 @@ import {
   Filter,
   Loader2
 } from 'lucide-react';
-import { teacherApi } from '@/pages/services/api';
+import { teacherApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -55,12 +55,6 @@ interface AttendanceRecord {
   remarks: string;
   markedBy?: string;
   updatedBy?: string;
-}
-
-interface ClassAssignment {
-  _id: string;
-  classId: { _id: string; name: string };
-  sectionId: { _id: string; name: string };
 }
 
 const STATUS_OPTIONS: { value: 'Present' | 'Absent' | 'Late' | 'Leave'; label: string; color: string; bg: string }[] = [

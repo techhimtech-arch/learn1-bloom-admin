@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
-import { examApi, subjectApi } from '@/pages/services/api';
+import { examApi, subjectApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Skeleton } from '@/components/ui/skeleton';

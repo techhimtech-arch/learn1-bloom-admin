@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { studentPortalApi } from '@/pages/services/api';
+import { studentPortalApi } from '@/services/api';
 import { format } from 'date-fns';
 
 interface AttendanceRecord {

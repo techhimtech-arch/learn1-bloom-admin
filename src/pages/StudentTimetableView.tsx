@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { studentPortalApi } from '@/pages/services/api';
+import { studentPortalApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday } from 'date-fns';
 

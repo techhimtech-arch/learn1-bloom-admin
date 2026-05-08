@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { studentPortalApi, studentAssignmentApi } from '@/pages/services/api';
+import { studentPortalApi, studentAssignmentApi } from '@/services/api';
 import { format, isPast } from 'date-fns';
 import {
   Dialog,

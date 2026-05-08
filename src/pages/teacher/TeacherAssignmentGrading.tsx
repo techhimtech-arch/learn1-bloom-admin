@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { assignmentApi } from '@/pages/services/api';
+import { assignmentApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -130,7 +130,7 @@ export default function TeacherAssignmentGrading() {
 
   useEffect(() => {
     if (!assignmentId) {
-      navigate('/assignments');
+      navigate('/teacher/assignments');
     }
   }, [assignmentId, navigate]);
 
@@ -222,7 +222,7 @@ export default function TeacherAssignmentGrading() {
     );
   }
 
-  const filteredSubmissions = submissions.filter(submission => {
+  const filteredSubmissions = submissions.filter((submission: any) => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       return submission.student?.name?.toLowerCase().includes(searchLower) ||
@@ -234,8 +234,8 @@ export default function TeacherAssignmentGrading() {
     return true;
   });
 
-  const submittedCount = submissions.filter(s => s.status === 'submitted').length;
-  const gradedCount = submissions.filter(s => s.status === 'graded').length;
+  const submittedCount = submissions.filter((s: any) => s.status === 'submitted').length;
+  const gradedCount = submissions.filter((s: any) => s.status === 'graded').length;
   const pendingCount = submittedCount - gradedCount;
 
   return (

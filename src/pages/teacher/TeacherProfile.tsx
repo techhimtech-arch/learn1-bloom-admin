@@ -1,147 +1,129 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   User, 
-  Mail, 
-  Phone, 
-  GraduationCap, 
+  BookOpen, 
+  Users, 
+  GraduationCap,
+  Mail,
+  Phone,
   Calendar,
-  Edit,
-  Save,
-  X
+  Award
 } from 'lucide-react';
-import { teacherApi } from '@/pages/services/api';
-import { showApiError, showApiSuccess } from '@/lib/api-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { teacherApi } from '@/services/api';
+import { showApiError } from '@/lib/api-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface TeacherProfile {
+interface Teacher {
   _id: string;
   name: string;
   email: string;
   phone: string;
   qualification: string;
   experience: string;
-  subjectAssignments: Array<{
-    classId: { _id: string; name: string };
-    sectionId: { _id: string; name: string };
-    subjectId: { _id: string; name: string };
-  }>;
-  classTeacherAssignment?: {
-    classId: { _id: string; name: string };
-    sectionId: { _id: string; name: string };
-  };
+}
+
+interface SubjectAssignment {
+  _id: string;
+  classId: { _id: string; name: string };
+  sectionId: { _id: string; name: string };
+  subjectId: { _id: string; name: string };
+}
+
+interface ClassTeacherAssignment {
+  _id: string;
+  classId: { _id: string; name: string };
+  sectionId: { _id: string; name: string };
+}
+
+interface TeacherProfileData {
+  teacher: Teacher;
+  subjectAssignments: SubjectAssignment[];
+  classTeacherAssignment?: ClassTeacherAssignment;
 }
 
 const TeacherProfile = () => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<TeacherProfile | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    phone: '',
-    qualification: '',
-    experience: ''
+  const {
+    data: profileData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['teacher-profile'],
+    queryFn: () => teacherApi.getProfile(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const profile = profileData?.data as TeacherProfileData;
 
-  const fetchProfile = async () => {
-    try {
-      const { data } = await teacherApi.getProfile();
-      setProfile(data.data);
-      setEditForm({
-        phone: data.data?.phone || '',
-        qualification: data.data?.qualification || '',
-        experience: data.data?.experience || ''
-      });
-    } catch (error) {
-      showApiError(error, 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    if (profile) {
-      setEditForm({
-        phone: profile.phone || '',
-        qualification: profile.qualification || '',
-        experience: profile.experience || ''
-      });
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      // Update profile API call (you'll need to add this to teacherApi)
-      await teacherApi.updateProfile(editForm);
-      showApiSuccess(null, 'Profile updated successfully');
-      setIsEditing(false);
-      fetchProfile();
-    } catch (error) {
-      showApiError(error, 'Failed to update profile');
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-        <Card>
-          <CardHeader>
-            <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="h-4 w-full bg-muted animate-pulse rounded" />
-              <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
-            </div>
-          </CardContent>
-        </Card>
+        <div>
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64 mt-2" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    showApiError(error, 'Failed to load teacher profile');
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Teacher Profile</h1>
+          <p className="text-sm text-muted-foreground">Unable to load profile data</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Teacher Profile</h1>
+          <p className="text-sm text-muted-foreground">No profile data available</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-          <p className="text-sm text-muted-foreground">View and manage your personal information</p>
-        </div>
-        {!isEditing ? (
-          <Button onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-            <Button variant="outline" onClick={handleCancel}>
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-          </div>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Teacher Profile</h1>
+        <p className="text-sm text-muted-foreground">View your professional information and assignments</p>
       </div>
 
-      {/* Personal Information */}
+      {/* Teacher Information Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -150,120 +132,187 @@ const TeacherProfile = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Full Name</Label>
-              <Input 
-                value={profile?.name || ''} 
-                disabled 
-                className="bg-muted"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email Address</Label>
-              <div className="flex items-center gap-2">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Name</p>
+                  <p className="text-sm text-muted-foreground">{profile.teacher.name}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <Input 
-                  value={profile?.email || ''} 
-                  disabled 
-                  className="bg-muted"
-                />
+                <div>
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm text-muted-foreground">{profile.teacher.email}</p>
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Phone Number</Label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                {isEditing ? (
-                  <Input
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="Enter phone number"
-                  />
-                ) : (
-                  <Input 
-                    value={profile?.phone || 'Not provided'} 
-                    disabled 
-                    className="bg-muted"
-                  />
-                )}
+                <div>
+                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm text-muted-foreground">{profile.teacher.phone}</p>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Qualification</Label>
-              <div className="flex items-center gap-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
                 <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                {isEditing ? (
-                  <Input
-                    value={editForm.qualification}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, qualification: e.target.value }))}
-                    placeholder="Enter your qualification"
-                  />
-                ) : (
-                  <Input 
-                    value={profile?.qualification || 'Not provided'} 
-                    disabled 
-                    className="bg-muted"
-                  />
-                )}
+                <div>
+                  <p className="text-sm font-medium">Qualification</p>
+                  <p className="text-sm text-muted-foreground">{profile.teacher.qualification}</p>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="mt-4 space-y-2">
-            <Label>Experience</Label>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              {isEditing ? (
-                <Textarea
-                  value={editForm.experience}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, experience: e.target.value }))}
-                  placeholder="Describe your teaching experience"
-                  rows={3}
-                />
-              ) : (
-                <Textarea 
-                  value={profile?.experience || 'Not provided'} 
-                  disabled 
-                  className="bg-muted"
-                  rows={3}
-                />
-              )}
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Experience</p>
+                  <p className="text-sm text-muted-foreground">{profile.teacher.experience}</p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Teaching Assignments */}
+      <Tabs defaultValue="subjects" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="subjects" className="gap-2">
+            <BookOpen className="h-4 w-4" />
+            Subject Assignments
+          </TabsTrigger>
+          <TabsTrigger value="class" className="gap-2">
+            <Users className="h-4 w-4" />
+            Class Teacher Role
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Subject Assignments Tab */}
+        <TabsContent value="subjects">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Subject Assignments ({profile.subjectAssignments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profile.subjectAssignments.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold">No subject assignments</h3>
+                  <p className="text-muted-foreground">
+                    You haven't been assigned to teach any subjects yet.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Section</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {profile.subjectAssignments.map((assignment) => (
+                      <TableRow key={assignment._id}>
+                        <TableCell className="font-medium">
+                          {assignment.classId.name}
+                        </TableCell>
+                        <TableCell>{assignment.sectionId.name}</TableCell>
+                        <TableCell>{assignment.subjectId.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="default">Active</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Class Teacher Role Tab */}
+        <TabsContent value="class">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Class Teacher Assignment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profile.classTeacherAssignment ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Class</p>
+                        <p className="text-sm text-muted-foreground">
+                          {profile.classTeacherAssignment.classId.name}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Award className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Section</p>
+                        <p className="text-sm text-muted-foreground">
+                          {profile.classTeacherAssignment.sectionId.name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="default" className="gap-1">
+                      <Users className="h-3 w-3" />
+                      Class Teacher
+                    </Badge>
+                    <Badge variant="outline">Full Responsibility</Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold">No class teacher assignment</h3>
+                  <p className="text-muted-foreground">
+                    You are not currently assigned as a class teacher.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Teaching Assignments</CardTitle>
+          <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Class Teacher Assignment */}
-            {profile?.classTeacherAssignment && (
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">Class Teacher</h4>
-                <Badge variant="secondary" className="text-sm">
-                  {profile.classTeacherAssignment.classId.name} - {profile.classTeacherAssignment.sectionId.name}
-                </Badge>
-              </div>
-            )}
-
-            {/* Subject Assignments */}
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Subject Assignments</h4>
-              <div className="flex flex-wrap gap-2">
-                {profile?.subjectAssignments?.map((assignment, index) => (
-                  <Badge key={index} variant="outline" className="text-sm">
-                    {assignment.subjectId.name} ({assignment.classId.name} - {assignment.sectionId.name})
-                  </Badge>
-                ))}
-                {(!profile?.subjectAssignments || profile.subjectAssignments.length === 0) && (
-                  <p className="text-sm text-muted-foreground">No subject assignments found</p>
-                )}
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4">
+              <Users className="h-5 w-5 text-primary" />
+              <span className="text-xs">View Students</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4">
+              <Calendar className="h-5 w-5 text-primary" />
+              <span className="text-xs">Mark Attendance</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4">
+              <Award className="h-5 w-5 text-primary" />
+              <span className="text-xs">Enter Results</span>
+            </Button>
+            <Button variant="outline" className="flex h-auto flex-col gap-2 py-4">
+              <BookOpen className="h-5 w-5 text-primary" />
+              <span className="text-xs">View Schedule</span>
+            </Button>
           </div>
         </CardContent>
       </Card>

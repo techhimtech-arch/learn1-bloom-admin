@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { FeeStructureForm } from '@/components/fee/FeeStructureForm';
-import { feeApi } from '@/pages/services/api';
+import { feeApi } from '@/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

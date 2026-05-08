@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatWidget from '@/components/shared/StatWidget';
 import { useAuth } from '@/contexts/AuthContext';
-import { accountantApi } from '@/pages/services/api';
+import { accountantApi } from '@/services/api';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 

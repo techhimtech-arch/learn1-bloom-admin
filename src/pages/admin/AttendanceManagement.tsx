@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarCheck, Users, UserX, Clock, Loader2, AlertCircle } from 'lucide-react';
 import StatWidget from '@/components/shared/StatWidget';
-import { attendanceApi, classApi, sectionApi, admissionApi } from '@/pages/services/api';
+import { attendanceApi, classApi, sectionApi, admissionApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Leave' | 'Late' | null;

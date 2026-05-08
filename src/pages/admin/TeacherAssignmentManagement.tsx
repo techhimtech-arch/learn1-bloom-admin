@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { teacherAssignmentApi, classTeacherAssignmentApi, classApi, sectionApi, subjectApi, userApi } from '@/pages/services/api';
+import { teacherAssignmentApi, classTeacherAssignmentApi, classApi, sectionApi, subjectApi, userApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -33,7 +33,7 @@ const getName = (field: { _id: string; name: string } | string | undefined): str
   return typeof field === 'string' ? field : field.name;
 };
 
-const TeacherAssignments = () => {
+const TeacherAssignmentManagement = () => {
   const queryClient = useQueryClient();
   const [subjectDialogOpen, setSubjectDialogOpen] = useState(false);
   const [classTeacherDialogOpen, setClassTeacherDialogOpen] = useState(false);
@@ -358,4 +358,4 @@ const TeacherAssignments = () => {
   );
 };
 
-export default TeacherAssignments;
+export default TeacherAssignmentManagement;

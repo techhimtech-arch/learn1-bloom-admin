@@ -8,7 +8,7 @@ import { AcademicFilters, AcademicFiltersState } from '@/components/shared/Acade
 import { ClassTimetableView } from '@/components/academic/ClassTimableView';
 import { TeacherTimetableView } from '@/components/academic/TeacherTimetableView';
 import { TimetableSlotForm } from '@/components/academic/TimetableSlotForm';
-import { classApi, userApi } from '@/pages/services/api';
+import { classApi, userApi } from '@/services/api';
 
 const normalizeArray = (value: any) => {
   if (Array.isArray(value)) return value;

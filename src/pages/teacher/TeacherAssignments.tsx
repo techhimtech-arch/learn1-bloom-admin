@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Eye, Send, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { teacherApi } from '@/pages/services/api';
+import { teacherApi } from '@/services/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useTeacherContext } from '@/contexts/TeacherContext';
@@ -56,6 +57,7 @@ interface Assignment {
 
 const TeacherAssignments = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { classes } = useTeacherContext();
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -537,10 +539,10 @@ const TeacherAssignments = () => {
                               </>
                             )}
                             {assignment.status === 'PUBLISHED' && (
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Submissions
-                              </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate(`/teacher/assignments/${assignment._id}/grading`)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Submissions
+                                </DropdownMenuItem>
                             )}
                             <DropdownMenuItem
                               onClick={() => setDeleteAssignment(assignment)}

@@ -27,7 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { showApiSuccess, showApiError, getApiFieldErrors } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, Shield, Search, ChevronLeft, ChevronRight, Users, Loader2, Key } from 'lucide-react';
-import { userApi } from '@/pages/services/api';
+import { userApi } from '@/services/api';
 
 interface UserData {
   _id: string;

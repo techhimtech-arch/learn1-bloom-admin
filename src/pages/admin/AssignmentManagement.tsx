@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { AssignmentForm } from '@/components/assignment/AssignmentForm';
-import { assignmentApi, classApi, sectionApi, subjectApi } from '@/pages/services/api';
+import { assignmentApi, classApi, sectionApi, subjectApi } from '@/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

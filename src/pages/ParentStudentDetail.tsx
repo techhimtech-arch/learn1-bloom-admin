@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { parentApi } from '@/pages/services/api';
+import { parentApi } from '@/services/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 

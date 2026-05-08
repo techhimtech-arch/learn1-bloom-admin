@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { CertificateForm } from '@/components/certificate/CertificateForm';
 import { CertificatePreview } from '@/components/certificate/CertificatePreview';
-import { certificateApi, studentApi, classApi } from '@/pages/services/api';
+import { certificateApi, studentApi, classApi } from '@/services/api';
 import {
   AlertDialog,
   AlertDialogAction,

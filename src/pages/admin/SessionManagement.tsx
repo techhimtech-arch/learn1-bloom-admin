@@ -8,7 +8,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Monitor, Smartphone, Globe, Trash2, LogOut, Loader2, Shield } from 'lucide-react';
-import { authApi } from '@/pages/services/api';
+import { authApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';

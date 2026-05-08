@@ -1,4 +1,4 @@
-import apiClient from '@/pages/services/api';
+import apiClient from '@/services/api';
 import {
   TimetableEntry,
   TimetableCreateRequest,
