@@ -22,7 +22,7 @@ import {
   timetablePeriodApi, 
   subjectApi,
   academicYearApi 
-} from '@/pages/services/api';
+} from '@/services/api';
 import { TimetablePeriodForm } from './TimetablePeriodForm';
 
 interface TimetableBuilderProps {

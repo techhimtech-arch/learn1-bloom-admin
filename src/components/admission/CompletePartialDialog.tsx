@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { admissionApi, classApi, sectionApi } from '@/pages/services/api';
+import { admissionApi, classApi, sectionApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 
 const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];

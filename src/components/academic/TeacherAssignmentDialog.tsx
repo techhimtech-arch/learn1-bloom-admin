@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { subjectApi } from '@/pages/services/api';
+import { subjectApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';

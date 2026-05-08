@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { certificateApi } from '@/pages/services/api';
+import { certificateApi } from '@/services/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

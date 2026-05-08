@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { certificateApi } from '@/pages/services/api';
+import { certificateApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Loader2, FileText } from 'lucide-react';
 

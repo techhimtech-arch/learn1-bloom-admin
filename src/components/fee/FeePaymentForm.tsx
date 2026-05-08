@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { feeApi } from '@/pages/services/api';
+import { feeApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Loader2, CreditCard, Banknote, Smartphone } from 'lucide-react';
 

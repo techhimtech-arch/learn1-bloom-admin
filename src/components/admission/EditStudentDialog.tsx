@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { studentApi, classApi, sectionApi } from '@/pages/services/api';
+import { studentApi, classApi, sectionApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];

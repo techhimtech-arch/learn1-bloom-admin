@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { examApi } from '@/pages/services/api';
+import { examApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Loader2, Upload, AlertTriangle } from 'lucide-react';
 

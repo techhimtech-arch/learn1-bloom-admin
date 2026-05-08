@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { admissionApi, parentLinkingApi, userApi } from '@/pages/services/api';
+import { admissionApi, parentLinkingApi, userApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { Users, UserPlus, Loader2, Link as LinkIcon, Trash2, Mail, Phone, MapPin, CalendarDays, User } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';

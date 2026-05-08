@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { subjectApi, academicYearApi, classApi } from '@/pages/services/api';
+import { subjectApi, academicYearApi, classApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';

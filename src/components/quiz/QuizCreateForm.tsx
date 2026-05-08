@@ -17,7 +17,7 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { teacherQuizService, adminQuizService } from '@/services/quizService';
 import { QuizCreateRequest, QuizQuestion, Quiz } from '@/types/quiz';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
-import { subjectApi, sectionApi, teacherApi, classApi } from '@/pages/services/api';
+import { subjectApi, sectionApi, teacherApi, classApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const quizFormSchema = z.object({

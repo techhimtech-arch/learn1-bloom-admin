@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { admissionApi, classApi, sectionApi, academicYearApi, studentApi } from '@/pages/services/api';
+import { admissionApi, classApi, sectionApi, academicYearApi, studentApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import Confetti from 'react-confetti';
 

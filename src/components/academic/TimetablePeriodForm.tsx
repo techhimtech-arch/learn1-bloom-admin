@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { timetablePeriodApi } from '@/pages/services/api';
+import { timetablePeriodApi } from '@/services/api';
 
 interface TimetablePeriodFormProps {
   academicYearId: string;

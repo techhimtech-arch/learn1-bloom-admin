@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { feeApi, certificateApi, parentApi } from '@/pages/services/api';
+import { feeApi, certificateApi, parentApi } from '@/services/api';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 

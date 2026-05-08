@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { FileText, Upload, Calendar, AlertCircle, CheckCircle, Clock, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { studentAssignmentApi } from '@/pages/services/api';
+import { studentAssignmentApi } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { AssignmentSubmissionDialog } from './AssignmentSubmissionDialog';
 

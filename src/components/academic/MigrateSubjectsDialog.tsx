@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { academicYearApi, subjectApi } from '@/pages/services/api';
+import { academicYearApi, subjectApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Label } from '@/components/ui/label';
