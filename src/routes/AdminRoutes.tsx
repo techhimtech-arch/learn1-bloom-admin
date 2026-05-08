@@ -4,8 +4,8 @@ import { GlobalLoading } from '@/components/shared/GlobalLoading';
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const UserManagement = lazy(() => import("@/pages/admin/UserManagement"));
-const ParentLinking = lazy(() => import("@/pages/ParentLinking"));
-const StudentAdmission = lazy(() => import("@/pages/StudentAdmission"));
+const ParentLinking = lazy(() => import("@/pages/admin/ParentLinking"));
+const StudentAdmission = lazy(() => import("@/pages/admin/StudentAdmission"));
 const Enrollment = lazy(() => import("@/pages/admin/Enrollment"));
 const ClassManagement = lazy(() => import("@/pages/admin/ClassManagement"));
 const SubjectManagement = lazy(() => import("@/pages/admin/SubjectManagement"));
