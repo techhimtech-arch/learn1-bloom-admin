@@ -67,7 +67,7 @@ export default function ParentLinking() {
     },
     enabled: !!selectedParent,
   });
-  const linkedStudents = parentStudentsData?.data || [];
+  const linkedStudents = parentStudentsData?.data?.linkedStudents || parentStudentsData?.data || parentStudentsData?.linkedStudents || [];
 
   const unlinkChildMutation = useMutation({
     mutationFn: (studentId: string) => {
@@ -117,6 +117,7 @@ export default function ParentLinking() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Student Name</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Admission No</TableHead>
                       <TableHead>Class & Section</TableHead>
                       <TableHead className="text-right">Action</TableHead>
@@ -124,9 +125,9 @@ export default function ParentLinking() {
                   </TableHeader>
                   <TableBody>
                     {isLoadingStudents ? (
-                      <TableRow><TableCell colSpan={4} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
                     ) : students.length === 0 ? (
-                      <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No students found.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No students found.</TableCell></TableRow>
                     ) : (
                       students.map((student: any) => (
                         <TableRow key={student._id || student.id}>
@@ -136,6 +137,7 @@ export default function ParentLinking() {
                               <span className="font-medium">{student.name || `${student.firstName} ${student.lastName}`}</span>
                             </div>
                           </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{student.email || '-'}</TableCell>
                           <TableCell>{student.admissionNumber || '-'}</TableCell>
                           <TableCell>
                             <Badge variant="outline">

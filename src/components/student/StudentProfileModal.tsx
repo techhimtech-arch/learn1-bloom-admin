@@ -51,16 +51,18 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
   
   // Ensure linkedParents is always an array with multiple fallbacks
   let linkedParents = [];
-  if (linkedParentsRes?.data?.data && Array.isArray(linkedParentsRes.data.data)) {
-    linkedParents = linkedParentsRes.data.data;
-  } else if (linkedParentsRes?.data && Array.isArray(linkedParentsRes.data)) {
-    linkedParents = linkedParentsRes.data;
-  } else if (linkedParentsRes && Array.isArray(linkedParentsRes)) {
-    linkedParents = linkedParentsRes;
-  } else if (linkedParentsRes?.data?.parents && Array.isArray(linkedParentsRes.data.parents)) {
-    linkedParents = linkedParentsRes.data.parents;
-  } else if (linkedParentsRes?.data?.linkedParents && Array.isArray(linkedParentsRes.data.linkedParents)) {
-    linkedParents = linkedParentsRes.data.linkedParents;
+  const resData = linkedParentsRes?.data;
+  
+  if (resData?.data?.linkedParents && Array.isArray(resData.data.linkedParents)) {
+    linkedParents = resData.data.linkedParents;
+  } else if (resData?.linkedParents && Array.isArray(resData.linkedParents)) {
+    linkedParents = resData.linkedParents;
+  } else if (resData?.data && Array.isArray(resData.data)) {
+    linkedParents = resData.data;
+  } else if (Array.isArray(resData)) {
+    linkedParents = resData;
+  } else if (resData?.parents && Array.isArray(resData.parents)) {
+    linkedParents = resData.parents;
   }
   
   const searchedParents = searchRes?.data?.users || searchRes?.data?.data || searchRes?.data || [];
@@ -176,23 +178,32 @@ export function StudentProfileModal({ open, onOpenChange, studentId }: StudentPr
                       </div>
                     ) : (
                       <div className="grid gap-3">
-                        {linkedParents.map((parent: any) => (
-                          <div key={parent._id || parent.id} className="flex items-center justify-between bg-card p-3 rounded-lg border shadow-sm">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9"><AvatarFallback className="bg-primary/10 text-primary">{parent.firstName?.[0] || parent.name?.[0]}</AvatarFallback></Avatar>
-                              <div>
-                                <div className="font-medium text-sm">{parent.name || `${parent.firstName} ${parent.lastName}`}</div>
-                                <div className="text-xs text-muted-foreground flex gap-2">
-                                  <span>{parent.email}</span>
-                                  {parent.phone && <span>• {parent.phone}</span>}
+                        {linkedParents.map((link: any) => {
+                          const parentData = link.parentId || link;
+                          const parentId = parentData._id || parentData.id;
+                          return (
+                            <div key={link._id || link.id} className="flex items-center justify-between bg-card p-3 rounded-lg border shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9"><AvatarFallback className="bg-primary/10 text-primary">{parentData.firstName?.[0] || parentData.name?.[0] || 'P'}</AvatarFallback></Avatar>
+                                <div>
+                                  <div className="font-medium text-sm flex items-center gap-2">
+                                    {parentData.name || `${parentData.firstName} ${parentData.lastName}`}
+                                    {link.relationship && (
+                                      <Badge variant="secondary" className="text-[10px] py-0 h-4">{link.relationship}</Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground flex gap-2">
+                                    <span>{parentData.email}</span>
+                                    {parentData.phone && <span>• {parentData.phone}</span>}
+                                  </div>
                                 </div>
                               </div>
+                              <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => unlinkMutation.mutate(parentId)} disabled={unlinkMutation.isPending}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => unlinkMutation.mutate(parent._id || parent.id)} disabled={unlinkMutation.isPending}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
