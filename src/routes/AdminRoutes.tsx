@@ -17,7 +17,7 @@ const TimetableBuilderPage = lazy(() => import("@/pages/admin/TimetableBuilderPa
 const AcademicCalendar = lazy(() => import("@/pages/admin/AcademicCalendar"));
 const RollNumberManagement = lazy(() => import("@/pages/admin/RollNumberManagement"));
 const Profile = lazy(() => import("@/pages/Profile"));
-const SessionManagement = lazy(() => import("@/pages/admin/SessionManagement"));
+const SessionManagement = lazy(() => import("@/pages/SessionManagement"));
 const ExamManagement = lazy(() => import("@/pages/admin/ExamManagement"));
 const MarksEntry = lazy(() => import("@/pages/MarksEntry"));
 const ResultDashboard = lazy(() => import("@/pages/ResultDashboard"));
