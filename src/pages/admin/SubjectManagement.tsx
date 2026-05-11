@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AcademicFilters, AcademicFiltersState } from '@/components/shared/AcademicFilters';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { SubjectForm } from '@/components/academic/SubjectForm';
@@ -343,36 +344,54 @@ export default function SubjectManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1">
                           <PermissionGuard permission="assign_teacher">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleTeacherAssignment(subject)}
-                            >
-                              <Users className="h-4 w-4" />
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                  onClick={() => handleTeacherAssignment(subject)}
+                                >
+                                  <Users className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top"><p>Assign Teacher</p></TooltipContent>
+                            </Tooltip>
                           </PermissionGuard>
                           <PermissionGuard resource="subject" action="edit">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(subject)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
+                                  onClick={() => handleEdit(subject)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top"><p>Edit Subject</p></TooltipContent>
+                            </Tooltip>
                           </PermissionGuard>
                           <PermissionGuard resource="subject" action="delete">
                             <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDelete(subject)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => handleDelete(subject)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent side="top"><p>Delete Subject</p></TooltipContent>
+                              </Tooltip>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Subject</AlertDialogTitle>

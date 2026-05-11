@@ -12,6 +12,7 @@ import DataTable, { Column } from '@/components/shared/DataTable';
 import { academicYearApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, CalendarDays, Star, CalendarPlus, Palmtree, RefreshCw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MigrateSubjectsDialog } from '@/components/academic/MigrateSubjectsDialog';
 
 interface Term {
@@ -269,24 +270,58 @@ const AcademicYearManagement = () => {
         loading={loading}
         searchPlaceholder="Search academic years..."
         actions={(row) => (
-          <div className="flex gap-1">
-            <Button size="sm" variant="ghost" title="View Details" onClick={() => openDetail(row)}>
-              <CalendarDays className="h-4 w-4" />
-            </Button>
+          <div className="flex gap-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="hover:text-primary hover:bg-primary/10" onClick={() => openDetail(row)}>
+                  <CalendarDays className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>View Details</p></TooltipContent>
+            </Tooltip>
             {!row.isCurrent && (
-              <Button size="sm" variant="ghost" title="Set as Current" onClick={() => handleSetCurrent(row._id)}>
-                <Star className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="hover:text-yellow-600 hover:bg-yellow-50" onClick={() => handleSetCurrent(row._id)}>
+                    <Star className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top"><p>Set as Current Year</p></TooltipContent>
+              </Tooltip>
             )}
-            <Button size="sm" variant="ghost" title="Add Term" onClick={() => { setTermYearId(row._id); setTermForm({ name: '', startDate: '', endDate: '' }); setTermDialogOpen(true); }}>
-              <CalendarPlus className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="ghost" title="Add Holiday" onClick={() => { setHolidayYearId(row._id); setHolidayForm({ name: '', startDate: '', endDate: '', description: '' }); setHolidayDialogOpen(true); }}>
-              <Palmtree className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => openEdit(row)}><Edit className="h-4 w-4" /></Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="hover:text-green-600 hover:bg-green-50" onClick={() => { setTermYearId(row._id); setTermForm({ name: '', startDate: '', endDate: '' }); setTermDialogOpen(true); }}>
+                  <CalendarPlus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Add Term</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="hover:text-orange-600 hover:bg-orange-50" onClick={() => { setHolidayYearId(row._id); setHolidayForm({ name: '', startDate: '', endDate: '', description: '' }); setHolidayDialogOpen(true); }}>
+                  <Palmtree className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Add Holiday</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="ghost" className="hover:text-blue-600 hover:bg-blue-50" onClick={() => openEdit(row)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Edit</p></TooltipContent>
+            </Tooltip>
             {!row.isCurrent && (
-              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(row._id)}><Trash2 className="h-4 w-4" /></Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => handleDelete(row._id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top"><p>Delete</p></TooltipContent>
+              </Tooltip>
             )}
           </div>
         )}

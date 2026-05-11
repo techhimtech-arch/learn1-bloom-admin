@@ -13,6 +13,7 @@ import DataTable, { Column } from '@/components/shared/DataTable';
 import { classApi, sectionApi, academicYearApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, School, Layers, DoorOpen } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ClassItem {
   _id: string;
@@ -345,8 +346,18 @@ const ClassManagement = () => {
             searchPlaceholder="Search classes..."
             actions={(row) => (
               <div className="flex gap-1">
-                <Button size="sm" variant="ghost" onClick={() => openEditClass(row)}><Edit className="h-4 w-4" /></Button>
-                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteClass(row)}><Trash2 className="h-4 w-4" /></Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="hover:text-blue-600 hover:bg-blue-50" onClick={() => openEditClass(row)}><Edit className="h-4 w-4" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Edit Class</p></TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteClass(row)}><Trash2 className="h-4 w-4" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Delete Class</p></TooltipContent>
+                </Tooltip>
               </div>
             )}
           />
@@ -374,8 +385,18 @@ const ClassManagement = () => {
             searchPlaceholder="Search sections..."
             actions={(row) => (
               <div className="flex gap-1">
-                <Button size="sm" variant="ghost" onClick={() => openEditSection(row)}><Edit className="h-4 w-4" /></Button>
-                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteSection(row)}><Trash2 className="h-4 w-4" /></Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="hover:text-blue-600 hover:bg-blue-50" onClick={() => openEditSection(row)}><Edit className="h-4 w-4" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Edit Section</p></TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteSection(row)}><Trash2 className="h-4 w-4" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Delete Section</p></TooltipContent>
+                </Tooltip>
               </div>
             )}
           />
