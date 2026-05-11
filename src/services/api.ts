@@ -251,7 +251,7 @@ export const subjectApi = {
     apiClient.post('/subjects/migrate', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/subjects/${id}`, data),
   delete: (id: string) => apiClient.delete(`/subjects/${id}`),
-  assignTeacher: (subjectId: string, data: { teacherId: string; role?: string }) =>
+  assignTeacher: (subjectId: string, data: { teacherId: string; sectionId: string; role?: string }) =>
     apiClient.post(`/subjects/${subjectId}/assign-teacher`, data),
   removeTeacher: (subjectId: string, teacherId: string) =>
     apiClient.delete(`/subjects/${subjectId}/remove-teacher/${teacherId}`),

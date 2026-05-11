@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { FeeStructureForm } from '@/components/fee/FeeStructureForm';
-import { feeApi } from '@/services/api';
+import { feeApi, classApi } from '@/services/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,33 +32,36 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
 interface FeeStructure {
   id: string;
-  feeHead: string;
+  _id?: string;
+  academicYearId: string;
+  classId: string;
+  feeType: string;
+  feeName: string;
   amount: number;
-  frequency: 'monthly' | 'quarterly' | 'half-yearly' | 'yearly' | 'one-time';
-  isMandatory: boolean;
-  applicableTo: 'all' | 'class' | 'section';
-  applicableIds?: string[];
+  dueDate: string;
+  applicableTo: 'all' | 'specific';
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  lateFee?: number;
+  concessionPercentage?: number;
+  academicYear?: { name: string };
+  class?: { name: string };
 }
 
 interface FeeFilters {
   search: string;
-  frequency: string;
-  mandatory: string;
-  applicableTo: string;
+  feeType: string;
+  classId: string;
 }
 
 export default function FeeStructureManagement() {
   const [filters, setFilters] = useState<FeeFilters>({
     search: '',
-    frequency: '',
-    mandatory: '',
-    applicableTo: '',
+    feeType: '',
+    classId: '',
   });
   const [showForm, setShowForm] = useState(false);
   const [editingFee, setEditingFee] = useState<FeeStructure | null>(null);
@@ -73,13 +76,15 @@ export default function FeeStructureManagement() {
   } = useQuery({
     queryKey: ['fee-structure', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.frequency) params.append('frequency', filters.frequency);
-      if (filters.mandatory) params.append('mandatory', filters.mandatory);
-      if (filters.applicableTo) params.append('applicableTo', filters.applicableTo);
-
       const response = await feeApi.getStructure();
+      return response.data;
+    },
+  });
+
+  const { data: classesData } = useQuery({
+    queryKey: ['classes'],
+    queryFn: async () => {
+      const response = await classApi.getAll();
       return response.data;
     },
   });
@@ -112,29 +117,16 @@ export default function FeeStructureManagement() {
   };
 
   const feeStructures = feeStructureData?.data || [];
+  const classes = classesData?.data || [];
 
-  const getFrequencyColor = (frequency: string) => {
+  const getFeeTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      'monthly': 'bg-blue-100 text-blue-800',
-      'quarterly': 'bg-green-100 text-green-800',
-      'half-yearly': 'bg-yellow-100 text-yellow-800',
-      'yearly': 'bg-purple-100 text-purple-800',
-      'one-time': 'bg-orange-100 text-orange-800',
+      'tuition': 'bg-blue-100 text-blue-800',
+      'transport': 'bg-green-100 text-green-800',
+      'admission': 'bg-purple-100 text-purple-800',
+      'exam': 'bg-orange-100 text-orange-800',
     };
-    return colors[frequency] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getMandatoryColor = (isMandatory: boolean) => {
-    return isMandatory ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
-  };
-
-  const getApplicableToColor = (applicableTo: string) => {
-    const colors: Record<string, string> = {
-      'all': 'bg-blue-100 text-blue-800',
-      'class': 'bg-purple-100 text-purple-800',
-      'section': 'bg-orange-100 text-orange-800',
-    };
-    return colors[applicableTo] || 'bg-gray-100 text-gray-800';
+    return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -143,13 +135,13 @@ export default function FeeStructureManagement() {
         <div>
           <h1 className="text-3xl font-bold">Fee Structure</h1>
           <p className="text-muted-foreground">
-            Manage fee heads, amounts, and payment frequencies
+            Manage fee types, classes, and academic years
           </p>
         </div>
         <PermissionGuard permission="manage_fee_structure">
           <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            New Fee Head
+            New Fee Structure
           </Button>
         </PermissionGuard>
       </div>
@@ -163,46 +155,35 @@ export default function FeeStructureManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              placeholder="Search fee heads..."
+              placeholder="Search fee names..."
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
             />
 
-            <Select value={filters.frequency} onValueChange={(value) => setFilters(prev => ({ ...prev, frequency: value }))}>
+            <Select value={filters.feeType} onValueChange={(value) => setFilters(prev => ({ ...prev, feeType: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Frequencies</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="half-yearly">Half-Yearly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-                <SelectItem value="one-time">One-Time</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.mandatory} onValueChange={(value) => setFilters(prev => ({ ...prev, mandatory: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Type" />
+                <SelectValue placeholder="Fee Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="true">Mandatory</SelectItem>
-                <SelectItem value="false">Optional</SelectItem>
+                <SelectItem value="tuition">Tuition</SelectItem>
+                <SelectItem value="transport">Transport</SelectItem>
+                <SelectItem value="admission">Admission</SelectItem>
+                <SelectItem value="exam">Exam</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={filters.applicableTo} onValueChange={(value) => setFilters(prev => ({ ...prev, applicableTo: value }))}>
+            <Select value={filters.classId} onValueChange={(value) => setFilters(prev => ({ ...prev, classId: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Applicable To" />
+                <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="class">Specific Classes</SelectItem>
-                <SelectItem value="section">Specific Sections</SelectItem>
+                <SelectItem value="all">All Classes</SelectItem>
+                {classes.map((cls: any) => (
+                  <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>{cls.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -214,7 +195,7 @@ export default function FeeStructureManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Fee Heads ({feeStructures.length})
+            Fee Structures ({feeStructures.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -229,16 +210,16 @@ export default function FeeStructureManagement() {
           ) : feeStructures.length === 0 ? (
             <div className="text-center py-8">
               <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">No fee heads found</h3>
+              <h3 className="text-lg font-semibold">No fee structures found</h3>
               <p className="text-muted-foreground mb-4">
-                {filters.search || filters.frequency || filters.mandatory || filters.applicableTo
+                {filters.search || filters.feeType || filters.classId
                   ? 'Try adjusting your filters'
-                  : 'Get started by creating your first fee head'}
+                  : 'Get started by creating your first fee structure'}
               </p>
               <PermissionGuard permission="manage_fee_structure">
                 <Button onClick={() => setShowForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  New Fee Head
+                  New Fee Structure
                 </Button>
               </PermissionGuard>
             </div>
@@ -247,51 +228,34 @@ export default function FeeStructureManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Fee Head</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Frequency</TableHead>
+                    <TableHead>Fee Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Applicable To</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Due Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {feeStructures.map((fee: FeeStructure) => (
-                    <TableRow key={fee.id}>
+                    <TableRow key={fee._id || fee.id}>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{fee.feeHead}</div>
-                          {fee.description && (
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                              {fee.description}
-                            </div>
-                          )}
-                        </div>
+                        <div className="font-medium">{fee.feeName}</div>
+                        <div className="text-xs text-muted-foreground">{fee.description || 'No description'}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getFeeTypeColor(fee.feeType)}>
+                          {fee.feeType.charAt(0).toUpperCase() + fee.feeType.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {fee.class?.name || 'All'}
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">₹{fee.amount.toLocaleString('en-IN')}</div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getFrequencyColor(fee.frequency)}>
-                          {fee.frequency.charAt(0).toUpperCase() + fee.frequency.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getMandatoryColor(fee.isMandatory)}>
-                          {fee.isMandatory ? 'Mandatory' : 'Optional'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getApplicableToColor(fee.applicableTo)}>
-                          {fee.applicableTo === 'all' ? 'All Students' : 
-                           fee.applicableTo === 'class' ? 'Specific Classes' : 'Specific Sections'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-muted-foreground line-clamp-2">
-                          {fee.description || '-'}
-                        </div>
+                        {fee.dueDate ? format(new Date(fee.dueDate), 'dd MMM yyyy') : '-'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -318,9 +282,9 @@ export default function FeeStructureManagement() {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Fee Head</AlertDialogTitle>
+                                  <AlertDialogTitle>Delete Fee Structure</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{fee.feeHead}"? This action cannot be undone.
+                                    Are you sure you want to delete "{fee.feeName}"? This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

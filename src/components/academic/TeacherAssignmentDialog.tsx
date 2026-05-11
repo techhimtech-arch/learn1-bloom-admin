@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Users, Plus, X, Crown, User } from 'lucide-react';
+import { Users, Plus, X, Crown, User, LayoutGrid } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { subjectApi } from '@/services/api';
+import { subjectApi, sectionApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
@@ -22,11 +22,14 @@ interface Subject {
   id: string;
   name: string;
   code: string;
+  classId: string | any;
   teachers?: Array<{
     id: string;
     name: string;
     email: string;
     role: 'primary' | 'assistant';
+    sectionId?: string;
+    section?: { name: string };
   }>;
 }
 
@@ -44,22 +47,42 @@ interface TeacherAssignmentDialogProps {
   onSuccess: () => void;
 }
 
-export function TeacherAssignmentDialog({ 
-  subject, 
-  teachers, 
-  onClose, 
-  onSuccess 
+export function TeacherAssignmentDialog({
+  subject,
+  teachers,
+  onClose,
+  onSuccess
 }: TeacherAssignmentDialogProps) {
   const [open, setOpen] = useState(true);
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedRole, setSelectedRole] = useState<'primary' | 'assistant'>('assistant');
+  const [selectedSection, setSelectedSection] = useState('');
+
+  // Fetch sections for the subject's class
+  const { data: sectionsData, isLoading: sectionsLoading } = useQuery({
+    queryKey: ['sections', subject.classId],
+    queryFn: async () => {
+      const classId = typeof subject.classId === 'object'
+        ? (subject.classId as any)._id || (subject.classId as any).id
+        : subject.classId;
+
+      if (!classId) return { data: [] };
+
+      const response = await sectionApi.getByClass(classId);
+      return response.data;
+    },
+    enabled: !!subject.classId,
+  });
+
+  const sections = sectionsData?.data || [];
 
   const assignMutation = useMutation({
-    mutationFn: ({ teacherId, role }: { teacherId: string; role: string }) =>
-      subjectApi.assignTeacher(subject.id || (subject as any)._id, { teacherId, role }),
+    mutationFn: ({ teacherId, sectionId, role }: { teacherId: string; sectionId: string; role: string }) =>
+      subjectApi.assignTeacher(subject.id || (subject as any)._id, { teacherId, sectionId, role }),
     onSuccess: () => {
       toast.success('Teacher assigned successfully');
       setSelectedTeacher('');
+      setSelectedSection('');
       setSelectedRole('assistant');
       onSuccess(); // Refresh the list
     },
@@ -73,6 +96,7 @@ export function TeacherAssignmentDialog({
       subjectApi.removeTeacher(subject.id, teacherId),
     onSuccess: () => {
       toast.success('Teacher removed successfully');
+      onSuccess();
     },
     onError: (error: any) => {
       handleApiError(error, 'Failed to remove teacher');
@@ -84,8 +108,16 @@ export function TeacherAssignmentDialog({
       toast.error('Please select a teacher');
       return;
     }
+    if (!selectedSection) {
+      toast.error('Please select a section');
+      return;
+    }
 
-    assignMutation.mutate({ teacherId: selectedTeacher, role: selectedRole });
+    assignMutation.mutate({
+      teacherId: selectedTeacher,
+      sectionId: selectedSection,
+      role: selectedRole
+    });
   };
 
   const handleRemove = (teacherId: string) => {
@@ -97,14 +129,9 @@ export function TeacherAssignmentDialog({
     setTimeout(onClose, 300);
   };
 
-  const availableTeachers = Array.isArray(teachers) ? teachers.filter(
-    teacher => {
-      const tId = (teacher as any)._id || teacher.id;
-      return !subject.teachers?.some(t => (t as any)._id === tId || t.id === tId);
-    }
-  ) : [];
+  const availableTeachers = Array.isArray(teachers) ? teachers : [];
 
-  const isLoading = assignMutation.isPending || removeMutation.isPending;
+  const isLoading = assignMutation.isPending || removeMutation.isPending || sectionsLoading;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -115,7 +142,7 @@ export function TeacherAssignmentDialog({
             Teacher Assignment - {subject.name}
           </DialogTitle>
           <DialogDescription>
-            Manage teacher assignments for this subject
+            Manage teacher assignments for this subject and its sections
           </DialogDescription>
         </DialogHeader>
 
@@ -128,14 +155,13 @@ export function TeacherAssignmentDialog({
             <CardContent>
               {subject.teachers && subject.teachers.length > 0 ? (
                 <div className="space-y-3">
-                  {subject.teachers.map((teacher) => (
+                  {subject.teachers.map((teacher, index) => (
                     <div
-                      key={teacher.id}
+                      key={teacher.id || `teacher-${index}`}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={undefined} />
                           <AvatarFallback>
                             {teacher.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -143,6 +169,10 @@ export function TeacherAssignmentDialog({
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{teacher.name}</span>
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <LayoutGrid className="h-3 w-3" />
+                              {teacher.section?.name || 'No Section'}
+                            </Badge>
                             {teacher.role === 'primary' ? (
                               <Badge variant="default" className="flex items-center gap-1">
                                 <Crown className="h-3 w-3" />
@@ -165,6 +195,7 @@ export function TeacherAssignmentDialog({
                         size="sm"
                         onClick={() => handleRemove(teacher.id)}
                         disabled={isLoading}
+                        className="text-destructive hover:bg-destructive/10"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -185,86 +216,96 @@ export function TeacherAssignmentDialog({
               <CardTitle className="text-lg">Assign New Teacher</CardTitle>
             </CardHeader>
             <CardContent>
-              {availableTeachers.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Select Teacher</label>
-                      <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a teacher" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableTeachers.map((teacher) => {
-                            const tId = (teacher as any)._id || teacher.id;
-                            return (
-                              <SelectItem key={tId} value={tId}>
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-6 w-6">
-                                    <AvatarImage src={teacher.avatar} />
-                                    <AvatarFallback className="text-xs">
-                                      {teacher.name.charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <div className="font-medium">{teacher.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {teacher.email}
-                                    </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block">Select Teacher</label>
+                    <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a teacher" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTeachers.map((teacher) => {
+                          const tId = (teacher as any)._id || teacher.id;
+                          return (
+                            <SelectItem key={tId} value={tId}>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={teacher.avatar} />
+                                  <AvatarFallback className="text-xs">
+                                    {teacher.name.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium text-sm">{teacher.name}</div>
+                                  <div className="text-[10px] text-muted-foreground">
+                                    {teacher.email}
                                   </div>
                                 </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Role</label>
-                      <Select 
-                        value={selectedRole} 
-                        onValueChange={(value: 'primary' | 'assistant') => setSelectedRole(value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="assistant">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              Assistant Teacher
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="primary">
-                            <div className="flex items-center gap-2">
-                              <Crown className="h-4 w-4" />
-                              Primary Teacher
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <Button 
-                    onClick={handleAssign} 
-                    disabled={!selectedTeacher || isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="mr-2 h-4 w-4" />
-                    )}
-                    Assign Teacher
-                  </Button>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block">Section</label>
+                    <Select value={selectedSection} onValueChange={setSelectedSection}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sections.map((section: any) => (
+                          <SelectItem key={section._id || section.id} value={section._id || section.id}>
+                            {section.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block">Role</label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={(value: 'primary' | 'assistant') => setSelectedRole(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="assistant">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Assistant Teacher
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="primary">
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-4 w-4" />
+                            Primary Teacher
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  All available teachers are already assigned to this subject
-                </div>
-              )}
+
+                <Button
+                  onClick={handleAssign}
+                  disabled={!selectedTeacher || !selectedSection || isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
+                  Assign Teacher
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

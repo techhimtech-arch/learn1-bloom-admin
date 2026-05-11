@@ -14,41 +14,43 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { feeApi, classApi, sectionApi } from '@/services/api';
+import { feeApi, classApi, academicYearApi } from '@/services/api';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 const feeStructureSchema = z.object({
-  feeHead: z.string().min(1, 'Fee head is required'),
-  amount: z.number().min(1, 'Amount must be greater than 0'),
-  frequency: z.enum(['monthly', 'quarterly', 'half-yearly', 'yearly', 'one-time']),
-  isMandatory: z.boolean(),
-  applicableTo: z.enum(['all', 'class', 'section']),
-  applicableIds: z.array(z.string()).optional(),
+  academicYearId: z.string().min(1, 'Academic Year is required'),
+  classId: z.string().min(1, 'Class is required'),
+  feeType: z.enum(['tuition', 'transport', 'admission', 'exam', 'library', 'laboratory', 'sports', 'other']),
+  feeName: z.string().min(1, 'Fee name is required'),
+  amount: z.number().min(0, 'Amount must be at least 0'),
+  dueDate: z.string().min(1, 'Due date is required'),
+  applicableTo: z.enum(['all', 'specific']).default('all'),
   description: z.string().optional(),
-}).refine((data) => {
-  if (data.applicableTo !== 'all' && (!data.applicableIds || data.applicableIds.length === 0)) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'Please select at least one target',
-  path: ['applicableIds'],
+  lateFee: z.number().min(0).optional().default(0),
+  concessionPercentage: z.number().min(0).max(100).optional().default(0),
 });
 
 type FeeStructureFormData = z.infer<typeof feeStructureSchema>;
 
 interface FeeStructure {
   id: string;
-  feeHead: string;
+  _id?: string;
+  academicYearId: string;
+  classId: string;
+  feeType: string;
+  feeName: string;
   amount: number;
-  frequency: 'monthly' | 'quarterly' | 'half-yearly' | 'yearly' | 'one-time';
-  isMandatory: boolean;
-  applicableTo: 'all' | 'class' | 'section';
-  applicableIds?: string[];
+  dueDate: string;
+  applicableTo: 'all' | 'specific';
   description?: string;
+  lateFee?: number;
+  concessionPercentage?: number;
 }
 
 interface FeeStructureFormProps {
@@ -63,13 +65,24 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
   const form = useForm<FeeStructureFormData>({
     resolver: zodResolver(feeStructureSchema),
     defaultValues: {
-      feeHead: '',
+      academicYearId: '',
+      classId: '',
+      feeType: 'tuition',
+      feeName: '',
       amount: 0,
-      frequency: 'monthly',
-      isMandatory: true,
+      dueDate: format(new Date(), 'yyyy-MM-dd'),
       applicableTo: 'all',
-      applicableIds: [],
       description: '',
+      lateFee: 0,
+      concessionPercentage: 0,
+    },
+  });
+
+  const { data: academicYearsData } = useQuery({
+    queryKey: ['academic-years'],
+    queryFn: async () => {
+      const response = await academicYearApi.getAll();
+      return response.data;
     },
   });
 
@@ -77,14 +90,6 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
     queryKey: ['classes'],
     queryFn: async () => {
       const response = await classApi.getAll();
-      return response.data;
-    },
-  });
-
-  const { data: sectionsData } = useQuery({
-    queryKey: ['sections'],
-    queryFn: async () => {
-      const response = await sectionApi.getAll();
       return response.data;
     },
   });
@@ -114,13 +119,16 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
   useEffect(() => {
     if (fee) {
       form.reset({
-        feeHead: fee.feeHead,
+        academicYearId: fee.academicYearId,
+        classId: fee.classId,
+        feeType: fee.feeType as any,
+        feeName: fee.feeName,
         amount: fee.amount,
-        frequency: fee.frequency,
-        isMandatory: fee.isMandatory,
+        dueDate: fee.dueDate ? format(new Date(fee.dueDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
         applicableTo: fee.applicableTo,
-        applicableIds: fee.applicableIds || [],
         description: fee.description || '',
+        lateFee: fee.lateFee || 0,
+        concessionPercentage: fee.concessionPercentage || 0,
       });
     }
   }, [fee, form]);
@@ -140,20 +148,20 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
     setTimeout(onClose, 300);
   };
 
+  const academicYears = academicYearsData?.data || [];
   const classes = classesData?.data || [];
-  const sections = sectionsData?.data || [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {fee ? 'Edit Fee Head' : 'New Fee Head'}
+            {fee ? 'Edit Fee Structure' : 'New Fee Structure'}
           </DialogTitle>
           <DialogDescription>
             {fee 
               ? 'Update fee structure details below.'
-              : 'Create a new fee head for the school fee structure.'
+              : 'Create a new fee structure for a class and academic year.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -163,13 +171,93 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="feeHead"
+                name="academicYearId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fee Head *</FormLabel>
+                    <FormLabel>Academic Year *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Year" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {academicYears.map((year: any) => (
+                          <SelectItem key={year._id || year.id} value={year._id || year.id}>
+                            {`${year.name}${year.isActive ? ' (Current)' : ''}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="classId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Class" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {classes.map((cls: any) => (
+                          <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="feeType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fee Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="tuition">Tuition</SelectItem>
+                        <SelectItem value="transport">Transport</SelectItem>
+                        <SelectItem value="admission">Admission</SelectItem>
+                        <SelectItem value="exam">Exam</SelectItem>
+                        <SelectItem value="library">Library</SelectItem>
+                        <SelectItem value="laboratory">Laboratory</SelectItem>
+                        <SelectItem value="sports">Sports</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="feeName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fee Name *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter fee head name"
+                        placeholder="e.g. Monthly Tuition Fee"
                         {...field}
                       />
                     </FormControl>
@@ -177,7 +265,9 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
                   </FormItem>
                 )}
               />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="amount"
@@ -188,8 +278,95 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
                       <Input
                         type="number"
                         min="0"
-                        step="0.01"
-                        placeholder="0.00"
+                        step="1"
+                        placeholder="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Due Date *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                          disabled={(date) =>
+                            date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="applicableTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Applicable To</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Application" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="all">All Students</SelectItem>
+                        <SelectItem value="specific">Specific Students</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lateFee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Late Fee (₹)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="0"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
@@ -200,136 +377,27 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="frequency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Frequency *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select frequency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="half-yearly">Half-Yearly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                        <SelectItem value="one-time">One-Time</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="applicableTo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Applicable To *</FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      // Clear applicable IDs when applicableTo changes
-                      form.setValue('applicableIds', []);
-                    }} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select applicable to" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="all">All Students</SelectItem>
-                        <SelectItem value="class">Specific Classes</SelectItem>
-                        <SelectItem value="section">Specific Sections</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <FormField
               control={form.control}
-              name="isMandatory"
+              name="concessionPercentage"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem>
+                  <FormLabel>Concession Percentage (%)</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Mandatory Fee</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      This fee is required for all applicable students
-                    </p>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
-            {form.watch('applicableTo') !== 'all' && (
-              <FormField
-                control={form.control}
-                name="applicableIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Specific Targets *</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
-                        {form.watch('applicableTo') === 'class' && classes.map((cls: any) => (
-                          <div key={cls.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`class-${cls.id}`}
-                              checked={field.value?.includes(cls.id) || false}
-                              onCheckedChange={(checked) => {
-                                const currentValues = field.value || [];
-                                if (checked) {
-                                  field.onChange([...currentValues, cls.id]);
-                                } else {
-                                  field.onChange(currentValues.filter(id => id !== cls.id));
-                                }
-                              }}
-                            />
-                            <label htmlFor={`class-${cls.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                              {cls.name}
-                            </label>
-                          </div>
-                        ))}
-                        
-                        {form.watch('applicableTo') === 'section' && sections.map((section: any) => (
-                          <div key={section.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`section-${section.id}`}
-                              checked={field.value?.includes(section.id) || false}
-                              onCheckedChange={(checked) => {
-                                const currentValues = field.value || [];
-                                if (checked) {
-                                  field.onChange([...currentValues, section.id]);
-                                } else {
-                                  field.onChange(currentValues.filter(id => id !== section.id));
-                                }
-                              }}
-                            />
-                            <label htmlFor={`section-${section.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                              {section.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <FormField
               control={form.control}
@@ -355,7 +423,7 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {fee ? 'Update Fee Head' : 'Create Fee Head'}
+                {fee ? 'Update Fee Structure' : 'Create Fee Structure'}
               </Button>
             </div>
           </form>
