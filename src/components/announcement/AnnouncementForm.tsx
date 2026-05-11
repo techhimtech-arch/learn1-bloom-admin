@@ -19,7 +19,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { announcementApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Upload, X, Paperclip } from 'lucide-react';
+import { FileUpload } from '@/components/shared/FileUpload';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -31,6 +32,7 @@ const announcementSchema = z.object({
   targetAudience: z.array(z.string()).min(1, 'Select at least one target audience'),
   publishDate: z.string().optional(),
   expiryDate: z.string().optional(),
+  attachmentUrl: z.string().optional(),
 });
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
@@ -82,6 +84,7 @@ export function AnnouncementForm({
       targetAudience: ['all'],
       publishDate: new Date().toISOString().split('T')[0],
       expiryDate: '',
+      attachmentUrl: '',
     },
   });
 
@@ -95,6 +98,7 @@ export function AnnouncementForm({
         targetAudience: announcement.targetAudience || ['all'],
         publishDate: announcement.publishDate?.split('T')[0] || new Date().toISOString().split('T')[0],
         expiryDate: announcement.expiryDate?.split('T')[0] || '',
+        attachmentUrl: announcement.attachmentUrl || '',
       });
     }
   }, [announcement, form]);
@@ -131,6 +135,7 @@ export function AnnouncementForm({
       targetAudience: data.targetAudience,
       publishDate: data.publishDate,
       expiryDate: data.expiryDate,
+      attachmentUrl: data.attachmentUrl,
     };
 
     if (announcement) {
@@ -328,6 +333,31 @@ export function AnnouncementForm({
                 )}
               />
             </div>
+
+            {/* Attachments */}
+            <FormField
+              control={form.control}
+              name="attachmentUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Attachment (Optional)
+                  </FormLabel>
+                  <FormControl>
+                    <FileUpload 
+                      label="Add Notice/Circular PDF or Image"
+                      onUploadSuccess={field.onChange}
+                      previewUrl={field.value}
+                      uploadType="announcement"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      maxSize={5}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={handleClose}>

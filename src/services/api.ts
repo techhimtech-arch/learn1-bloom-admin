@@ -176,6 +176,7 @@ export const userApi = {
 export const schoolApi = {
   getAll: () => apiClient.get("/school"),
   getById: (id: string) => apiClient.get(`/school/${id}`),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/school/${id}`, data),
 };
 
 // ── Academic Year API ─────────────────────────────────────
@@ -568,6 +569,15 @@ export const studentPortalApi = {
 
   // Certificates
   getCertificates: () => apiClient.get("/student/certificates"),
+};
+
+// ── Study Materials API ─────────────────────────────────────
+export const studyMaterialApi = {
+  getAll: (params?: any) => apiClient.get("/study-materials", { params }),
+  getById: (id: string) => apiClient.get(`/study-materials/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post("/study-materials", data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/study-materials/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/study-materials/${id}`),
 };
 
 // ── Enrollment API ──────────────────────────────────────

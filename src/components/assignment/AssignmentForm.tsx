@@ -18,7 +18,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { assignmentApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Upload, X, Paperclip } from 'lucide-react';
+import { FileUpload } from '@/components/shared/FileUpload';
 
 const assignmentSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title cannot exceed 200 characters'),
@@ -30,7 +31,7 @@ const assignmentSchema = z.object({
   maxMarks: z.number().min(1, 'Max marks must be at least 1'),
   allowLateSubmission: z.boolean().optional().default(false),
   lateSubmissionPenalty: z.number().min(0).max(100, 'Penalty must be between 0-100').optional().default(0),
-  attachment: z.any().optional(),
+  attachmentUrl: z.string().optional(),
 }).refine((data) => {
   return new Date(data.dueDate) > new Date();
 }, {
@@ -82,10 +83,6 @@ export function AssignmentForm({
   onClose, 
   onSuccess 
 }: AssignmentFormProps) {
-  const [open, setOpen] = useState(true);
-  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
-
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
@@ -98,7 +95,7 @@ export function AssignmentForm({
       maxMarks: 100,
       allowLateSubmission: false,
       lateSubmissionPenalty: 0,
-      attachment: undefined,
+      attachmentUrl: '',
     },
   });
 
@@ -114,19 +111,14 @@ export function AssignmentForm({
         maxMarks: assignment.maxMarks,
         allowLateSubmission: false,
         lateSubmissionPenalty: 0,
-        attachment: undefined,
+        attachmentUrl: assignment.attachmentUrl || '',
       });
-      
-      if (assignment.attachmentUrl) {
-        setAttachmentPreview(assignment.attachmentUrl);
-      }
     }
   }, [assignment, form]);
 
   const createMutation = useMutation({
-    mutationFn: (data: FormData) => assignmentApi.create(data),
+    mutationFn: (data: Record<string, any>) => assignmentApi.create(data as any),
     onSuccess: () => {
-      console.log('✅ Assignment created successfully');
       toast.success('Assignment created successfully');
       onSuccess();
     },
@@ -139,10 +131,9 @@ export function AssignmentForm({
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: FormData }) => 
-      assignmentApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Record<string, any> }) => 
+      assignmentApi.update(id, data as any),
     onSuccess: () => {
-      console.log('✅ Assignment updated successfully');
       toast.success('Assignment updated successfully');
       onSuccess();
     },
@@ -154,112 +145,38 @@ export function AssignmentForm({
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setAttachmentFile(file);
-      
-      // Create preview for images
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setAttachmentPreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setAttachmentPreview(null);
-      }
-    }
-  };
-
-  const removeAttachment = () => {
-    setAttachmentFile(null);
-    setAttachmentPreview(null);
-    form.setValue('attachment', undefined);
-  };
-
   const onSubmit = (data: AssignmentFormData) => {
     // Convert date to ISO 8601 format
     const dueDateISO = new Date(data.dueDate).toISOString();
     
-    // Prepare payload matching API spec exactly
     const payload: any = {
       title: data.title,
       description: data.description,
       subjectId: data.subjectId,
       classId: data.classId,
       sectionId: data.sectionId,
-      dueDate: dueDateISO,  // ISO 8601 format: "2026-04-25T23:59:59.000Z"
-      maxMarks: data.maxMarks,  // Number, not string
-      attachments: []  // Array format as per API spec
+      dueDate: dueDateISO,
+      maxMarks: data.maxMarks,
+      attachmentUrl: data.attachmentUrl || undefined
     };
 
-    // Add optional fields only if they have values
     if (data.allowLateSubmission) {
-      payload.allowLateSubmission = true;  // Boolean, not string
+      payload.allowLateSubmission = true;
       if (data.lateSubmissionPenalty) {
-        payload.lateSubmissionPenalty = data.lateSubmissionPenalty;  // Number
+        payload.lateSubmissionPenalty = data.lateSubmissionPenalty;
       }
     }
 
-    console.log('📤 Submitting assignment with payload:', payload);
-    console.log('📋 Payload structure:', {
-      title: typeof payload.title,
-      description: typeof payload.description,
-      subjectId: typeof payload.subjectId,
-      classId: typeof payload.classId,
-      sectionId: typeof payload.sectionId,
-      dueDate: payload.dueDate,
-      maxMarks: typeof payload.maxMarks,
-      allowLateSubmission: typeof payload.allowLateSubmission,
-      lateSubmissionPenalty: typeof payload.lateSubmissionPenalty,
-    });
-
-    // If there's a file attachment, use FormData to send it
-    if (attachmentFile) {
-      const formData = new FormData();
-      // Append all fields
-      Object.entries(payload).forEach(([key, value]) => {
-        if (key === 'attachments' && Array.isArray(value)) {
-          // For attachments array, don't append if empty (will be handled by file)
-          if (value.length > 0) {
-            value.forEach((item, index) => {
-              formData.append(`${key}[${index}]`, item);
-            });
-          }
-        } else if (Array.isArray(value)) {
-          // For other arrays, handle each item separately
-          value.forEach((item, index) => {
-            formData.append(`${key}[${index}]`, item);
-          });
-        } else {
-          formData.append(key, String(value));
-        }
-      });
-      // Append file as attachments[0]
-      formData.append('attachments[0]', attachmentFile);
-      
-      console.log('📦 FormData with file attachment prepared');
-      
-      if (assignment) {
-        updateMutation.mutate({ id: assignment.id, data: formData });
-      } else {
-        createMutation.mutate(formData);
-      }
+    if (assignment) {
+      updateMutation.mutate({ id: assignment.id, data: payload });
     } else {
-      // Send as JSON (cleaner for API when no files)
-      console.log('📄 Sending as JSON (no attachments)');
-      
-      // Send as JSON instead of FormData for cleaner API
-      if (assignment) {
-        updateMutation.mutate({ id: assignment.id, data: payload });
-      } else {
-        createMutation.mutate(payload);
-      }
+      createMutation.mutate(payload);
     }
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const [open, setOpen] = useState(true);
 
   const handleClose = () => {
     setOpen(false);
@@ -482,47 +399,22 @@ export function AssignmentForm({
 
             <FormField
               control={form.control}
-              name="attachment"
+              name="attachmentUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Attachment (Optional)</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Attachment (Optional)
+                  </FormLabel>
                   <FormControl>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="file"
-                          accept="image/*,.pdf,.doc,.docx,.ppt,.pptx"
-                          onChange={handleFileChange}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={removeAttachment}
-                          disabled={!attachmentFile && !attachmentPreview}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      {(attachmentFile || attachmentPreview) && (
-                        <div className="mt-2 p-2 border rounded-md bg-muted/50">
-                          {attachmentPreview ? (
-                            <img 
-                              src={attachmentPreview} 
-                              alt="Attachment preview" 
-                              className="max-w-full h-32 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="flex items-center gap-2 text-sm">
-                              <Upload className="h-4 w-4" />
-                              <span>{attachmentFile?.name}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <FileUpload 
+                      label="Add Resource/Material"
+                      onUploadSuccess={field.onChange}
+                      previewUrl={field.value}
+                      uploadType="assignment"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
+                      maxSize={10}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

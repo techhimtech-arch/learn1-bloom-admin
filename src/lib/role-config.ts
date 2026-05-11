@@ -41,11 +41,12 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/attendance', '/academic-years', '/teacher-assignments', '/timetable', '/timetable-builder',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
     '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
-    '/certificates', '/admin/quizzes',
+    '/certificates', '/admin/quizzes', '/settings/school',
   ],
   teacher: [
     '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams', 
     '/teacher/results', '/teacher/assignments', '/teacher/attendance', '/teacher/quizzes',
+    '/teacher/materials',
   ],
   accountant: [
     '/', '/profile', '/sessions',
@@ -110,6 +111,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Announcements', url: '/student/announcements', icon: Bell },
   { title: 'My Timetable', url: '/student/timetable', icon: CalendarDays },
   { title: 'My Certificates', url: '/student/certificates', icon: Award },
+  { title: 'School Settings', url: '/settings/school', icon: School },
 ];
 
 // Account nav items — always visible
