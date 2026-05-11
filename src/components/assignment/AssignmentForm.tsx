@@ -31,7 +31,10 @@ const assignmentSchema = z.object({
   maxMarks: z.number().min(1, 'Max marks must be at least 1'),
   allowLateSubmission: z.boolean().optional().default(false),
   lateSubmissionPenalty: z.number().min(0).max(100, 'Penalty must be between 0-100').optional().default(0),
-  attachmentUrl: z.string().optional(),
+  attachments: z.array(z.object({
+    url: z.string(),
+    filename: z.string()
+  })).optional(),
 }).refine((data) => {
   return new Date(data.dueDate) > new Date();
 }, {
@@ -95,7 +98,7 @@ export function AssignmentForm({
       maxMarks: 100,
       allowLateSubmission: false,
       lateSubmissionPenalty: 0,
-      attachmentUrl: '',
+      attachments: [],
     },
   });
 
@@ -111,7 +114,7 @@ export function AssignmentForm({
         maxMarks: assignment.maxMarks,
         allowLateSubmission: false,
         lateSubmissionPenalty: 0,
-        attachmentUrl: assignment.attachmentUrl || '',
+        attachments: assignment.attachmentUrl ? [{ url: assignment.attachmentUrl, filename: 'attached_file' }] : [],
       });
     }
   }, [assignment, form]);
@@ -157,7 +160,7 @@ export function AssignmentForm({
       sectionId: data.sectionId,
       dueDate: dueDateISO,
       maxMarks: data.maxMarks,
-      attachmentUrl: data.attachmentUrl || undefined
+      attachments: data.attachments || []
     };
 
     if (data.allowLateSubmission) {
@@ -399,23 +402,41 @@ export function AssignmentForm({
 
             <FormField
               control={form.control}
-              name="attachmentUrl"
+              name="attachments"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                     <Paperclip className="h-4 w-4" />
-                    Attachment (Optional)
+                    Attachments (Optional)
                   </FormLabel>
                   <FormControl>
                     <FileUpload 
                       label="Add Resource/Material"
-                      onUploadSuccess={field.onChange}
-                      previewUrl={field.value}
+                      onUploadSuccess={(url, filename) => {
+                        const current = field.value || [];
+                        field.onChange([...current, { url, filename }]);
+                      }}
+                      previewUrl={field.value?.[0]?.url}
                       uploadType="assignment"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
                       maxSize={10}
                     />
                   </FormControl>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {field.value?.map((file: any, index: number) => (
+                      <Badge key={index} variant="secondary" className="gap-1 pr-1">
+                        {file.filename || 'Attached File'}
+                        <X 
+                          className="h-3 w-3 cursor-pointer hover:text-red-500" 
+                          onClick={() => {
+                            const next = [...field.value];
+                            next.splice(index, 1);
+                            field.onChange(next);
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

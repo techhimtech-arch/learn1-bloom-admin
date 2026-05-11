@@ -56,7 +56,7 @@ export default function SchoolSettings() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) => schoolApi.update(user!.schoolId!, data),
+    mutationFn: (data: any) => schoolApi.updateMe(data),
     onSuccess: () => {
       toast.success('School settings updated successfully');
       queryClient.invalidateQueries({ queryKey: ['school-settings'] });

@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { announcementApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, Upload, X, Paperclip } from 'lucide-react';
 import { FileUpload } from '@/components/shared/FileUpload';
 import ReactQuill from 'react-quill';
@@ -32,7 +33,10 @@ const announcementSchema = z.object({
   targetAudience: z.array(z.string()).min(1, 'Select at least one target audience'),
   publishDate: z.string().optional(),
   expiryDate: z.string().optional(),
-  attachmentUrl: z.string().optional(),
+  attachments: z.array(z.object({
+    url: z.string(),
+    filename: z.string()
+  })).optional(),
 });
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
@@ -47,6 +51,7 @@ export interface Announcement {
   publishDate?: string;
   expiryDate?: string;
   attachmentUrl?: string;
+  attachments?: Array<{ url: string; filename: string }>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -84,7 +89,7 @@ export function AnnouncementForm({
       targetAudience: ['all'],
       publishDate: new Date().toISOString().split('T')[0],
       expiryDate: '',
-      attachmentUrl: '',
+      attachments: [],
     },
   });
 
@@ -98,7 +103,7 @@ export function AnnouncementForm({
         targetAudience: announcement.targetAudience || ['all'],
         publishDate: announcement.publishDate?.split('T')[0] || new Date().toISOString().split('T')[0],
         expiryDate: announcement.expiryDate?.split('T')[0] || '',
-        attachmentUrl: announcement.attachmentUrl || '',
+        attachments: announcement.attachments || (announcement.attachmentUrl ? [{ url: announcement.attachmentUrl, filename: 'attached_file' }] : []),
       });
     }
   }, [announcement, form]);
@@ -135,7 +140,7 @@ export function AnnouncementForm({
       targetAudience: data.targetAudience,
       publishDate: data.publishDate,
       expiryDate: data.expiryDate,
-      attachmentUrl: data.attachmentUrl,
+      attachments: data.attachments || [],
     };
 
     if (announcement) {
@@ -337,23 +342,41 @@ export function AnnouncementForm({
             {/* Attachments */}
             <FormField
               control={form.control}
-              name="attachmentUrl"
+              name="attachments"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                     <Paperclip className="h-4 w-4" />
-                    Attachment (Optional)
+                    Attachments (Optional)
                   </FormLabel>
                   <FormControl>
                     <FileUpload 
                       label="Add Notice/Circular PDF or Image"
-                      onUploadSuccess={field.onChange}
-                      previewUrl={field.value}
+                      onUploadSuccess={(url, filename) => {
+                        const current = field.value || [];
+                        field.onChange([...current, { url, filename }]);
+                      }}
+                      previewUrl={field.value?.[0]?.url}
                       uploadType="announcement"
                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                       maxSize={5}
                     />
                   </FormControl>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {field.value?.map((file: any, index: number) => (
+                      <Badge key={index} variant="secondary" className="gap-1 pr-1">
+                        {file.filename || 'Attached File'}
+                        <X 
+                          className="h-3 w-3 cursor-pointer hover:text-red-500" 
+                          onClick={() => {
+                            const next = [...field.value];
+                            next.splice(index, 1);
+                            field.onChange(next);
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

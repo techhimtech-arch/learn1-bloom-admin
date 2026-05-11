@@ -174,9 +174,10 @@ export const userApi = {
 
 // ── School API ────────────────────────────────────────────
 export const schoolApi = {
-  getAll: () => apiClient.get("/school"),
-  getById: (id: string) => apiClient.get(`/school/${id}`),
-  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/school/${id}`, data),
+  getAll: () => apiClient.get("/schools"),
+  getById: (id: string) => apiClient.get(`/schools/${id}`),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/schools/${id}`, data),
+  updateMe: (data: Record<string, unknown>) => apiClient.patch("/schools/me", data),
 };
 
 // ── Academic Year API ─────────────────────────────────────

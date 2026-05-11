@@ -6,8 +6,8 @@ import { uploadApi } from "@/services/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-interface FileUploadProps {
-  onUploadSuccess: (url: string) => void;
+export interface FileUploadProps {
+  onUploadSuccess: (url: string, filename?: string) => void;
   onUploadError?: (error: any) => void;
   accept?: string;
   maxSize?: number; // in MB
@@ -62,9 +62,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       clearInterval(progressInterval);
       setUploadProgress(100);
       
-      const url = response.data.data?.url || response.data.url;
-      if (url) {
-        onUploadSuccess(url);
+      const uploadedUrl = response.data.data.url;
+      const uploadedFilename = fileToUpload.name;
+      
+      if (uploadedUrl) {
+        onUploadSuccess(uploadedUrl, uploadedFilename);
         toast.success("File uploaded successfully");
       } else {
         throw new Error("URL not found in response");
