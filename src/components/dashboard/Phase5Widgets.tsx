@@ -395,7 +395,7 @@ export function ParentDashboardWidgets() {
                 <Link to={`/parent/student/${student.id}`}>
                   <UsersRound className="h-4 w-4 mr-2" />
                   <div className="text-left">
-                    <div className=\"font-medium\">{student.firstName} {student.lastName}</div>
+                    <div className="font-medium">{student.firstName} {student.lastName}</div>
                     <div className="text-xs text-muted-foreground">
                       {student.currentEnrollment?.classId?.name} - {student.currentEnrollment?.sectionId?.name}
                     </div>
