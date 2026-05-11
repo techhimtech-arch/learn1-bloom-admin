@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { FileUpload } from '@/components/shared/FileUpload';
 
 interface Assignment {
   id: string;
@@ -67,8 +68,7 @@ export default function StudentAssignmentSubmission() {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
   const [submissionText, setSubmissionText] = useState('');
-  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -107,8 +107,7 @@ export default function StudentAssignmentSubmission() {
       toast.success('Assignment submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['assignment-submission', assignmentId, user?.id] });
       setSubmissionText('');
-      setAttachmentFile(null);
-      setAttachmentPreview(null);
+      setAttachmentUrl(null);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to submit assignment');
@@ -124,44 +123,18 @@ export default function StudentAssignmentSubmission() {
   const assignment = assignmentData?.data as Assignment;
   const submission = submissionData?.data as Submission;
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setAttachmentFile(file);
-      
-      // Create preview for images
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setAttachmentPreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setAttachmentPreview(null);
-      }
-    }
-  };
-
-  const removeAttachment = () => {
-    setAttachmentFile(null);
-    setAttachmentPreview(null);
-  };
-
   const handleSubmit = () => {
-    if (!submissionText.trim() && !attachmentFile) {
+    if (!submissionText.trim() && !attachmentUrl) {
       toast.error('Please enter submission text or attach a file');
       return;
     }
 
-    const formData = new FormData();
-    if (submissionText.trim()) {
-      formData.append('submissionText', submissionText);
-    }
-    if (attachmentFile) {
-      formData.append('attachment', attachmentFile);
-    }
+    const payload = {
+      submissionText: submissionText.trim() || undefined,
+      attachmentUrl: attachmentUrl || undefined,
+    };
 
-    submitMutation.mutate(formData);
+    submitMutation.mutate(payload as any);
   };
 
   const isOverdue = (dueDate: string) => {
@@ -371,48 +344,23 @@ export default function StudentAssignmentSubmission() {
 
             <div>
               <label className="text-sm font-medium mb-2 block">Attachment (Optional)</label>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*,.pdf,.doc,.docx,.ppt,.pptx"
-                    onChange={handleFileChange}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={removeAttachment}
-                    disabled={!attachmentFile && !attachmentPreview}
-                  >
-                    Clear
-                  </Button>
-                </div>
-                
-                {(attachmentFile || attachmentPreview) && (
-                  <div className="mt-2 p-2 border rounded-md bg-muted/50">
-                    {attachmentPreview ? (
-                      <img 
-                        src={attachmentPreview} 
-                        alt="Attachment preview" 
-                        className="max-w-full h-32 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Upload className="h-4 w-4" />
-                        <span>{attachmentFile?.name}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <FileUpload 
+                label="Upload Work"
+                onUploadSuccess={(url) => setAttachmentUrl(url)}
+                previewUrl={attachmentUrl || undefined}
+                uploadType="submission"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
+                maxSize={10}
+              />
+              {attachmentUrl && (
+                <p className="text-xs text-green-600 mt-1 font-medium">File ready for submission</p>
+              )}
             </div>
 
             <div className="flex justify-end">
               <Button 
                 onClick={handleSubmit} 
-                disabled={submitMutation.isPending || (!submissionText.trim() && !attachmentFile)}
+                disabled={submitMutation.isPending || (!submissionText.trim() && !attachmentUrl)}
               >
                 {submitMutation.isPending ? (
                   <>

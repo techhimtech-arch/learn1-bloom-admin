@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';
 import { ROLE_LABELS, canTakeTour, getTourLocalStorageKey } from '@/lib/role-config';
+import { FileUpload } from '@/components/shared/FileUpload';
 
 interface ProfileData {
   _id: string;
@@ -133,30 +134,15 @@ const Profile = ({ setRunTour }: ProfileProps) => {
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Image must be under 5MB' });
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Please select an image file' });
-      return;
-    }
-    setPreviewUrl(URL.createObjectURL(file));
-    uploadImage(file);
-  };
-
-  const uploadImage = async (file: File) => {
+  const handleProfileImageUpload = async (url: string) => {
     setUploading(true);
     try {
-      const res = await userApi.uploadProfileImage(file);
+      const res = await userApi.updateMe({ profileImage: url });
       showApiSuccess(res, 'Profile image updated');
       fetchProfile();
-    } catch (err) {
-      showApiError(err, 'Failed to upload image');
       setPreviewUrl(null);
+    } catch (err) {
+      showApiError(err, 'Failed to update profile image');
     } finally {
       setUploading(false);
     }
@@ -194,33 +180,45 @@ const Profile = ({ setRunTour }: ProfileProps) => {
       {/* Profile Overview Card */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col items-center gap-6 sm:flex-row">
-            <div className="relative">
-              <Avatar className="h-24 w-24 text-2xl">
-                <AvatarImage src={previewUrl || profile?.profileImage} />
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div className="flex flex-col items-center gap-6 sm:flex-row">
+              <Avatar className="h-32 w-32 text-4xl shadow-md border-2 border-background">
+                <AvatarImage src={profile?.profileImage} />
                 <AvatarFallback className="bg-primary text-primary-foreground">{getInitials()}</AvatarFallback>
               </Avatar>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <div className="text-center sm:text-left">
+                <h2 className="text-2xl font-bold text-foreground">{profile?.name}</h2>
+                <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary uppercase">
+                    {ROLE_LABELS[profile?.role || ''] || profile?.role}
+                  </span>
+                  {profile?.phone && (
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-muted text-muted-foreground">
+                      {profile.phone}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="text-center sm:text-left">
-              <h2 className="text-xl font-bold text-foreground">{profile?.name}</h2>
-              <p className="text-sm text-muted-foreground">{profile?.email}</p>
-              <p className="mt-1 text-xs capitalize text-primary font-medium">
-                {ROLE_LABELS[profile?.role || ''] || profile?.role}
-              </p>
-              {profile?.phone && <p className="mt-1 text-sm text-muted-foreground">{profile.phone}</p>}
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Update Profile Picture</Label>
+              <FileUpload 
+                label="Change Picture"
+                onUploadSuccess={handleProfileImageUpload}
+                accept="image/*"
+                maxSize={2}
+                uploadType="profile"
+                previewUrl={profile?.profileImage}
+                className="max-w-[300px]"
+              />
             </div>
           </div>
+
           {/* Audit info */}
           {(profile?.createdBy || profile?.updatedBy) && (
-            <div className="mt-4 flex flex-wrap gap-4 border-t pt-4 text-xs text-muted-foreground">
+            <div className="mt-8 flex flex-wrap gap-4 border-t pt-4 text-xs text-muted-foreground">
               {profile.createdBy && <span>Created by: {getAuditName(profile.createdBy)}</span>}
               {profile.updatedBy && <span>Last updated by: {getAuditName(profile.updatedBy)}</span>}
               {profile.createdAt && <span>Joined: {new Date(profile.createdAt).toLocaleDateString()}</span>}

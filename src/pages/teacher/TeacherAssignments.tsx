@@ -38,7 +38,8 @@ import { teacherApi } from '@/services/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useTeacherContext } from '@/contexts/TeacherContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, BookOpen, Paperclip } from 'lucide-react';
+import { FileUpload } from '@/components/shared/FileUpload';
 
 interface Assignment {
   _id: string;
@@ -53,6 +54,7 @@ interface Assignment {
   teacherId: string;
   allowLateSubmission?: boolean;
   lateSubmissionPenalty?: number;
+  attachments?: Array<{ filename: string; url: string }>;
 }
 
 const TeacherAssignments = () => {
@@ -74,6 +76,8 @@ const TeacherAssignments = () => {
     maxMarks: 50,
     allowLateSubmission: false,
     lateSubmissionPenalty: 0,
+    attachmentUrl: '',
+    attachmentName: '',
   });
 
   const teacherClasses = Array.from(
@@ -180,6 +184,8 @@ const TeacherAssignments = () => {
       maxMarks: 50,
       allowLateSubmission: false,
       lateSubmissionPenalty: 0,
+      attachmentUrl: '',
+      attachmentName: '',
     });
   };
 
@@ -204,6 +210,7 @@ const TeacherAssignments = () => {
       maxMarks: formData.maxMarks,
       allowLateSubmission: formData.allowLateSubmission,
       lateSubmissionPenalty: formData.lateSubmissionPenalty,
+      attachments: formData.attachmentUrl ? [{ filename: formData.attachmentName || 'Attachment', url: formData.attachmentUrl }] : [],
     };
 
     console.log('📤 Submitting assignment:', payload);
@@ -227,6 +234,8 @@ const TeacherAssignments = () => {
       maxMarks: assignment.maxMarks,
       allowLateSubmission: assignment.allowLateSubmission || false,
       lateSubmissionPenalty: assignment.lateSubmissionPenalty || 0,
+      attachmentUrl: assignment.attachments?.[0]?.url || '',
+      attachmentName: assignment.attachments?.[0]?.filename || '',
     });
     setShowCreateDialog(true);
   };
@@ -430,6 +439,27 @@ const TeacherAssignments = () => {
                       value={formData.lateSubmissionPenalty}
                       onChange={(e) => setFormData(prev => ({ ...prev, lateSubmissionPenalty: parseInt(e.target.value) || 0 }))}
                     />
+                  </div>
+                )}
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  Attachment (Optional)
+                </Label>
+                <FileUpload 
+                  label="Add Resource/Material"
+                  onUploadSuccess={(url) => setFormData(prev => ({ ...prev, attachmentUrl: url }))}
+                  previewUrl={formData.attachmentUrl}
+                  uploadType="assignment"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
+                  maxSize={10}
+                />
+                {formData.attachmentUrl && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    <span className="text-green-600 font-medium">File ready for submission</span>
                   </div>
                 )}
               </div>

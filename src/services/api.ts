@@ -72,6 +72,18 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
+// ── Upload API ────────────────────────────────────────────
+export const uploadApi = {
+  uploadFile: (file: File, type: string = "general") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+    return apiClient.post("/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+};
+
 // ── Auth API ──────────────────────────────────────────────
 export const authApi = {
   login: (email: string, password: string) => apiClient.post("/auth/login", { email, password }),
