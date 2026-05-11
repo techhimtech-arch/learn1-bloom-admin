@@ -112,20 +112,12 @@ export default function ParentDashboard() {
   const data = dashboardResponse?.data as ParentDashboardData;
   const students = data?.linkedStudents || [];
 
+  // Set first student as default — only once
   useEffect(() => {
     if (students.length > 0 && !selectedStudentId) {
-      console.log("Setting initial student:", students[0]._id);
       setSelectedStudentId(students[0]._id);
     }
-  }, [students, selectedStudentId]);
-
-  useEffect(() => {
-    console.log("Current Dashboard Data:", { 
-      students, 
-      selectedStudentId, 
-      selectedStudent: students.find(s => s._id === selectedStudentId) 
-    });
-  }, [students, selectedStudentId]);
+  }, [students.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedStudent = students.find(s => s._id === selectedStudentId);
   const selectedAttendance = data?.attendanceSummary?.find(a => a.studentId === selectedStudentId);

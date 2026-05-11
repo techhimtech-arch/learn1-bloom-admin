@@ -1,8 +1,7 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { GlobalLoading } from '@/components/shared/GlobalLoading';
 
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const ParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
 const ParentStudentDetail = lazy(() => import("@/pages/ParentStudentDetail"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -14,7 +13,8 @@ export default function ParentRoutes({ setRunTour }: { setRunTour: any }) {
   return (
     <Suspense fallback={<GlobalLoading />}>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        {/* Redirect root to parent dashboard */}
+        <Route path="/" element={<Navigate to="/parent/dashboard" replace />} />
         <Route path="/parent/dashboard" element={<ParentDashboard />} />
         <Route path="/parent/student/:studentId" element={<ParentStudentDetail />} />
         <Route path="/parent/student/:studentId/:tab" element={<ParentStudentDetail />} />

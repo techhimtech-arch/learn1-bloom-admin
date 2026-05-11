@@ -54,8 +54,8 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/accountant/dashboard', '/accountant/record-payment', '/accountant/fee-structure', '/accountant/reports',
   ],
   parent: [
-    '/', '/attendance', '/fees', '/results', '/profile', '/sessions', '/announcements',
-    '/parent/dashboard', '/parent/student/:studentId',
+    '/parent/dashboard', '/parent/student/',
+    '/profile', '/sessions', '/announcements',
   ],
   student: [
     '/', '/profile', '/sessions', '/results',
@@ -89,8 +89,8 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Fee Structure Mgmt', url: '/accountant/fee-structure', icon: FileText },
   { title: 'Fee Reports', url: '/accountant/reports', icon: TrendingUp },
   { title: 'Certificates', url: '/certificates', icon: FileCheck },
-  { title: 'Parent Portal', url: '/parent/dashboard', icon: UsersRound },
-  { title: 'Attendance', url: '/attendance', icon: ClipboardCheck },
+  { title: 'Dashboard', url: '/parent/dashboard', icon: LayoutDashboard },
+  { title: 'Announcements', url: '/announcements', icon: Bell },
   // Teacher Portal Routes
   { title: 'Teacher Dashboard', url: '/teacher/dashboard', icon: LayoutDashboard },
   { title: 'My Students', url: '/teacher/students', icon: Users },
@@ -129,7 +129,13 @@ export function getNavItemsForRole(role: string): NavItem[] {
 export function canAccessRoute(role: string, path: string): boolean {
   const allowed = ROLE_ROUTES[role as AppRole];
   if (!allowed) return false;
-  return allowed.some((r) => (r === '/' ? path === '/' : path.startsWith(r)));
+  return allowed.some((r) => {
+    // Exact match for root
+    if (r === '/') return path === '/';
+    // Strip trailing colon-params for prefix matching
+    const prefix = r.replace(/\/:.*$/, '');
+    return path.startsWith(prefix);
+  });
 }
 
 export function getDefaultRoute(role: string): string {
