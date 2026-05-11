@@ -527,8 +527,12 @@ export const parentLinkingApi = {
     apiClient.post(`/parent-linking/${studentId}/link/${parentId}`),
   unlinkParent: (studentId: string, parentId: string) =>
     apiClient.delete(`/parent-linking/${studentId}/unlink/${parentId}`),
+  // Get all parents linked to a student
   getLinkedParents: (studentId: string) =>
     apiClient.get(`/parent-linking/student/${studentId}/parents`),
+  // Get all students linked to a parent (Family Tree)
+  getLinkedStudents: (parentId: string) =>
+    apiClient.get(`/parent-linking/parent/${parentId}/students`),
   searchParents: (params: { search: string }) =>
     apiClient.get(`/users`, { params: { ...params, role: 'parent' } }),
 };

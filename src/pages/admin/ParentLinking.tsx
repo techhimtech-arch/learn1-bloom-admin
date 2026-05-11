@@ -50,24 +50,24 @@ export default function ParentLinking() {
   });
   const searchedParents = searchedParentsData?.data?.users || searchedParentsData?.data || [];
 
-  // Fetch Students for selected Parent
+  // Fetch Students for selected Parent (Family Tree)
   const { data: parentStudentsData, isLoading: parentStudentsLoading } = useQuery({
     queryKey: ['parent-students', selectedParent?._id || selectedParent?.id],
     queryFn: async () => {
       const id = selectedParent?._id || selectedParent?.id;
-      if (!id) return { data: [] };
-      // Depending on API, it might be: GET /parent-linking/parent/{parentId}/students
-      // We will use standard api client if the function is there, otherwise raw apiClient.
-      try {
-        const res = await parentLinkingApi.getLinkedStudents(id);
-        return res.data;
-      } catch {
-        return { data: [] };
-      }
+      if (!id) return null;
+      const res = await parentLinkingApi.getLinkedStudents(id);
+      return res.data;
     },
-    enabled: !!selectedParent,
+    enabled: !!(selectedParent?._id || selectedParent?.id),
+    retry: 1,
   });
-  const linkedStudents = parentStudentsData?.data?.linkedStudents || parentStudentsData?.data || parentStudentsData?.linkedStudents || [];
+  // Backend returns: { data: { parentId, parentName, linkedStudents: [...], count } }
+  const linkedStudents = 
+    parentStudentsData?.data?.linkedStudents || 
+    parentStudentsData?.linkedStudents || 
+    parentStudentsData?.data || 
+    [];
 
   const unlinkChildMutation = useMutation({
     mutationFn: (studentId: string) => {
@@ -242,7 +242,9 @@ export default function ParentLinking() {
                     <CardContent className="pt-6">
                       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                         Linked Children
-                        <Badge variant="secondary" className="ml-2 rounded-full">{linkedStudents.length}</Badge>
+                        <Badge variant="secondary" className="ml-2 rounded-full">
+                          {parentStudentsData?.data?.count ?? parentStudentsData?.count ?? linkedStudents.length}
+                        </Badge>
                       </h3>
                       
                       {parentStudentsLoading ? (
