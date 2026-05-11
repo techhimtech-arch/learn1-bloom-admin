@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import AnnouncementManagement from './AnnouncementManagement';
+import AnnouncementManagement from './admin/AnnouncementManagement';
 import StudentParentAnnouncements from './StudentParentAnnouncements';
 
 /**
