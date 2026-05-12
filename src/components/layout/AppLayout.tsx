@@ -36,9 +36,9 @@ export function AppLayout() {
                     <SelectValue placeholder="Academic Year" />
                   </SelectTrigger>
                   <SelectContent>
-                    {academicYears.map((year) => (
+                    {academicYears.map((year: any) => (
                       <SelectItem key={year._id || year.id} value={year._id || year.id}>
-                        {year.name} {year.isActive && '(Active)'}
+                        {year.name} {year.isCurrent && '(Current)'}
                       </SelectItem>
                     ))}
                   </SelectContent>

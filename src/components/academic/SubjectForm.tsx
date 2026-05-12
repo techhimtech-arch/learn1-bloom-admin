@@ -250,7 +250,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
                       <SelectContent>
                         {academicYears.map((year: any) => (
                           <SelectItem key={year._id || year.id} value={year._id || year.id}>
-                            {year.name} {year.isActive && '(Current)'}
+                            {year.name} {year.isCurrent && '(Current)'}
                           </SelectItem>
                         ))}
                       </SelectContent>

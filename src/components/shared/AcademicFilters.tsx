@@ -109,7 +109,7 @@ export function AcademicFilters({
   // Set default academic year once data loads
   useEffect(() => {
     if (!defaultYearSet && academicYears.length > 0) {
-      const currentYear = academicYears.find((year: any) => year.isActive);
+      const currentYear = academicYears.find((year: any) => year.isCurrent) || academicYears.find((year: any) => year.isActive) || academicYears[0];
       if (currentYear) {
         const yearId = currentYear._id || currentYear.id;
         setFilters(prev => ({ ...prev, academicYearId: yearId }));
@@ -131,7 +131,7 @@ export function AcademicFilters({
   const clearFilters = () => {
     const clearedFilters: AcademicFiltersState = {
       search: '',
-      academicYearId: academicYears.find((y: any) => y.isActive)?._id || academicYears.find((y: any) => y.isActive)?.id || '',
+      academicYearId: academicYears.find((y: any) => y.isCurrent)?._id || academicYears.find((y: any) => y.isCurrent)?.id || academicYears.find((y: any) => y.isActive)?._id || '',
       classId: '',
       sectionId: '',
       department: '',
@@ -200,7 +200,7 @@ export function AcademicFilters({
               <SelectContent>
                 {academicYears.map((year: any, index: number) => (
                   <SelectItem key={year._id || year.id || `year-${index}`} value={year._id || year.id}>
-                    {year.name} {year.isActive && '(Current)'}
+                    {year.name} {year.isCurrent && '(Current)'}
                   </SelectItem>
                 ))}
               </SelectContent>

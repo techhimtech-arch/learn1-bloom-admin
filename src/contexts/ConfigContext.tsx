@@ -37,10 +37,10 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const years = response.data.data || [];
         setAcademicYears(years);
         
-        // If no year selected in localStorage, find active one
+        // If no year selected in localStorage, find the one with isCurrent: true
         if (!selectedYearId && years.length > 0) {
-          const activeYear = years.find((y: any) => y.isActive) || years[0];
-          const yearId = activeYear._id || activeYear.id;
+          const currentYear = years.find((y: any) => y.isCurrent) || years.find((y: any) => y.isActive) || years[0];
+          const yearId = currentYear._id || currentYear.id;
           setSelectedYearId(yearId);
           localStorage.setItem('selectedAcademicYearId', yearId);
         }
