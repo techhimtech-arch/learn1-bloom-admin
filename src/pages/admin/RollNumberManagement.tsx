@@ -100,7 +100,7 @@ export default function RollNumberManagement() {
     queryKey: ['academic-years'],
     queryFn: async () => {
       const response = await academicYearApi.getAll();
-      return response.data;
+      return { ...response.data, data: (response.data.data || []).filter((y: any) => y.isActive) };
     },
   });
 

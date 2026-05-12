@@ -101,7 +101,7 @@ export function AcademicFilters({
     return [];
   };
 
-  const academicYears = normalizeArray(academicYearsData);
+  const academicYears = normalizeArray(academicYearsData).filter((y: any) => y.isActive);
   const classes = normalizeArray(classesData);
   const sections = normalizeArray(sectionsData);
   const dataLoading = yearsLoading || classesLoading;

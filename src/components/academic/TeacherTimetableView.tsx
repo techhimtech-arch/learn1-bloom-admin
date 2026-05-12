@@ -72,16 +72,16 @@ const getSubjectColor = (subjectName: string) => {
 
 export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableViewProps) {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
-  const [academicSessionId, setAcademicSessionId] = useState('');
+  const [academicYearId, setAcademicYearId] = useState('');
 
   useEffect(() => {
     const loadCurrentSession = async () => {
       try {
         const response = await academicYearApi.getCurrent();
         const currentSession = response.data?.data || response.data;
-        setAcademicSessionId(currentSession?._id || '');
+        setAcademicYearId(currentSession?._id || '');
       } catch {
-        setAcademicSessionId('');
+        setAcademicYearId('');
       }
     };
 
@@ -100,13 +100,13 @@ export function TeacherTimetableView({ teachers, viewMode }: TeacherTimetableVie
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['timetable', 'teacher', selectedTeacherId],
+    queryKey: ['timetable', 'teacher', selectedTeacherId, academicYearId],
     queryFn: async () => {
       if (!selectedTeacherId) return { data: [] };
-      const response = await timetableApi.getByTeacher(selectedTeacherId, academicSessionId);
+      const response = await timetableApi.getByTeacher(selectedTeacherId, academicYearId);
       return response.data;
     },
-    enabled: !!selectedTeacherId && !!academicSessionId,
+    enabled: !!selectedTeacherId && !!academicYearId,
   });
 
   if (!selectedTeacherId) {

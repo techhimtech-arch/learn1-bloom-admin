@@ -58,16 +58,16 @@ const getSubjectColor = (subjectName: string) => {
 };
 
 export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimetableViewProps) {
-  const [academicSessionId, setAcademicSessionId] = useState('');
+  const [academicYearId, setAcademicYearId] = useState('');
 
   useEffect(() => {
     const loadCurrentSession = async () => {
       try {
         const response = await academicYearApi.getCurrent();
         const currentSession = response.data?.data || response.data;
-        setAcademicSessionId(currentSession?._id || '');
+        setAcademicYearId(currentSession?._id || '');
       } catch {
-        setAcademicSessionId('');
+        setAcademicYearId('');
       }
     };
 
@@ -79,12 +79,12 @@ export function ClassTimetableView({ classId, sectionId, viewMode }: ClassTimeta
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['timetable', 'class', classId, sectionId],
+    queryKey: ['timetable', 'class', classId, sectionId, academicYearId],
     queryFn: async () => {
-      const response = await timetableApi.getByClass(classId, sectionId, academicSessionId);
+      const response = await timetableApi.getByClass(classId, sectionId, academicYearId);
       return response.data;
     },
-    enabled: !!classId && !!sectionId && !!academicSessionId,
+    enabled: !!classId && !!sectionId && !!academicYearId,
   });
 
   if (isLoading) {

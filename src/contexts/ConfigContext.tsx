@@ -34,12 +34,12 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const fetchYears = async () => {
       try {
         const response = await academicYearApi.getAll();
-        const years = response.data.data || [];
+        const years = (response.data.data || []).filter((y: AcademicYear) => y.isActive);
         setAcademicYears(years);
         
         // If no year selected in localStorage, find the one with isCurrent: true
         if (!selectedYearId && years.length > 0) {
-          const currentYear = years.find((y: any) => y.isCurrent) || years.find((y: any) => y.isActive) || years[0];
+          const currentYear = years.find((y: any) => y.isCurrent) || years[0];
           const yearId = currentYear._id || currentYear.id;
           setSelectedYearId(yearId);
           localStorage.setItem('selectedAcademicYearId', yearId);

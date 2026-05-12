@@ -46,7 +46,7 @@ const timetableFormSchema = z.object({
   startTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
   endTime: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
   room: z.string().min(1, 'Room is required'),
-  academicSessionId: z.string().min(1, 'Academic session is required'),
+  academicYearId: z.string().min(1, 'Academic year is required'),
   semester: z.string().min(1, 'Semester is required'),
 }).refine((data) => {
   const start = new Date(`2000-01-01T${data.startTime}`);
@@ -84,7 +84,7 @@ const TimetableForm: React.FC<TimetableFormProps> = ({
   selectedClassId,
   onClassChange,
 }) => {
-  const [selectedAcademicSession, setSelectedAcademicSession] = useState<string>('');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
   const [filteredClasses, setFilteredClasses] = useState<Class[]>(classes);
 
   const form = useForm<TimetableFormData>({
@@ -99,23 +99,23 @@ const TimetableForm: React.FC<TimetableFormProps> = ({
       startTime: initialData?.startTime || '09:00',
       endTime: initialData?.endTime || '10:00',
       room: initialData?.room || '',
-      academicSessionId: initialData?.academicSessionId || '',
+      academicYearId: initialData?.academicYearId || '',
       semester: initialData?.semester || 'FIRST',
     },
   });
 
   useEffect(() => {
-    if (selectedAcademicSession) {
-      const filtered = classes.filter(cls => cls.academicSessionId === selectedAcademicSession);
+    if (selectedAcademicYear) {
+      const filtered = classes.filter(cls => (cls as any).academicYearId === selectedAcademicYear || cls.academicSessionId === selectedAcademicYear);
       setFilteredClasses(filtered);
     } else {
       setFilteredClasses(classes);
     }
-  }, [selectedAcademicSession, classes]);
+  }, [selectedAcademicYear, classes]);
 
-  const handleAcademicSessionChange = (value: string) => {
-    setSelectedAcademicSession(value);
-    form.setValue('academicSessionId', value);
+  const handleAcademicYearChange = (value: string) => {
+    setSelectedAcademicYear(value);
+    form.setValue('academicYearId', value);
     form.setValue('classId', '');
     form.setValue('sectionId', '');
   };
@@ -155,11 +155,11 @@ const TimetableForm: React.FC<TimetableFormProps> = ({
               {/* Academic Session */}
               <FormField
                 control={form.control}
-                name="academicSessionId"
+                name="academicYearId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Academic Session</FormLabel>
-                    <Select onValueChange={handleAcademicSessionChange} defaultValue={field.value}>
+                    <FormLabel>Academic Year</FormLabel>
+                    <Select onValueChange={handleAcademicYearChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select academic session" />

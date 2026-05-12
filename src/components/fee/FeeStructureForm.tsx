@@ -152,7 +152,7 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
     setTimeout(onClose, 300);
   };
 
-  const academicYears = academicYearsData?.data || [];
+  const academicYears = (academicYearsData?.data || []).filter((y: any) => y.isActive);
   const classes = classesData?.data || [];
 
   return (

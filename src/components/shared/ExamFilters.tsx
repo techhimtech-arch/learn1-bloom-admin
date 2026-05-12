@@ -87,7 +87,7 @@ export function ExamFilters({
         classApi.getAll(),
       ]);
       
-      setAcademicYears(yearsRes.data?.data || []);
+      setAcademicYears((yearsRes.data?.data || []).filter((y: any) => y.isActive));
       setClasses(classesRes.data?.data || []);
       
       // Set current academic year if available

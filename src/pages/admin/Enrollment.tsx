@@ -91,7 +91,7 @@ const Enrollment = () => {
   useEffect(() => {
     classApi.getAll().then(r => setClasses(r.data?.data || [])).catch(() => {});
     sectionApi.getAll().then(r => setSections(r.data?.data || [])).catch(() => {});
-    academicYearApi.getAll().then(r => setAcademicYears(r.data?.data || [])).catch(() => {});
+    academicYearApi.getAll().then(r => setAcademicYears((r.data?.data || []).filter((y: any) => y.isActive))).catch(() => {});
     admissionApi.getAll({ limit: 1000 }).then(r => {
       const admitted = r.data?.data || [];
       setStudents(admitted.map(s => ({

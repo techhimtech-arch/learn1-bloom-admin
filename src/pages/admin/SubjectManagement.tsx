@@ -54,7 +54,7 @@ interface Subject {
   isOptional: boolean;
   status: 'active' | 'inactive' | 'archived';
   classId: string | { _id: string; name: string };
-  academicSessionId: string | { _id: string; name: string };
+  academicYearId: string | { _id: string; name: string };
   teachers?: Array<{
     id: string;
     name: string;

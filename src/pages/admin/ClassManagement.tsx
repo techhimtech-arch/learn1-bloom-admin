@@ -30,7 +30,7 @@ interface SectionItem {
   floor?: string;
   building?: string;
   isActive: boolean;
-  academicSessionId?: string;
+  academicYearId?: string;
 }
 
 interface AcademicYear {
@@ -61,7 +61,7 @@ const ClassManagement = () => {
   const [sectionForm, setSectionForm] = useState({ 
     name: '', 
     classId: '', 
-    academicSessionId: '',
+    academicYearId: '',
     capacity: '40', 
     roomNumber: '', 
     floor: '', 
@@ -96,12 +96,12 @@ const ClassManagement = () => {
   const fetchAcademicYears = async () => {
     try {
       const { data } = await academicYearApi.getAll();
-      setAcademicYears(data.data || []);
+      setAcademicYears((data.data || []).filter((year: AcademicYear) => year.isActive));
       
       // Auto-select current academic year for new sections
       const currentYear = data.data?.find((year: AcademicYear) => year.isCurrent || year.isActive);
       if (currentYear) {
-        setSectionForm(prev => ({ ...prev, academicSessionId: currentYear._id }));
+        setSectionForm(prev => ({ ...prev, academicYearId: currentYear._id }));
       }
     } catch (err) {
       showApiError(err, 'Failed to load academic years');
@@ -139,7 +139,7 @@ const ClassManagement = () => {
                 sectionApi.create({
                   name,
                   classId: createdClassId,
-                  academicSessionId: currentYearId,
+                  academicYearId: currentYearId,
                   capacity: 40
                 })
               )
@@ -189,13 +189,13 @@ const ClassManagement = () => {
 
   // Section CRUD
   const handleSaveSection = async () => {
-    if (!sectionForm.name.trim() || (!editingSection && (!sectionForm.classId || !sectionForm.academicSessionId))) return;
+    if (!sectionForm.name.trim() || (!editingSection && (!sectionForm.classId || !sectionForm.academicYearId))) return;
     setSectionSaving(true);
     try {
       const payload: Record<string, unknown> = {
         name: sectionForm.name.trim(),
         capacity: Number(sectionForm.capacity) || 40,
-        academicSessionId: sectionForm.academicSessionId,
+        academicYearId: sectionForm.academicYearId,
       };
       if (sectionForm.roomNumber) payload.roomNumber = sectionForm.roomNumber;
       if (sectionForm.floor) payload.floor = sectionForm.floor;
@@ -214,7 +214,7 @@ const ClassManagement = () => {
       setSectionForm({ 
         name: '', 
         classId: '', 
-        academicSessionId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+        academicYearId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
         capacity: '40', 
         roomNumber: '', 
         floor: '', 
@@ -243,7 +243,7 @@ const ClassManagement = () => {
     setSectionForm({
       name: sec.name,
       classId: typeof sec.classId === 'object' ? sec.classId._id : sec.classId,
-      academicSessionId: sec.academicSessionId || academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+      academicYearId: (sec as any).academicYearId || academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
       capacity: String(sec.capacity || 40),
       roomNumber: sec.roomNumber || '',
       floor: sec.floor || '',
@@ -369,7 +369,7 @@ const ClassManagement = () => {
             <Button onClick={() => { setEditingSection(null); setSectionForm({ 
               name: '', 
               classId: '', 
-              academicSessionId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+              academicYearId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
               capacity: '40', 
               roomNumber: '', 
               floor: '', 
@@ -454,7 +454,7 @@ const ClassManagement = () => {
             )}
             <div className="space-y-2">
               <Label>Academic Year <span className="text-destructive">*</span></Label>
-              <Select value={sectionForm.academicSessionId} onValueChange={v => setSectionForm({ ...sectionForm, academicSessionId: v })}>
+              <Select value={sectionForm.academicYearId} onValueChange={v => setSectionForm({ ...sectionForm, academicYearId: v })}>
                 <SelectTrigger><SelectValue placeholder="Select academic year" /></SelectTrigger>
                 <SelectContent>
                   {academicYears.map(year => (

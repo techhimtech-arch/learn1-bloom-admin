@@ -44,7 +44,7 @@ const AdminTimetableManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
-  const [selectedAcademicSession, setSelectedAcademicSession] = useState<string>('');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
   const [selectedTeacher, setSelectedTeacher] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
@@ -68,7 +68,7 @@ const AdminTimetableManager: React.FC = () => {
     queryFn: () => timetableDataService.getClasses().then(res => res.data),
   });
 
-  const { data: academicSessions } = useQuery({
+  const { data: academicYears } = useQuery({
     queryKey: ['academicSessions'],
     queryFn: () => timetableDataService.getAcademicSessions().then(res => res.data),
   });
@@ -87,15 +87,15 @@ const AdminTimetableManager: React.FC = () => {
     isLoading: timetableLoading,
     error: timetableError 
   } = useQuery({
-    queryKey: ['weeklyTimetable', selectedClass, selectedSection, selectedAcademicSession],
+    queryKey: ['weeklyTimetable', selectedClass, selectedSection, selectedAcademicYear],
     queryFn: () => {
-      if (!selectedClass || !selectedSection || !selectedAcademicSession) {
+      if (!selectedClass || !selectedSection || !selectedAcademicYear) {
         return Promise.resolve({ data: {} });
       }
-      return adminTimetableService.getWeeklyTimetable(selectedClass, selectedSection, selectedAcademicSession)
+      return adminTimetableService.getWeeklyTimetable(selectedClass, selectedSection, selectedAcademicYear)
         .then(res => res.data);
     },
-    enabled: !!selectedClass && !!selectedSection && !!selectedAcademicSession,
+    enabled: !!selectedClass && !!selectedSection && !!selectedAcademicYear,
   });
 
   // Fetch teacher timetable
@@ -103,15 +103,15 @@ const AdminTimetableManager: React.FC = () => {
     data: teacherTimetable, 
     isLoading: teacherTimetableLoading 
   } = useQuery({
-    queryKey: ['teacherTimetable', selectedTeacher, selectedAcademicSession],
+    queryKey: ['teacherTimetable', selectedTeacher, selectedAcademicYear],
     queryFn: () => {
-      if (!selectedTeacher || !selectedAcademicSession) {
+      if (!selectedTeacher || !selectedAcademicYear) {
         return Promise.resolve({ data: [] });
       }
-      return adminTimetableService.getTeacherTimetable(selectedTeacher, selectedAcademicSession)
+      return adminTimetableService.getTeacherTimetable(selectedTeacher, selectedAcademicYear)
         .then(res => res.data);
     },
-    enabled: !!selectedTeacher && !!selectedAcademicSession,
+    enabled: !!selectedTeacher && !!selectedAcademicYear,
   });
 
   // Mutations
@@ -174,16 +174,16 @@ const AdminTimetableManager: React.FC = () => {
   };
 
   const filteredClasses = classes?.filter(cls => 
-    !selectedAcademicSession || cls.academicSessionId === selectedAcademicSession
+    !selectedAcademicYear || (cls as any).academicYearId === selectedAcademicYear || cls.academicSessionId === selectedAcademicYear
   ) || [];
 
-  const activeSession = academicSessions?.find(session => session.isActive);
+  const activeYear = academicYears?.find(session => session.isActive);
 
   useEffect(() => {
-    if (activeSession && !selectedAcademicSession) {
-      setSelectedAcademicSession(activeSession._id);
+    if (activeYear && !selectedAcademicYear) {
+      setSelectedAcademicYear(activeYear._id);
     }
-  }, [activeSession, selectedAcademicSession]);
+  }, [activeYear, selectedAcademicYear]);
 
   return (
     <div className="space-y-6">
@@ -194,7 +194,7 @@ const AdminTimetableManager: React.FC = () => {
         </div>
         <Button 
           onClick={() => setShowCreateForm(true)}
-          disabled={!selectedClass || !selectedSection || !selectedAcademicSession}
+          disabled={!selectedClass || !selectedSection || !selectedAcademicYear}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Entry
@@ -212,13 +212,13 @@ const AdminTimetableManager: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Academic Session</label>
-              <Select value={selectedAcademicSession} onValueChange={setSelectedAcademicSession}>
+              <label className="text-sm font-medium mb-2 block">Academic Year</label>
+              <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select session" />
                 </SelectTrigger>
                 <SelectContent>
-                  {academicSessions?.map((session) => (
+                  {academicYears?.map((session) => (
                     <SelectItem key={session._id} value={session._id}>
                       <div className="flex items-center gap-2">
                         <span>{session.name}</span>
@@ -305,10 +305,10 @@ const AdminTimetableManager: React.FC = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {!selectedClass || !selectedSection || !selectedAcademicSession ? (
+          {!selectedClass || !selectedSection || !selectedAcademicYear ? (
             <Alert>
               <AlertDescription>
-                Please select an academic session, class, and section to view the timetable.
+                Please select an academic year, class, and section to view the timetable.
               </AlertDescription>
             </Alert>
           ) : (
@@ -320,10 +320,10 @@ const AdminTimetableManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="teachers" className="space-y-4">
-          {!selectedTeacher || !selectedAcademicSession ? (
+          {!selectedTeacher || !selectedAcademicYear ? (
             <Alert>
               <AlertDescription>
-                Please select a teacher and academic session to view their timetable.
+                Please select a teacher and academic year to view their timetable.
               </AlertDescription>
             </Alert>
           ) : (
@@ -441,13 +441,13 @@ const AdminTimetableManager: React.FC = () => {
                   startTime: editingEntry.startTime,
                   endTime: editingEntry.endTime,
                   room: editingEntry.room,
-                  academicSessionId: editingEntry.academicSessionId,
+                  academicYearId: (editingEntry as any).academicYearId || editingEntry.academicSessionId,
                   semester: editingEntry.semester,
                 } : undefined}
                 subjects={subjects}
                 teachers={teachers}
                 classes={filteredClasses}
-                academicSessions={academicSessions}
+                academicSessions={academicYears}
                 sections={sections}
                 selectedClassId={selectedClass}
                 onClassChange={setSelectedClass}

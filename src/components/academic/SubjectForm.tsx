@@ -28,7 +28,7 @@ const subjectSchema = z.object({
   code: z.string().min(1, 'Subject code is required'),
   description: z.string().optional(),
   classId: z.string().min(1, 'Class is required'),
-  academicSessionId: z.string().min(1, 'Academic session is required'),
+  academicYearId: z.string().min(1, 'Academic year is required'),
   department: z.string().min(1, 'Department is required'),
   credits: z.number().min(1).max(10),
   weeklyHours: z.number().min(1).max(40),
@@ -44,7 +44,7 @@ interface Subject {
   code: string;
   description?: string;
   classId: string | { _id: string; name: string };
-  academicSessionId: string | { _id: string; name: string };
+  academicYearId: string | { _id: string; name: string };
   department: string;
   credits: number;
   weeklyHours: number;
@@ -78,7 +78,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       code: '',
       description: '',
       classId: '',
-      academicSessionId: '',
+      academicYearId: '',
       department: '',
       credits: 1,
       weeklyHours: 1,
@@ -102,7 +102,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     },
   });
 
-  const academicYears = academicYearsData?.data || [];
+  const academicYears = (academicYearsData?.data || []).filter((y: any) => y.isActive);
   const classes = classesData?.data || [];
 
   const { selectedYearId } = useConfig();
@@ -111,17 +111,14 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     if (subject) {
       // Extract IDs from objects if necessary
       const classId = typeof subject.classId === 'object' ? subject.classId._id : subject.classId;
-      
-      // The API might return academicYearId, but form uses academicSessionId
-      const rawSessionId = (subject as any).academicYearId || subject.academicSessionId;
-      const academicSessionId = typeof rawSessionId === 'object' ? rawSessionId._id : rawSessionId;
+      const academicYearId = typeof subject.academicYearId === 'object' ? subject.academicYearId._id : subject.academicYearId;
 
       form.reset({
         name: subject.name,
         code: subject.code,
         description: subject.description || '',
         classId: classId || '',
-        academicSessionId: academicSessionId || '',
+        academicYearId: academicYearId || '',
         department: subject.department,
         credits: subject.credits,
         weeklyHours: subject.weeklyHours,
@@ -129,7 +126,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
       });
     } else if (selectedYearId) {
       // Pre-fill with global academic year for new subjects
-      form.setValue('academicSessionId', selectedYearId);
+      form.setValue('academicYearId', selectedYearId);
     }
   }, [subject, form, selectedYearId]);
 
@@ -240,7 +237,7 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="academicSessionId"
+                name="academicYearId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year *</FormLabel>

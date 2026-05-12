@@ -674,9 +674,9 @@ export const accountantApi = {
 
 // Academic Summary API
 export const academicApi = {
-  getSummary: (academicSessionId: string) => apiClient.get('/academic/summary', { params: { academicSessionId } }),
-  getClassStats: (classId: string, academicSessionId: string) => apiClient.get(`/academic/class-stats/${classId}`, { params: { academicSessionId } }),
-  getEnrollmentTrends: (academicSessionId: string, years?: number) => apiClient.get('/academic/enrollment-trends', { params: { academicSessionId, years } }),
+  getSummary: (academicYearId: string) => apiClient.get('/academic/summary', { params: { academicYearId } }),
+  getClassStats: (classId: string, academicYearId: string) => apiClient.get(`/academic/class-stats/${classId}`, { params: { academicYearId } }),
+  getEnrollmentTrends: (academicYearId: string, years?: number) => apiClient.get('/academic/enrollment-trends', { params: { academicYearId, years } }),
 };
 
 // Teacher Assignment API
