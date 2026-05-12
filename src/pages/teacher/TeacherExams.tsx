@@ -19,7 +19,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi, examApi } from '@/services/api';
 import { showApiError, showApiSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { useTeacherContext } from '@/contexts/TeacherContext';
@@ -71,7 +71,7 @@ const TeacherExams = () => {
   // Get exams for teacher's classes
   const { data: examsData, isLoading: examsLoading } = useQuery({
     queryKey: ['teacher-exams', selectedClass],
-    queryFn: () => teacherApi.getExams({ classId: selectedClass }),
+    queryFn: () => examApi.getAll({ classId: selectedClass }),
     enabled: !!selectedClass,
     staleTime: 3 * 60 * 1000,
   });
@@ -196,110 +196,9 @@ const TeacherExams = () => {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Exams</h1>
-          <p className="text-sm text-muted-foreground">Manage exams for your classes</p>
+          <p className="text-sm text-muted-foreground">View scheduled exams for your classes</p>
         </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button disabled={!selectedClass}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Exam
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New Exam</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Exam Name</Label>
-                  <Input
-                    value={examForm.name}
-                    onChange={(e) => setExamForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g., Mid-Term Mathematics"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Exam Date</Label>
-                  <Input
-                    type="date"
-                    value={examForm.examDate}
-                    onChange={(e) => setExamForm(prev => ({ ...prev, examDate: e.target.value }))}
-                    min={format(new Date(), 'yyyy-MM-dd')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Total Marks</Label>
-                  <Input
-                    type="number"
-                    value={examForm.totalMarks}
-                    onChange={(e) => setExamForm(prev => ({ ...prev, totalMarks: parseInt(e.target.value) || 0 }))}
-                    min="1"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Duration (minutes)</Label>
-                  <Input
-                    type="number"
-                    value={examForm.duration}
-                    onChange={(e) => setExamForm(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
-                    min="1"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={examForm.description}
-                  onChange={(e) => setExamForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the exam details..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Instructions</Label>
-                  <Button variant="outline" size="sm" onClick={addInstruction}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Instruction
-                  </Button>
-                </div>
-                {examForm.instructions.map((instruction, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={instruction}
-                      onChange={(e) => updateInstruction(index, e.target.value)}
-                      placeholder={`Instruction ${index + 1}`}
-                    />
-                    {examForm.instructions.length > 1 && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => removeInstruction(index)}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleCreateExam}
-                  disabled={createExamMutation.isPending}
-                >
-                  {createExamMutation.isPending ? 'Creating...' : 'Create Exam'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+      </div>
       </div>
 
       {/* Filters */}
@@ -402,9 +301,6 @@ const TeacherExams = () => {
                     
                     <div className="flex items-center gap-2 ml-4">
                       {getStatusBadge(exam)}
-                      <Button variant="ghost" size="sm" onClick={() => handleEditExam(exam)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>

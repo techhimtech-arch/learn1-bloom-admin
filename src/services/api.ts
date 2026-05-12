@@ -348,13 +348,13 @@ export const examApi = {
   getStudentsForExam: (examId: string) => apiClient.get(`/exams/${examId}/students`),
   getMarks: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/marks`, { params }),
   createMarks: (examId: string, data: Record<string, unknown>) => apiClient.post(`/exams/${examId}/marks`, data),
-  bulkCreateMarks: (data: Record<string, unknown>) => apiClient.post(`/marks/bulk`, data),
+  bulkCreateMarks: (data: Record<string, unknown>) => apiClient.post(`/exams/marks/bulk`, data),
   updateMarks: (examId: string, markId: string, data: Record<string, unknown>) => apiClient.put(`/exams/${examId}/marks/${markId}`, data),
   lockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/lock`),
   unlockMarks: (examId: string) => apiClient.post(`/exams/${examId}/marks/unlock`),
 
   // Results (Refactored API as per spec)
-  getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/results/${examId}`, { params }),
+  getResults: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/results/${examId}`, { params }),
   // Legacy getResults endpoint (kept for backward compatibility)
   getResultsLegacy: (examId: string, params?: Record<string, any>) => apiClient.get(`/exams/${examId}/results`, { params }),
 

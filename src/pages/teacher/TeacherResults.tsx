@@ -20,7 +20,7 @@ import {
   TrendingUp,
   Star
 } from 'lucide-react';
-import { teacherApi, marksApi } from '@/services/api';
+import { teacherApi, marksApi, examApi } from '@/services/api';
 import { showApiError, showApiSuccess as showSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -136,7 +136,7 @@ const TeacherResults = () => {
     queryKey: ['teacher-results', selectedExam],
     queryFn: async () => {
       if (!selectedExam || selectedExam === 'all') return { data: { data: [] } };
-      return teacherApi.getResults({ examId: selectedExam });
+      return examApi.getResults(selectedExam);
     },
     enabled: !!selectedExam,
     staleTime: 2 * 60 * 1000,
