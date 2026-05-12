@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { useConfig } from '@/contexts/ConfigContext';
 
 const feeStructureSchema = z.object({
   academicYearId: z.string().min(1, 'Academic Year is required'),
@@ -61,6 +62,7 @@ interface FeeStructureFormProps {
 
 export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormProps) {
   const [open, setOpen] = useState(true);
+  const { selectedYearId } = useConfig();
 
   const form = useForm<FeeStructureFormData>({
     resolver: zodResolver(feeStructureSchema),
@@ -130,8 +132,10 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
         lateFee: fee.lateFee || 0,
         concessionPercentage: fee.concessionPercentage || 0,
       });
+    } else if (selectedYearId) {
+      form.setValue('academicYearId', selectedYearId);
     }
-  }, [fee, form]);
+  }, [fee, form, selectedYearId]);
 
   const onSubmit = (data: FeeStructureFormData) => {
     if (fee) {

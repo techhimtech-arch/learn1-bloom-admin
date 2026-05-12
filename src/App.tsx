@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ConfigProvider } from "@/contexts/ConfigContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ROLE_LABELS, canTakeTour, getTourLocalStorageKey, getDefaultRoute } from '@/lib/role-config';
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -327,7 +328,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
-          <AppContent />
+          <ConfigProvider>
+            <AppContent />
+          </ConfigProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
