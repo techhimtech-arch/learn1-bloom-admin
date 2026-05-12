@@ -25,9 +25,26 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401) {
+      // If we're already on the login page, don't try to refresh or redirect
+      if (window.location.pathname === '/login') {
+        return Promise.reject(error);
+      }
+
+      const originalRequest = error.config;
+      
+      // If this was a retry and still failed with 401, or if it's the refresh token call itself
+      if (originalRequest._retry || originalRequest.url?.includes('/auth/refresh-token')) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem("refreshToken");
+      
       if (refreshToken) {
         try {
           const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken });
@@ -41,13 +58,16 @@ apiClient.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return apiClient(originalRequest);
           }
-        } catch {
+        } catch (refreshError) {
+          // Refresh token failed - logout
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           window.location.href = "/login";
+          return Promise.reject(refreshError);
         }
       } else {
+        // No refresh token - logout
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
