@@ -31,8 +31,8 @@ export default function AccountantReports() {
   const navigate = useNavigate();
   const [reportType, setReportType] = useState('fee-collection');
   const [filters, setFilters] = useState({
-    classId: '',
-    academicYearId: '',
+    classId: 'all',
+    academicYearId: 'all',
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
   });
@@ -60,8 +60,8 @@ export default function AccountantReports() {
     queryKey: ['fee-report', reportType, filters],
     queryFn: async () => {
       const params: Record<string, string> = {};
-      if (filters.classId) params.classId = filters.classId;
-      if (filters.academicYearId) params.academicYearId = filters.academicYearId;
+      if (filters.classId && filters.classId !== 'all') params.classId = filters.classId;
+      if (filters.academicYearId && filters.academicYearId !== 'all') params.academicYearId = filters.academicYearId;
       if (filters.startDate) params.startDate = filters.startDate;
       if (filters.endDate) params.endDate = filters.endDate;
       
@@ -176,7 +176,7 @@ export default function AccountantReports() {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Years</SelectItem>
+                  <SelectItem value="all">All Years</SelectItem>
                   {(yearData || []).map((year: any) => (
                     <SelectItem key={year.id || year._id} value={year.id || year._id}>
                       {year.name}
@@ -193,7 +193,7 @@ export default function AccountantReports() {
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="all">All Classes</SelectItem>
                   {(classesData || []).map((cls: any) => (
                     <SelectItem key={cls.id || cls._id} value={cls.id || cls._id}>
                       {cls.name}

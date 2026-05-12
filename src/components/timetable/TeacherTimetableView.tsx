@@ -23,7 +23,7 @@ import TimetableGrid from './TimetableGrid';
 
 const TeacherTimetableView: React.FC = () => {
   const [selectedAcademicSession, setSelectedAcademicSession] = useState<string>('');
-  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [selectedDay, setSelectedDay] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'weekly' | 'daily' | 'list'>('weekly');
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
 
@@ -42,7 +42,8 @@ const TeacherTimetableView: React.FC = () => {
       if (!selectedAcademicSession) {
         return Promise.resolve([]);
       }
-      return teacherTimetableService.getOwnTimetable(selectedAcademicSession, selectedDay)
+      const dayParam = selectedDay === 'all' ? '' : selectedDay;
+      return teacherTimetableService.getOwnTimetable(selectedAcademicSession, dayParam)
         .then(res => res.data);
     },
     enabled: !!selectedAcademicSession,
@@ -223,7 +224,7 @@ const TeacherTimetableView: React.FC = () => {
                   <SelectValue placeholder="All days" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Days</SelectItem>
+                  <SelectItem value="all">All Days</SelectItem>
                   {timetableUtils.getDaysOfWeek().map((day) => (
                     <SelectItem key={day} value={day}>
                       {timetableUtils.formatDay(day)}

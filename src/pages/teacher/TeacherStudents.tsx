@@ -75,8 +75,8 @@ const TeacherStudents = () => {
     getSectionName, 
     getSectionsForClass 
   } = useTeacherContext();
-  const [selectedClass, setSelectedClass] = useState<string>('');
-  const [selectedSection, setSelectedSection] = useState<string>('');
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -87,8 +87,8 @@ const TeacherStudents = () => {
     queryKey: ['teacher-students', selectedClass, selectedSection, currentPage, searchQuery],
     queryFn: () => {
       const params: any = { page: currentPage, limit: 50 };
-      if (selectedClass) params.classId = selectedClass;
-      if (selectedSection) params.sectionId = selectedSection;
+      if (selectedClass && selectedClass !== 'all') params.classId = selectedClass;
+      if (selectedSection && selectedSection !== 'all') params.sectionId = selectedSection;
       if (searchQuery) params.search = searchQuery;
       
       return teacherApi.getStudents(params);
@@ -115,7 +115,7 @@ const TeacherStudents = () => {
 
   // Get unique classes and sections using optimized functions
   const uniqueClasses = getUniqueClasses();
-  const sectionsForClass = getSectionsForClass(selectedClass);
+  const sectionsForClass = selectedClass && selectedClass !== 'all' ? getSectionsForClass(selectedClass) : [];
 
   // Filter students based on search query
   const filteredStudents = students.filter(student => 
@@ -215,16 +215,16 @@ const TeacherStudents = () => {
               <Label>Class</Label>
               <Select value={selectedClass} onValueChange={(value) => {
                 setSelectedClass(value);
-                setSelectedSection('');
+                setSelectedSection('all');
                 setCurrentPage(1);
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Classes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="all">All Classes</SelectItem>
                   {uniqueClasses.map((classInfo) => (
-                    <SelectItem key={classInfo?._id} value={classInfo?._id || ''}>
+                    <SelectItem key={classInfo?._id || 'missing'} value={classInfo?._id || 'missing'}>
                       {classInfo?.name}
                     </SelectItem>
                   ))}
@@ -239,13 +239,13 @@ const TeacherStudents = () => {
                   setSelectedSection(value);
                   setCurrentPage(1);
                 }}
-                disabled={!selectedClass}
+                disabled={!selectedClass || selectedClass === 'all'}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All Sections" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sections</SelectItem>
+                  <SelectItem value="all">All Sections</SelectItem>
                   {sectionsForClass.map((section) => (
                     <SelectItem key={section._id} value={section._id}>
                       {section.name}
@@ -318,7 +318,7 @@ const TeacherStudents = () => {
               <GraduationCap className="h-8 w-8 text-orange-600" />
               <div>
                 <div className="text-2xl font-bold">
-                  {selectedClass ? classes.find(c => c.classId?._id === selectedClass)?.classId?.name || '-' : 'All'}
+                  {selectedClass && selectedClass !== 'all' ? classes.find(c => c.classId?._id === selectedClass)?.classId?.name || '-' : 'All'}
                 </div>
                 <div className="text-sm text-muted-foreground">Current Class</div>
               </div>

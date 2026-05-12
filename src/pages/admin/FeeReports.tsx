@@ -246,7 +246,7 @@ export default function FeeReports() {
               <SelectContent>
                 <SelectItem value="all">All Years</SelectItem>
                 {academicYears.map((year: any) => (
-                  <SelectItem key={year.id} value={year.id}>
+                  <SelectItem key={year._id || year.id} value={year._id || year.id}>
                     {year.name}
                   </SelectItem>
                 ))}
@@ -262,7 +262,7 @@ export default function FeeReports() {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classes.map((cls: any) => (
-                  <SelectItem key={`class-${cls.id || cls._id}`} value={cls.id || cls._id}>
+                  <SelectItem key={`class-${cls._id || cls.id}`} value={cls._id || cls.id}>
                     {cls.name}
                   </SelectItem>
                 ))}
@@ -282,7 +282,7 @@ export default function FeeReports() {
                 {sections
                   .filter((section: any) => !filters.classId || section.classId === filters.classId)
                   .map((section: any) => (
-                    <SelectItem key={section.id} value={section.id}>
+                    <SelectItem key={section._id || section.id} value={section._id || section.id}>
                       {section.name}
                     </SelectItem>
                   ))}

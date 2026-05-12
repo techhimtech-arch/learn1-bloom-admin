@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Search, Eye, Filter, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Eye, Filter, ArrowLeft, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +31,8 @@ const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 export default function AccountantFeeStructure() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    classId: '',
-    academicYearId: '',
+    classId: 'all',
+    academicYearId: 'all',
     search: '',
   });
   const [showForm, setShowForm] = useState(false);
@@ -61,8 +61,8 @@ export default function AccountantFeeStructure() {
     queryKey: ['fee-structures', filters],
     queryFn: async () => {
       const params: Record<string, string> = {};
-      if (filters.classId) params.classId = filters.classId;
-      if (filters.academicYearId) params.academicYearId = filters.academicYearId;
+      if (filters.classId && filters.classId !== 'all') params.classId = filters.classId;
+      if (filters.academicYearId && filters.academicYearId !== 'all') params.academicYearId = filters.academicYearId;
       const res = await accountantApi.getFeeStructure(params);
       return res.data?.data || [];
     },
@@ -114,7 +114,7 @@ export default function AccountantFeeStructure() {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Years</SelectItem>
+                  <SelectItem value="all">All Years</SelectItem>
                   {(yearData || []).map((year: any) => (
                     <SelectItem key={year.id || year._id} value={year.id || year._id}>
                       {year.name}
@@ -131,7 +131,7 @@ export default function AccountantFeeStructure() {
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="all">All Classes</SelectItem>
                   {(classesData || []).map((cls: any) => (
                     <SelectItem key={cls.id || cls._id} value={cls.id || cls._id}>
                       {cls.name}
@@ -158,7 +158,7 @@ export default function AccountantFeeStructure() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => setFilters({ classId: '', academicYearId: '', search: '' })}
+                onClick={() => setFilters({ classId: 'all', academicYearId: 'all', search: '' })}
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Reset
