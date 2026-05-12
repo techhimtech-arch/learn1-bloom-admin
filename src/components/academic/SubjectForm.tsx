@@ -21,6 +21,7 @@ import { subjectApi, academicYearApi, classApi } from '@/services/api';
 import { toast } from 'sonner';
 import { handleApiError } from '@/utils/errorHandling';
 import { Loader2 } from 'lucide-react';
+import { useConfig } from '@/contexts/ConfigContext';
 
 const subjectSchema = z.object({
   name: z.string().min(1, 'Subject name is required'),
@@ -38,11 +39,12 @@ type SubjectFormData = z.infer<typeof subjectSchema>;
 
 interface Subject {
   id: string;
+  _id?: string;
   name: string;
   code: string;
   description?: string;
-  classId: string;
-  academicSessionId: string;
+  classId: string | { _id: string; name: string };
+  academicSessionId: string | { _id: string; name: string };
   department: string;
   credits: number;
   weeklyHours: number;
@@ -103,27 +105,30 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
   const academicYears = academicYearsData?.data || [];
   const classes = classesData?.data || [];
 
+  const { selectedYearId } = useConfig();
+
   useEffect(() => {
     if (subject) {
+      // Extract IDs from objects if necessary
+      const classId = typeof subject.classId === 'object' ? subject.classId._id : subject.classId;
+      const academicSessionId = typeof subject.academicSessionId === 'object' ? subject.academicSessionId._id : subject.academicSessionId;
+
       form.reset({
         name: subject.name,
         code: subject.code,
         description: subject.description || '',
-        classId: subject.classId,
-        academicSessionId: subject.academicSessionId,
+        classId: classId || '',
+        academicSessionId: academicSessionId || '',
         department: subject.department,
         credits: subject.credits,
         weeklyHours: subject.weeklyHours,
         isOptional: subject.isOptional,
       });
-    } else {
-      // Set default academic year
-      const currentYear = academicYears.find((year: any) => year.isActive);
-      if (currentYear) {
-        form.setValue('academicSessionId', currentYear._id || currentYear.id);
-      }
+    } else if (selectedYearId) {
+      // Pre-fill with global academic year for new subjects
+      form.setValue('academicSessionId', selectedYearId);
     }
-  }, [subject, form, academicYearsData]);
+  }, [subject, form, selectedYearId]);
 
   const createMutation = useMutation({
     mutationFn: subjectApi.create,

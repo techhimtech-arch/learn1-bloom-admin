@@ -44,6 +44,7 @@ import {
 
 interface Subject {
   id: string;
+  _id?: string;
   name: string;
   code: string;
   description?: string;
@@ -52,8 +53,8 @@ interface Subject {
   weeklyHours: number;
   isOptional: boolean;
   status: 'active' | 'inactive' | 'archived';
-  classId: string;
-  academicSessionId: string;
+  classId: string | { _id: string; name: string };
+  academicSessionId: string | { _id: string; name: string };
   teachers?: Array<{
     id: string;
     name: string;
@@ -305,7 +306,11 @@ export default function SubjectManagement() {
                           {subject.department}
                         </Badge>
                       </TableCell>
-                      <TableCell>{subject.class?.name || '-'}</TableCell>
+                      <TableCell>
+                        {typeof subject.classId === 'object' 
+                          ? subject.classId.name 
+                          : (subject.class?.name || '-')}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <CreditCard className="h-4 w-4 text-muted-foreground" />
