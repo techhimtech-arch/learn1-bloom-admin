@@ -89,9 +89,9 @@ const TeacherResults = () => {
     getSectionName, 
     getSectionsForClass 
   } = useTeacherContext();
-  const [selectedExam, setSelectedExam] = useState<string>('');
-  const [selectedClass, setSelectedClass] = useState<string>('');
-  const [selectedSection, setSelectedSection] = useState<string>('');
+  const [selectedExam, setSelectedExam] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [viewResultsDialogOpen, setViewResultsDialogOpen] = useState(false);
   const [resultRecords, setResultRecords] = useState<Array<{
@@ -106,7 +106,9 @@ const TeacherResults = () => {
   const { data: examsData, isLoading: examsLoading } = useQuery({
     queryKey: ['teacher-exams', selectedClass, selectedSection],
     queryFn: async () => {
-      if (!selectedClass || !selectedSection) return { data: { data: [] } };
+      if (!selectedClass || selectedClass === 'all' || !selectedSection || selectedSection === 'all') {
+        return { data: { data: [] } };
+      }
       return teacherApi.getExams({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,
@@ -117,7 +119,9 @@ const TeacherResults = () => {
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['teacher-students', selectedClass, selectedSection],
     queryFn: async () => {
-      if (!selectedClass || !selectedSection) return { data: { data: [] } };
+      if (!selectedClass || selectedClass === 'all' || !selectedSection || selectedSection === 'all') {
+        return { data: { data: [] } };
+      }
       return teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
     },
     enabled: !!selectedClass && !!selectedSection,
@@ -128,7 +132,7 @@ const TeacherResults = () => {
   const { data: resultsData, isLoading: resultsLoading } = useQuery({
     queryKey: ['teacher-results', selectedExam],
     queryFn: async () => {
-      if (!selectedExam) return { data: { data: [] } };
+      if (!selectedExam || selectedExam === 'all') return { data: { data: [] } };
       return teacherApi.getResults({ examId: selectedExam });
     },
     enabled: !!selectedExam,
@@ -315,19 +319,21 @@ const TeacherResults = () => {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <Label>Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <Select value={selectedClass} onValueChange={(value) => {
+                setSelectedClass(value);
+                setSelectedSection('all');
+                setSelectedExam('all');
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from(new Set(classes.map(c => c.classId?._id))).map(classId => {
-                    const classInfo = classes.find(c => c.classId?._id === classId);
-                    return (
-                      <SelectItem key={classId} value={classId || ''}>
-                        {classInfo?.classId?.name || classId}
-                      </SelectItem>
-                    );
-                  })}
+                  <SelectItem value="all">Select Class</SelectItem>
+                  {uniqueClasses.map((cls) => (
+                    <SelectItem key={cls._id} value={cls._id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -335,20 +341,22 @@ const TeacherResults = () => {
               <Label>Section</Label>
               <Select 
                 value={selectedSection} 
-                onValueChange={setSelectedSection}
-                disabled={!selectedClass}
+                onValueChange={(value) => {
+                  setSelectedSection(value);
+                  setSelectedExam('all');
+                }}
+                disabled={!selectedClass || selectedClass === 'all'}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select section" />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes
-                    .filter(cls => cls.classId?._id === selectedClass)
-                    .map((cls) => (
-                      <SelectItem key={cls._id} value={String(cls.sectionId?._id || cls.sectionId)}>
-                        {typeof cls.sectionId === 'object' ? cls.sectionId?.name : cls.sectionId}
-                      </SelectItem>
-                    ))}
+                  <SelectItem value="all">Select Section</SelectItem>
+                  {sectionsForClass.map((section) => (
+                    <SelectItem key={section._id} value={section._id}>
+                      {section.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -357,12 +365,13 @@ const TeacherResults = () => {
               <Select 
                 value={selectedExam} 
                 onValueChange={setSelectedExam}
-                disabled={!selectedClass || !selectedSection}
+                disabled={!selectedClass || selectedClass === 'all' || !selectedSection || selectedSection === 'all'}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Select Exam</SelectItem>
                   {exams.map((exam) => (
                     <SelectItem key={exam._id} value={exam._id}>
                       {exam.name} - {exam.subjectId?.name}
@@ -378,7 +387,7 @@ const TeacherResults = () => {
                   <DialogTrigger asChild>
                     <Button 
                       onClick={initializeResultRecords}
-                      disabled={!selectedExam || !selectedExamDetails}
+                      disabled={!selectedExam || selectedExam === 'all' || !selectedExamDetails}
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Enter Results
@@ -461,7 +470,7 @@ const TeacherResults = () => {
                 </Dialog>
                 <Dialog open={viewResultsDialogOpen} onOpenChange={setViewResultsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" disabled={!selectedExam}>
+                    <Button variant="outline" disabled={!selectedExam || selectedExam === 'all'}>
                       <Eye className="mr-2 h-4 w-4" />
                       View Results
                     </Button>

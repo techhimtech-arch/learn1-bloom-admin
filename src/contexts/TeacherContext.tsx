@@ -35,11 +35,24 @@ export const TeacherProvider = ({ children }: TeacherProviderProps) => {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const classes = Array.isArray((classesData as any)?.data?.data?.subjectAssignments) 
-    ? (classesData as any).data.data.subjectAssignments as ClassAssignment[] : 
-    (classesData as any)?.data?.data?.classTeacherAssignment
-    ? [(classesData as any).data.data.classTeacherAssignment] as ClassAssignment[]
-    : [];
+  const subjectAssignments = (classesData as any)?.data?.data?.subjectAssignments || [];
+  const classTeacherAssignment = (classesData as any)?.data?.data?.classTeacherAssignment;
+
+  const classes: ClassAssignment[] = Array.isArray(subjectAssignments) ? [...subjectAssignments] : [];
+
+  if (classTeacherAssignment && classTeacherAssignment.classId) {
+    const classId = classTeacherAssignment.classId?._id || classTeacherAssignment.classId;
+    const sectionId = classTeacherAssignment.sectionId?._id || classTeacherAssignment.sectionId;
+    
+    const alreadyIncluded = classes.some(c => 
+      (c.classId?._id || c.classId) === classId && 
+      (c.sectionId?._id || c.sectionId) === sectionId
+    );
+
+    if (!alreadyIncluded) {
+      classes.push(classTeacherAssignment);
+    }
+  }
     
   console.log('=== CLASSES EXTRACTION DEBUG ===');
   console.log('Is subjectAssignments array?', Array.isArray((classesData as any)?.data?.data?.subjectAssignments));
