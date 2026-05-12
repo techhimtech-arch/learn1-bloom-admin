@@ -13,6 +13,7 @@ const AccountantDashboard = lazy(() => import("@/pages/accountant/AccountantDash
 const AccountantPaymentForm = lazy(() => import("@/pages/accountant/AccountantPaymentForm"));
 const AccountantFeeStructure = lazy(() => import("@/pages/accountant/AccountantFeeStructure"));
 const AccountantReports = lazy(() => import("@/pages/accountant/AccountantReports"));
+const AccountantStudentList = lazy(() => import("@/pages/accountant/AccountantStudentList"));
 const StudentFeeManagement = lazy(() => import("@/pages/StudentFeeManagement"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -28,6 +29,7 @@ export default function AccountantRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/fees/payments" element={<AccountantPayments />} />
         <Route path="/fees/dues" element={<AccountantDues />} />
         <Route path="/accountant/dashboard" element={<AccountantDashboard />} />
+        <Route path="/accountant/students" element={<AccountantStudentList />} />
         <Route path="/accountant/record-payment" element={<AccountantPaymentForm />} />
         <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
         <Route path="/accountant/fee-structure" element={<AccountantFeeStructure />} />

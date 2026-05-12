@@ -321,6 +321,8 @@ export const feeApi = {
   getClassSummary: (params: { classId: string; academicYearId: string }) => apiClient.get("/fees/class-summary", { params }),
   getOverdue: (params?: Record<string, any>) => apiClient.get("/fees/overdue", { params }),
   getDues: (params?: Record<string, any>) => apiClient.get("/fees/dues", { params }),
+  getClassStudentsFeeStatus: (params: { classId: string; academicYearId: string; filter?: 'all' | 'pending' }) => 
+    apiClient.get("/fees/class-students", { params }),
 
   // Legacy/Compatibility
   getByStudent: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),

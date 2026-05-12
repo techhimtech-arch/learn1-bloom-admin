@@ -41,7 +41,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/attendance', '/academic-years', '/teacher-assignments', '/timetable', '/timetable-builder',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
     '/fees/structure', '/fees/structure/bulk', '/fees/heads', '/fees/reports', '/fees/payments', '/fees/dues',
-    '/fees/student/:studentId', '/accountant/record-payment',
+    '/fees/student/:studentId', '/accountant/record-payment', '/accountant/students',
     '/certificates', '/admin/quizzes', '/settings/school',
   ],
   teacher: [
@@ -53,7 +53,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/profile', '/sessions',
     '/fees/structure', '/fees/structure/bulk', '/fees/heads', '/fees/reports', '/fees/payments', '/fees/dues',
     '/fees/student/:studentId',
-    '/accountant/dashboard', '/accountant/record-payment', '/accountant/fee-structure', '/accountant/reports',
+    '/accountant/dashboard', '/accountant/record-payment', '/accountant/students', '/accountant/fee-structure', '/accountant/reports',
   ],
   parent: [
     '/parent/dashboard', '/parent/student/',
@@ -86,6 +86,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'Fee Reports', url: '/fees/reports', icon: TrendingUp },
   { title: 'Payments & Receipts', url: '/fees/payments', icon: Receipt },
   { title: 'Pending Dues', url: '/fees/dues', icon: AlertCircle },
+  { title: 'Student Fee List', url: '/accountant/students', icon: Users },
   { title: 'Collect Fee', url: '/accountant/record-payment', icon: DollarSign },
   { title: 'Accountant Dashboard', url: '/accountant/dashboard', icon: LayoutDashboard },
   { title: 'Record Payment', url: '/accountant/record-payment', icon: DollarSign },
