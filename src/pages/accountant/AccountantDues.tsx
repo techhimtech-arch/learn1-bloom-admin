@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Search } from 'lucide-react';
+import { AlertTriangle, Search, Eye, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import { accountantApi } from '@/services/api';
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 
 export default function AccountantDues() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
@@ -89,6 +91,7 @@ export default function AccountantDues() {
                     <TableHead>Class</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead className="text-right">Amount Due</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -100,6 +103,27 @@ export default function AccountantDues() {
                       <TableCell className="text-sm">{d.dueDate || '-'}</TableCell>
                       <TableCell className="text-right font-semibold text-destructive">
                         {formatINR(d.totalDue ?? d.dueAmount ?? 0)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => navigate(`/fees/student/${d.studentId || d.id}`)}
+                            title="View Fee Profile"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-primary border-primary hover:bg-primary/10"
+                            onClick={() => navigate(`/fees/student/${d.studentId || d.id}`)}
+                          >
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            Pay
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
   Users, GraduationCap, School, ClipboardCheck, IndianRupee, FileText,
-  UserPlus, CalendarCheck, Receipt, PenSquare, Megaphone, BarChart3,
+  UserPlus, CalendarCheck, Receipt, PenSquare, Megaphone, BarChart3, Search, ArrowRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatWidget from '@/components/shared/StatWidget';
-import { dashboardApi, academicApi, academicYearApi } from '@/services/api';
+import { dashboardApi, academicApi, academicYearApi, studentApi } from '@/services/api';
+import { Input } from '@/components/ui/input';
 import { showApiError } from '@/lib/api-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
@@ -101,12 +102,30 @@ const AdminDashboard = () => {
     pendingFees: '₹0',
     upcomingExams: 0,
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [attendanceAnalytics, setAttendanceAnalytics] = useState<AttendanceAnalytics | null>(null);
   const [feeAnalytics, setFeeAnalytics] = useState<FeeAnalytics | null>(null);
   const [academicSummary, setAcademicSummary] = useState<AcademicSummary | null>(null);
   const [currentAcademicSession, setCurrentAcademicSession] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const res = await studentApi.getAll({ search: searchTerm, limit: 10 });
+      setSearchResults(res.data?.data || []);
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -177,6 +196,65 @@ const AdminDashboard = () => {
         <StatWidget title="Pending Fees" value={stats.pendingFees} icon={IndianRupee} iconColor="bg-warning/10 text-warning" />
         <StatWidget title="Upcoming Exams" value={stats.upcomingExams} icon={FileText} iconColor="bg-destructive/10 text-destructive" />
       </div>
+
+      {/* Quick Student Search for Fees */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Quick Fee Collection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search student by name or admission number to record payment..." 
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button type="submit" disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search Student'}
+            </Button>
+          </form>
+
+          {searchResults.length > 0 && (
+            <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+              <p className="text-xs font-semibold text-muted-foreground px-1">SEARCH RESULTS</p>
+              {searchResults.map((student) => (
+                <div 
+                  key={student._id} 
+                  className="flex items-center justify-between p-3 bg-card border rounded-lg hover:border-primary transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                      {student.firstName?.[0]}{student.lastName?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{student.firstName} {student.lastName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {student.admissionNumber} • {student.class?.name} {student.section?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={() => navigate(`/fees/student/${student._id}`)}
+                  >
+                    Record Payment
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

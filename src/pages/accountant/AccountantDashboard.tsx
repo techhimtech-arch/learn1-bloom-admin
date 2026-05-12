@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   DollarSign, 
@@ -7,16 +8,23 @@ import {
   Users,
   Calendar,
   BarChart3,
+  Search,
+  ArrowRight,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { accountantApi } from '@/services/api';
+import { accountantApi, studentApi } from '@/services/api';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 
 export default function AccountantDashboard() {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['accountant-dashboard'],
     queryFn: async () => {
@@ -44,6 +52,21 @@ export default function AccountantDashboard() {
   const dashboard = dashboardData as any;
   const dues = duessData as any[];
   const payments = paymentsData as any[];
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const res = await studentApi.getAll({ search: searchTerm, limit: 10 });
+      setSearchResults(res.data?.data || []);
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Calculate summary stats
   const totalPendingDues = dues?.reduce((sum, d) => sum + (d.totalDue || 0), 0) || 0;
@@ -80,6 +103,65 @@ export default function AccountantDashboard() {
         <h1 className="text-3xl font-bold">Fee Management Dashboard</h1>
         <p className="text-muted-foreground">Overview of fee collections and outstanding dues</p>
       </div>
+
+      {/* Quick Student Search */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Quick Fee Collection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search student by name, roll number, or admission number..." 
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button type="submit" disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search Student'}
+            </Button>
+          </form>
+
+          {searchResults.length > 0 && (
+            <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+              <p className="text-xs font-semibold text-muted-foreground px-1">SEARCH RESULTS</p>
+              {searchResults.map((student) => (
+                <div 
+                  key={student._id} 
+                  className="flex items-center justify-between p-3 bg-card border rounded-lg hover:border-primary transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                      {student.firstName?.[0]}{student.lastName?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{student.firstName} {student.lastName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {student.admissionNumber} • {student.class?.name} {student.section?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={() => navigate(`/fees/student/${student._id}`)}
+                  >
+                    Collect Fee
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
