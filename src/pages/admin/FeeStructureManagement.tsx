@@ -8,8 +8,12 @@ import {
   Calendar, 
   CheckCircle, 
   AlertTriangle,
-  Filter
+  Filter,
+  Settings,
+  Layers,
+  CheckCircle2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +37,16 @@ import {
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useConfig } from '@/contexts/ConfigContext';
 
 interface FeeStructure {
   id: string;
@@ -58,6 +72,7 @@ interface FeeFilters {
 }
 
 export default function FeeStructureManagement() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FeeFilters>({
     search: '',
     feeType: '',
@@ -66,6 +81,10 @@ export default function FeeStructureManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingFee, setEditingFee] = useState<FeeStructure | null>(null);
   const [deletingFee, setDeletingFee] = useState<FeeStructure | null>(null);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [generateClassId, setGenerateClassId] = useState('');
+  const { selectedYearId } = useConfig();
+  const [generating, setGenerating] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -116,6 +135,27 @@ export default function FeeStructureManagement() {
     }
   };
 
+  const handleGenerateFees = async () => {
+    if (!generateClassId) {
+      toast.error('Please select a class');
+      return;
+    }
+    
+    setGenerating(true);
+    try {
+      await feeApi.generateStudentFees({
+        academicYearId: selectedYearId,
+        classId: generateClassId
+      });
+      toast.success('Fees generated successfully for the selected class');
+      setShowGenerateDialog(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to generate fees');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const feeStructures = feeStructureData?.data || [];
   const classes = classesData?.data || [];
 
@@ -138,12 +178,28 @@ export default function FeeStructureManagement() {
             Manage fee types, classes, and academic years
           </p>
         </div>
-        <PermissionGuard permission="manage_fee_structure">
-          <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            New Fee Structure
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate('/fees/heads')} className="gap-2">
+            <Settings className="h-4 w-4" />
+            Fee Heads
           </Button>
-        </PermissionGuard>
+          <PermissionGuard permission="manage_fee_structure">
+            <div className="flex gap-2">
+              <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                New Fee Structure
+              </Button>
+              <Button variant="secondary" onClick={() => navigate('/fees/structure/bulk')} className="flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                Bulk Create
+              </Button>
+              <Button variant="outline" onClick={() => setShowGenerateDialog(true)} className="flex items-center gap-2 text-primary border-primary hover:bg-primary/5">
+                <CheckCircle2 className="h-4 w-4" />
+                Generate Fees
+              </Button>
+            </div>
+          </PermissionGuard>
+        </div>
       </div>
 
       {/* Filters */}
@@ -320,6 +376,42 @@ export default function FeeStructureManagement() {
             setEditingFee(null);
           }}
         />
+      )}
+      {showGenerateDialog && (
+        <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Generate Student Fees</DialogTitle>
+              <DialogDescription>
+                This will create fee records for all students in the selected class based on the current fee structure.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Select Class</Label>
+                <Select value={generateClassId} onValueChange={setGenerateClassId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map((cls: any) => (
+                      <SelectItem key={cls._id || cls.id} value={cls._id || cls.id}>{cls.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Note: Fees will be generated for the currently selected academic year.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowGenerateDialog(false)}>Cancel</Button>
+              <Button onClick={handleGenerateFees} disabled={generating}>
+                {generating ? 'Generating...' : 'Generate Now'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

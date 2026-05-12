@@ -40,7 +40,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/', '/users', '/parent-linking', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments', '/timetable', '/timetable-builder',
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
-    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
+    '/fees/structure', '/fees/structure/bulk', '/fees/heads', '/fees/reports', '/fees/payments', '/fees/dues',
     '/certificates', '/admin/quizzes', '/settings/school',
   ],
   teacher: [
@@ -50,7 +50,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
   ],
   accountant: [
     '/', '/profile', '/sessions',
-    '/fees/structure', '/fees/reports', '/fees/payments', '/fees/dues',
+    '/fees/structure', '/fees/structure/bulk', '/fees/heads', '/fees/reports', '/fees/payments', '/fees/dues',
     '/accountant/dashboard', '/accountant/record-payment', '/accountant/fee-structure', '/accountant/reports',
   ],
   parent: [

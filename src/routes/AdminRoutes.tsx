@@ -26,6 +26,8 @@ const AssignmentManagement = lazy(() => import("@/pages/admin/AssignmentManageme
 const StudentAssignmentSubmission = lazy(() => import("@/pages/StudentAssignmentSubmission"));
 const TeacherAssignmentGrading = lazy(() => import("@/pages/teacher/TeacherAssignmentGrading"));
 const FeeStructureManagement = lazy(() => import("@/pages/admin/FeeStructureManagement"));
+const FeeHeadsManagement = lazy(() => import("@/pages/admin/FeeHeadsManagement"));
+const BulkFeeStructure = lazy(() => import("@/pages/admin/BulkFeeStructure"));
 const StudentFeeManagement = lazy(() => import("@/pages/StudentFeeManagement"));
 const FeeReports = lazy(() => import("@/pages/admin/FeeReports"));
 const AccountantPayments = lazy(() => import("@/pages/accountant/AccountantPayments"));
@@ -65,6 +67,8 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
         <Route path="/admin/quizzes" element={<AdminQuizzes />} />
         <Route path="/fees/structure" element={<FeeStructureManagement />} />
+        <Route path="/fees/structure/bulk" element={<BulkFeeStructure />} />
+        <Route path="/fees/heads" element={<FeeHeadsManagement />} />
         <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
         <Route path="/fees/reports" element={<FeeReports />} />
         <Route path="/fees/payments" element={<AccountantPayments />} />

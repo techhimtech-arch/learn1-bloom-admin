@@ -257,27 +257,52 @@ export const subjectApi = {
     apiClient.delete(`/subjects/${subjectId}/remove-teacher/${teacherId}`),
 };
 
+// Fee Head API
+export const feeHeadApi = {
+  getAll: () => apiClient.get("/fees/heads"),
+  getById: (id: string) => apiClient.get(`/fees/heads/${id}`),
+  create: (data: { name: string; feeType: string; description?: string }) => apiClient.post("/fees/heads", data),
+  update: (id: string, data: Partial<{ name: string; feeType: string; description?: string }>) => apiClient.patch(`/fees/heads/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/fees/heads/${id}`),
+};
+
 // Fee API
 export const feeApi = {
   // Fee Structure
-  getStructure: () => apiClient.get("/fees/structure"),
+  getStructure: (params?: { academicYearId?: string; classId?: string }) => apiClient.get("/fees/structure", { params }),
   createStructure: (data: Record<string, unknown>) => apiClient.post("/fees/structure", data),
+  bulkCreateStructure: (data: {
+    academicYearId: string;
+    classIds: string[];
+    fees: Array<{ feeName: string; feeType: string; amount: number; dueDate: string }>;
+  }) => apiClient.post("/fees/structure/bulk", data),
   updateStructure: (data: Record<string, unknown>) => apiClient.put("/fees/structure", data),
   deleteStructure: (id: string) => apiClient.delete(`/fees/structure/${id}`),
 
   // Student Fees
+  getStudentFees: (studentId: string, academicYearId?: string) => apiClient.get(`/fees/student/${studentId}`, { params: { academicYearId } }),
+  getStudentPaymentDetails: (studentId: string, academicYearId?: string) => apiClient.get(`/fees/student/${studentId}/payment-details`, { params: { academicYearId } }),
   generateStudentFees: (data: Record<string, unknown>) => apiClient.post("/fees/generate-student-fees", data),
-  getStudentFees: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
 
   // Payments
-  pay: (data: Record<string, unknown>) => apiClient.post("/fees/pay", data),
+  pay: (data: {
+    feeId: string;
+    amount: number;
+    paymentMethod: string;
+    transactionId?: string;
+    remarks?: string;
+  }) => apiClient.post("/fees/pay", data),
   getPayments: (params?: Record<string, any>) => apiClient.get("/fees/payments", { params }),
-  getReceipt: (paymentId: string) => apiClient.get(`/fees/receipt/${paymentId}`),
+  getReceipt: (feeId: string, receiptNumber: string) => apiClient.get(`/fees/${feeId}/receipt/${receiptNumber}`),
+  getReceiptById: (paymentId: string) => apiClient.get(`/fees/receipt/${paymentId}`), // Keep legacy
 
-  // Dues
+  // Dashboard & Reports
+  getDashboard: (params?: Record<string, any>) => apiClient.get("/fees/dashboard", { params }),
+  getClassSummary: (params: { classId: string; academicYearId: string }) => apiClient.get("/fees/class-summary", { params }),
+  getOverdue: (params?: Record<string, any>) => apiClient.get("/fees/overdue", { params }),
   getDues: (params?: Record<string, any>) => apiClient.get("/fees/dues", { params }),
 
-  // Legacy endpoints (keep for backward compatibility)
+  // Legacy/Compatibility
   getByStudent: (studentId: string) => apiClient.get(`/fees/student/${studentId}`),
   recordPayment: (data: Record<string, unknown>) => apiClient.post("/fees/payment", data),
   getReport: (params?: Record<string, string>) => apiClient.get("/fees/report", { params }),

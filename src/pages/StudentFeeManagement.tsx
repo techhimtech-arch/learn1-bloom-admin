@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   DollarSign, 
@@ -16,7 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FeePaymentForm } from '@/components/fee/FeePaymentForm';
-import { studentPortalApi } from '@/services/api';
+import { feeApi, studentPortalApi } from '@/services/api';
+import { useConfig } from '@/contexts/ConfigContext';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -51,16 +53,23 @@ interface Student {
 }
 
 export default function StudentFeeManagement() {
+  const { studentId } = useParams();
+  const { selectedYearId } = useConfig();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedFee, setSelectedFee] = useState<StudentFee | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<any>(null);
   const queryClient = useQueryClient();
-
+  
   const { data: feeData, isLoading } = useQuery({
-    queryKey: ['student-fees'],
+    queryKey: ['student-fees', studentId, selectedYearId],
     queryFn: async () => {
-      const response = await studentPortalApi.getFees();
-      return response.data;
+      if (studentId) {
+        const response = await feeApi.getStudentFees(studentId, selectedYearId);
+        return response.data;
+      } else {
+        const response = await studentPortalApi.getFees();
+        return response.data;
+      }
     },
   });
 

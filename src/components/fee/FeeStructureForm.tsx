@@ -108,7 +108,7 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: FeeStructureFormData) => feeApi.updateStructure({ ...data, id: fee!.id }),
+    mutationFn: (data: FeeStructureFormData) => feeApi.updateStructure({ ...data, id: fee!.id || (fee as any)._id }),
     onSuccess: () => {
       toast.success('Fee structure updated successfully');
       onSuccess();

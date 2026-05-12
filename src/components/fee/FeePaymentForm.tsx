@@ -20,11 +20,11 @@ import { Loader2, CreditCard, Banknote, Smartphone } from 'lucide-react';
 
 const paymentSchema = z.object({
   amount: z.number().min(1, 'Amount must be greater than 0'),
-  paymentMode: z.enum(['cash', 'card', 'upi', 'bank-transfer']),
+  paymentMethod: z.enum(['cash', 'card', 'upi', 'bank_transfer', 'online']),
   transactionId: z.string().optional(),
   remarks: z.string().optional(),
 }).refine((data) => {
-  if (data.paymentMode !== 'cash' && !data.transactionId) {
+  if (data.paymentMethod !== 'cash' && !data.transactionId) {
     return false;
   }
   return true;
@@ -73,7 +73,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       amount: fee.dueAmount,
-      paymentMode: 'cash',
+      paymentMethod: 'cash',
       transactionId: '',
       remarks: '',
     },
@@ -82,7 +82,6 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
   const payMutation = useMutation({
     mutationFn: (data: PaymentFormData) => 
       feeApi.pay({
-        studentId: student.id,
         feeId: fee.id,
         ...data
       }),
@@ -123,7 +122,8 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
     { value: 'cash', label: 'Cash', icon: Banknote },
     { value: 'card', label: 'Card', icon: CreditCard },
     { value: 'upi', label: 'UPI', icon: Smartphone },
-    { value: 'bank-transfer', label: 'Bank Transfer', icon: CreditCard },
+    { value: 'bank_transfer', label: 'Bank Transfer', icon: CreditCard },
+    { value: 'online', label: 'Online', icon: CreditCard },
   ];
 
   return (
@@ -132,7 +132,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
         <DialogHeader>
           <DialogTitle>Process Payment</DialogTitle>
           <DialogDescription>
-            Record payment for {fee.feeHead} - {student.firstName} {student.lastName}
+            Record payment for {fee.feeHead} - {student.name}
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +167,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>
-                  <div className="font-medium">{student.firstName} {student.lastName}</div>
+                  <div className="font-medium">{student.name}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Roll Number:</span>
@@ -212,10 +212,10 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
 
               <FormField
                 control={form.control}
-                name="paymentMode"
+                name="paymentMethod"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Mode *</FormLabel>
+                    <FormLabel>Payment Method *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -238,7 +238,7 @@ export function FeePaymentForm({ fee, student, onClose, onSuccess }: FeePaymentF
                 )}
               />
 
-              {form.watch('paymentMode') !== 'cash' && (
+              {form.watch('paymentMethod') !== 'cash' && (
                 <FormField
                   control={form.control}
                   name="transactionId"
