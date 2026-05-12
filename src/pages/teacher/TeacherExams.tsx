@@ -199,7 +199,6 @@ const TeacherExams = () => {
           <p className="text-sm text-muted-foreground">View scheduled exams for your classes</p>
         </div>
       </div>
-      </div>
 
       {/* Filters */}
       <Card>
