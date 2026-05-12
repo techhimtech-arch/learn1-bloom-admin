@@ -111,7 +111,10 @@ export function SubjectForm({ subject, onClose, onSuccess }: SubjectFormProps) {
     if (subject) {
       // Extract IDs from objects if necessary
       const classId = typeof subject.classId === 'object' ? subject.classId._id : subject.classId;
-      const academicSessionId = typeof subject.academicSessionId === 'object' ? subject.academicSessionId._id : subject.academicSessionId;
+      
+      // The API might return academicYearId, but form uses academicSessionId
+      const rawSessionId = (subject as any).academicYearId || subject.academicSessionId;
+      const academicSessionId = typeof rawSessionId === 'object' ? rawSessionId._id : rawSessionId;
 
       form.reset({
         name: subject.name,

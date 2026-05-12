@@ -274,8 +274,9 @@ export default function SubjectManagement() {
                   <TableRow>
                     <TableHead>Subject</TableHead>
                     <TableHead>Code</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Class</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead>Department</TableHead>
                     <TableHead>Credits</TableHead>
                     <TableHead>Hours/Week</TableHead>
                     <TableHead>Teachers</TableHead>
@@ -302,14 +303,21 @@ export default function SubjectManagement() {
                         </code>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getDepartmentColor(subject.department)}>
-                          {subject.department}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         {typeof subject.classId === 'object' 
                           ? subject.classId.name 
                           : (subject.class?.name || '-')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                          {typeof subject.academicYearId === 'object' 
+                            ? subject.academicYearId.name 
+                            : (subject.academicYear?.name || '-')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getDepartmentColor(subject.department)}>
+                          {subject.department}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -325,21 +333,23 @@ export default function SubjectManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {subject.teachers?.slice(0, 2).map((teacher, index) => (
-                            <div key={teacher.id || `teacher-${index}`} className="text-sm">
-                              <span className="font-medium">{teacher.name}</span>
-                              <Badge variant="outline" className="ml-2 text-xs">
-                                {teacher.role}
-                              </Badge>
+                          {((subject as any).teacherIds || subject.teachers)?.slice(0, 2).map((teacher: any, index: number) => (
+                            <div key={teacher._id || teacher.id || `teacher-${index}`} className="text-sm">
+                              <span className="font-medium text-primary">{teacher.name}</span>
+                              {teacher.role && (
+                                <Badge variant="outline" className="ml-2 text-[10px] h-4">
+                                  {teacher.role}
+                                </Badge>
+                              )}
                             </div>
                           ))}
-                          {subject.teachers && subject.teachers.length > 2 && (
-                            <div className="text-sm text-muted-foreground">
-                              +{subject.teachers.length - 2} more
+                          {((subject as any).teacherIds || subject.teachers)?.length > 2 && (
+                            <div className="text-xs text-muted-foreground italic">
+                              +{((subject as any).teacherIds || subject.teachers).length - 2} more...
                             </div>
                           )}
-                          {(!subject.teachers || subject.teachers.length === 0) && (
-                            <div className="text-sm text-muted-foreground">No teachers assigned</div>
+                          {(!((subject as any).teacherIds || subject.teachers) || ((subject as any).teacherIds || subject.teachers).length === 0) && (
+                            <div className="text-xs text-muted-foreground">Not assigned</div>
                           )}
                         </div>
                       </TableCell>
