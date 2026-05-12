@@ -349,6 +349,40 @@ export const examApi = {
   enterResults: (data: Record<string, unknown>) => apiClient.post("/results/enter", data),
 };
 
+// ── Marks API (Phase 2) ──────────────────────────────────
+export const marksApi = {
+  // Get students for marks entry
+  getStudentsForEntry: (params: { examId: string; classId: string; sectionId: string }) => 
+    apiClient.get("/marks/students-for-entry", { params }),
+
+  // Save marks (draft)
+  save: (data: {
+    examId: string;
+    classId: string;
+    sectionId: string;
+    students: Array<{
+      enrollmentId: string;
+      subjects: Array<{
+        subjectId: string;
+        marksObtained: number;
+        maxMarks: number;
+      }>;
+    }>;
+  }) => apiClient.post("/marks/save", data),
+
+  // Submit marks (final)
+  submit: (data: { examId: string; classId: string; sectionId: string }) => 
+    apiClient.post("/marks/submit", data),
+
+  // Verify marks (Admin/Coordinator)
+  verify: (data: { examId: string; classId: string; sectionId: string }) => 
+    apiClient.post("/marks/verify", data),
+
+  // Publish marks (Admin)
+  publish: (data: { examId: string; classId: string; sectionId: string }) => 
+    apiClient.post("/marks/publish", data),
+};
+
 // ── Announcement API ──────────────────────────────────────
 export const announcementApi = {
   getAll: (params?: Record<string, any>) => apiClient.get("/announcements", { params }),

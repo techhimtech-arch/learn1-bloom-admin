@@ -20,7 +20,7 @@ import {
   TrendingUp,
   Star
 } from 'lucide-react';
-import { teacherApi } from '@/services/api';
+import { teacherApi, marksApi } from '@/services/api';
 import { showApiError, showApiSuccess as showSuccess } from '@/lib/api-toast';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -115,17 +115,20 @@ const TeacherResults = () => {
     staleTime: 3 * 60 * 1000,
   });
 
-  // Get students for selected class
-  const { data: studentsData, isLoading: studentsLoading } = useQuery({
-    queryKey: ['teacher-students', selectedClass, selectedSection],
+  // Get students for marks entry
+  const { data: studentsForEntryData } = useQuery({
+    queryKey: ['marks-students-for-entry', selectedExam, selectedClass, selectedSection],
     queryFn: async () => {
-      if (!selectedClass || selectedClass === 'all' || !selectedSection || selectedSection === 'all') {
+      if (!selectedExam || selectedExam === 'all' || !selectedClass || selectedClass === 'all' || !selectedSection || selectedSection === 'all') {
         return { data: { data: [] } };
       }
-      return teacherApi.getStudents({ classId: selectedClass, sectionId: selectedSection });
+      return marksApi.getStudentsForEntry({ 
+        examId: selectedExam, 
+        classId: selectedClass, 
+        sectionId: selectedSection 
+      });
     },
-    enabled: !!selectedClass && !!selectedSection,
-    staleTime: 3 * 60 * 1000,
+    enabled: !!selectedExam && selectedExam !== 'all' && resultsDialogOpen,
   });
 
   // Get results
@@ -140,8 +143,15 @@ const TeacherResults = () => {
   });
 
   const exams = (examsData as any)?.data?.data as Exam[] || [];
-  const students = (studentsData as any)?.data?.data as Student[] || [];
+  const studentsForEntry = (studentsForEntryData as any)?.data?.data || [];
   const results = (resultsData as any)?.data?.data as Result[] || [];
+
+  // Refetch and initialize records when dialog opens
+  useEffect(() => {
+    if (resultsDialogOpen && selectedExam !== 'all') {
+      initializeResultRecords();
+    }
+  }, [resultsDialogOpen, studentsForEntry.length]);
 
   // Get unique classes and sections using optimized functions
   const uniqueClasses = getUniqueClasses();
@@ -151,6 +161,26 @@ const TeacherResults = () => {
   const selectedExamDetails = exams.find(exam => exam._id === selectedExam);
 
   // Mutations
+  // New Phase 2 Mutations
+  const saveMarksMutation = useMutation({
+    mutationFn: (data: any) => marksApi.save(data),
+    onSuccess: () => {
+      showSuccess('Marks saved as draft');
+      queryClient.invalidateQueries({ queryKey: ['teacher-results'] });
+    },
+    onError: (error) => showApiError(error, 'Failed to save marks'),
+  });
+
+  const submitMarksMutation = useMutation({
+    mutationFn: (data: { examId: string; classId: string; sectionId: string }) => marksApi.submit(data),
+    onSuccess: () => {
+      showSuccess('Marks submitted for verification');
+      queryClient.invalidateQueries({ queryKey: ['teacher-results'] });
+      setResultsDialogOpen(false);
+    },
+    onError: (error) => showApiError(error, 'Failed to submit marks'),
+  });
+
   const addResultsMutation = useMutation({
     mutationFn: (data: {
       examId: string;
@@ -221,14 +251,18 @@ const TeacherResults = () => {
 
   // Initialize result records when dialog opens
   const initializeResultRecords = () => {
-    if (!students.length || !selectedExamDetails) return;
+    if (!selectedExamDetails) return;
     
-    const records = students.map(student => ({
-      studentId: student._id,
-      marksObtained: 0,
+    // If we have entry data, use it, otherwise use students
+    const sourceList = studentsForEntry.length > 0 ? studentsForEntry : [];
+    
+    const records = sourceList.map((item: any) => ({
+      studentId: item.studentId?._id || item.studentId || item._id,
+      enrollmentId: item.enrollmentId || item._id, // Use enrollmentId if available
+      marksObtained: item.marksObtained || 0,
       maxMarks: selectedExamDetails.totalMarks,
-      grade: 'F',
-      remarks: ''
+      grade: calculateGrade(item.marksObtained || 0, selectedExamDetails.totalMarks),
+      remarks: item.remarks || ''
     }));
     setResultRecords(records);
   };
@@ -249,7 +283,42 @@ const TeacherResults = () => {
     );
   };
 
-  // Handle results submission
+  // Handle results submission (Phase 2)
+  const handleSaveDraft = () => {
+    if (!selectedExam || !selectedExamDetails || selectedExam === 'all') {
+      showApiError(new Error('Please select an exam'), 'Missing information');
+      return;
+    }
+
+    saveMarksMutation.mutate({
+      examId: selectedExam,
+      classId: selectedClass,
+      sectionId: selectedSection,
+      students: resultRecords.map(r => ({
+        enrollmentId: (r as any).enrollmentId,
+        subjects: [
+          { 
+            subjectId: selectedExamDetails.subjectId._id, 
+            marksObtained: r.marksObtained, 
+            maxMarks: r.maxMarks 
+          }
+        ]
+      }))
+    });
+  };
+
+  const handleSubmitFinal = () => {
+    if (!selectedExam || selectedExam === 'all') return;
+    
+    if (confirm('Are you sure you want to submit these marks? You won\'t be able to edit them after submission.')) {
+      submitMarksMutation.mutate({
+        examId: selectedExam,
+        classId: selectedClass,
+        sectionId: selectedSection
+      });
+    }
+  };
+
   const handleSubmitResults = () => {
     if (!selectedExam || !selectedExamDetails) {
       showApiError(new Error('Please select an exam'), 'Missing information');
@@ -419,19 +488,21 @@ const TeacherResults = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {students.map((student) => {
-                            const record = resultRecords.find(r => r.studentId === student._id);
+                          {resultRecords.map((record) => {
+                            const studentInfo = studentsForEntry.find((s: any) => 
+                              (s.studentId?._id || s.studentId || s._id) === record.studentId
+                            );
                             return (
-                              <TableRow key={student._id}>
-                                <TableCell>{student.admissionNumber}</TableCell>
-                                <TableCell>{student.firstName} {student.lastName}</TableCell>
+                              <TableRow key={record.studentId}>
+                                <TableCell>{studentInfo?.admissionNumber || '-'}</TableCell>
+                                <TableCell>{studentInfo?.name || studentInfo?.firstName ? `${studentInfo.firstName} ${studentInfo.lastName}` : 'Unknown'}</TableCell>
                                 <TableCell>
                                   <Input
                                     type="number"
                                     min="0"
                                     max={selectedExamDetails?.totalMarks || 100}
                                     value={record?.marksObtained || 0}
-                                    onChange={(e) => updateResultRecord(student._id, 'marksObtained', Number(e.target.value))}
+                                    onChange={(e) => updateResultRecord(record.studentId, 'marksObtained', Number(e.target.value))}
                                     className="w-20"
                                   />
                                 </TableCell>
@@ -445,7 +516,7 @@ const TeacherResults = () => {
                                   <Input
                                     placeholder="Optional remarks"
                                     value={record?.remarks || ''}
-                                    onChange={(e) => updateResultRecord(student._id, 'remarks', e.target.value)}
+                                    onChange={(e) => updateResultRecord(record.studentId, 'remarks', e.target.value)}
                                     className="w-48"
                                   />
                                 </TableCell>
@@ -459,10 +530,18 @@ const TeacherResults = () => {
                           Cancel
                         </Button>
                         <Button 
-                          onClick={handleSubmitResults}
-                          disabled={addResultsMutation.isPending}
+                          variant="secondary"
+                          onClick={handleSaveDraft}
+                          disabled={saveMarksMutation.isPending}
                         >
-                          {addResultsMutation.isPending ? 'Saving...' : 'Save Results'}
+                          {saveMarksMutation.isPending ? 'Saving...' : 'Save Draft'}
+                        </Button>
+                        <Button 
+                          onClick={handleSubmitFinal}
+                          disabled={submitMarksMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {submitMarksMutation.isPending ? 'Submitting...' : 'Submit Final'}
                         </Button>
                       </div>
                     </div>
