@@ -51,8 +51,8 @@ import { useConfig } from '@/contexts/ConfigContext';
 interface FeeStructure {
   id: string;
   _id?: string;
-  academicYearId: string;
-  classId: string;
+  academicYearId: any;
+  classId: any;
   feeType: string;
   feeName: string;
   amount: number;
@@ -61,8 +61,6 @@ interface FeeStructure {
   description?: string;
   lateFee?: number;
   concessionPercentage?: number;
-  academicYear?: { name: string };
-  class?: { name: string };
 }
 
 interface FeeFilters {
@@ -286,6 +284,7 @@ export default function FeeStructureManagement() {
                   <TableRow>
                     <TableHead>Fee Name</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Academic Year</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Due Date</TableHead>
@@ -305,7 +304,10 @@ export default function FeeStructureManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {fee.class?.name || 'All'}
+                        {typeof fee.academicYearId === 'object' ? fee.academicYearId.name : (fee as any).academicYear?.name || '-'}
+                      </TableCell>
+                      <TableCell>
+                        {typeof fee.classId === 'object' ? fee.classId.name : (fee as any).class?.name || 'All'}
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">₹{fee.amount.toLocaleString('en-IN')}</div>

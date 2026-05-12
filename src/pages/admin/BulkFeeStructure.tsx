@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -69,6 +69,16 @@ export default function BulkFeeStructure() {
       return response.data;
     },
   });
+
+  useEffect(() => {
+    if (yearsData?.data) {
+      const activeYears = yearsData.data.filter((y: any) => y.isActive);
+      const currentYear = activeYears.find((y: any) => y.isCurrent) || activeYears[0];
+      if (currentYear && !selectedYearId) {
+        setSelectedYearId(currentYear._id || currentYear.id);
+      }
+    }
+  }, [yearsData, selectedYearId]);
 
   const bulkCreateMutation = useMutation({
     mutationFn: (data: any) => feeApi.bulkCreateStructure(data),
@@ -142,7 +152,7 @@ export default function BulkFeeStructure() {
     });
   };
 
-  const years = yearsData?.data || [];
+  const years = (yearsData?.data || []).filter((y: any) => y.isActive);
   const classes = classesData?.data || [];
   const heads = headsData?.data || [];
 

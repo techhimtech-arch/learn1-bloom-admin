@@ -42,8 +42,8 @@ type FeeStructureFormData = z.infer<typeof feeStructureSchema>;
 interface FeeStructure {
   id: string;
   _id?: string;
-  academicYearId: string;
-  classId: string;
+  academicYearId: any;
+  classId: any;
   feeType: string;
   feeName: string;
   amount: number;
@@ -120,9 +120,12 @@ export function FeeStructureForm({ fee, onClose, onSuccess }: FeeStructureFormPr
 
   useEffect(() => {
     if (fee) {
+      const yearId = typeof fee.academicYearId === 'object' ? fee.academicYearId._id : fee.academicYearId;
+      const clsId = typeof fee.classId === 'object' ? fee.classId._id : fee.classId;
+
       form.reset({
-        academicYearId: fee.academicYearId,
-        classId: fee.classId,
+        academicYearId: yearId,
+        classId: clsId,
         feeType: fee.feeType as any,
         feeName: fee.feeName,
         amount: fee.amount,
