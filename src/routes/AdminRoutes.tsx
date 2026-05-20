@@ -7,10 +7,12 @@ const UserManagement = lazy(() => import("@/pages/admin/UserManagement"));
 const ParentLinking = lazy(() => import("@/pages/admin/ParentLinking"));
 const StudentAdmission = lazy(() => import("@/pages/admin/StudentAdmission"));
 const Enrollment = lazy(() => import("@/pages/admin/Enrollment"));
+const BulkPromotionPage = lazy(() => import("@/pages/admin/BulkPromotionPage"));
 const ClassManagement = lazy(() => import("@/pages/admin/ClassManagement"));
 const SubjectManagement = lazy(() => import("@/pages/admin/SubjectManagement"));
 const TeacherAssignmentManagement = lazy(() => import("@/pages/admin/TeacherAssignmentManagement"));
 const AttendanceManagement = lazy(() => import("@/pages/admin/AttendanceManagement"));
+const AttendanceReports = lazy(() => import("@/pages/admin/AttendanceReports"));
 const AcademicYearManagement = lazy(() => import("@/pages/admin/AcademicYearManagement"));
 const TimetableManagement = lazy(() => import("@/pages/admin/TimetableManagement"));
 const TimetableBuilderPage = lazy(() => import("@/pages/admin/TimetableBuilderPage"));
@@ -26,6 +28,7 @@ const AssignmentManagement = lazy(() => import("@/pages/admin/AssignmentManageme
 const StudentAssignmentSubmission = lazy(() => import("@/pages/StudentAssignmentSubmission"));
 const TeacherAssignmentGrading = lazy(() => import("@/pages/teacher/TeacherAssignmentGrading"));
 const FeeStructureManagement = lazy(() => import("@/pages/admin/FeeStructureManagement"));
+const FeeAssignment = lazy(() => import("@/pages/admin/FeeAssignment"));
 const FeeHeadsManagement = lazy(() => import("@/pages/admin/FeeHeadsManagement"));
 const BulkFeeStructure = lazy(() => import("@/pages/admin/BulkFeeStructure"));
 const StudentFeeManagement = lazy(() => import("@/pages/StudentFeeManagement"));
@@ -47,10 +50,12 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/parent-linking" element={<ParentLinking />} />
         <Route path="/admission" element={<StudentAdmission />} />
         <Route path="/enrollment" element={<Enrollment />} />
+        <Route path="/enrollment/bulk-promotion" element={<BulkPromotionPage />} />
         <Route path="/classes" element={<ClassManagement />} />
         <Route path="/subjects" element={<SubjectManagement />} />
         <Route path="/teacher-assignments" element={<TeacherAssignmentManagement />} />
         <Route path="/attendance" element={<AttendanceManagement />} />
+        <Route path="/attendance-reports" element={<AttendanceReports />} />
         <Route path="/academic-years" element={<AcademicYearManagement />} />
         <Route path="/timetable" element={<TimetableManagement />} />
         <Route path="/timetable-builder" element={<TimetableBuilderPage />} />
@@ -67,6 +72,7 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/assignments/:assignmentId/grade" element={<TeacherAssignmentGrading />} />
         <Route path="/admin/quizzes" element={<AdminQuizzes />} />
         <Route path="/fees/structure" element={<FeeStructureManagement />} />
+        <Route path="/fees/assign" element={<FeeAssignment />} />
         <Route path="/fees/structure/bulk" element={<BulkFeeStructure />} />
         <Route path="/fees/heads" element={<FeeHeadsManagement />} />
         <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />

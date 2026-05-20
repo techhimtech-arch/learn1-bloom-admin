@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FeePaymentForm } from '@/components/fee/FeePaymentForm';
+import { ReceiptViewer } from '@/components/fee/ReceiptViewer';
 import { feeApi, studentPortalApi } from '@/services/api';
 import { useConfig } from '@/contexts/ConfigContext';
 import { toast } from 'sonner';
@@ -58,6 +59,7 @@ export default function StudentFeeManagement() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedFee, setSelectedFee] = useState<StudentFee | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<any>(null);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
   const { data: feeData, isLoading } = useQuery({
@@ -271,6 +273,7 @@ export default function StudentFeeManagement() {
                     <TableHead>Payment Mode</TableHead>
                     <TableHead>Transaction ID</TableHead>
                     <TableHead>Payment Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -288,6 +291,20 @@ export default function StudentFeeManagement() {
                       <TableCell>
                         {payment.paymentDate && format(new Date(payment.paymentDate), 'MMM dd, yyyy')}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setViewingReceipt(payment.id || payment._id);
+                            setReceiptDialogOpen(true);
+                          }}
+                          className="gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -296,6 +313,18 @@ export default function StudentFeeManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Receipt Viewer Modal */}
+      {viewingReceipt && (
+        <ReceiptViewer
+          paymentId={viewingReceipt}
+          open={receiptDialogOpen}
+          onOpenChange={open => {
+            setReceiptDialogOpen(open);
+            if (!open) setViewingReceipt(null);
+          }}
+        />
+      )}
 
       {/* Payment Form Modal */}
       {showPaymentForm && selectedFee && student && (

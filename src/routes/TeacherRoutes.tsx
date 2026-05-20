@@ -11,6 +11,7 @@ const TeacherExams = lazy(() => import("@/pages/teacher/TeacherExams"));
 const TeacherResults = lazy(() => import("@/pages/teacher/TeacherResults"));
 const TeacherAssignments = lazy(() => import("@/pages/teacher/TeacherAssignments"));
 const TeacherQuizzes = lazy(() => import("@/pages/teacher/TeacherQuizzes"));
+const TeacherStudyMaterials = lazy(() => import("@/pages/teacher/TeacherStudyMaterials"));
 const TeacherAssignmentGrading = lazy(() => import("@/pages/teacher/TeacherAssignmentGrading"));
 
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -30,6 +31,7 @@ export default function TeacherRoutes({ setRunTour }: { setRunTour: any }) {
           <Route path="/teacher/results" element={<TeacherResults />} />
           <Route path="/teacher/assignments" element={<TeacherAssignments />} />
           <Route path="/teacher/quizzes" element={<TeacherQuizzes />} />
+          <Route path="/teacher/materials" element={<TeacherStudyMaterials />} />
           <Route path="/teacher/assignments/:assignmentId/grading" element={<TeacherAssignmentGrading />} />
           <Route path="/profile" element={<Profile setRunTour={setRunTour} />} />
           <Route path="/sessions" element={<SessionManagement />} />

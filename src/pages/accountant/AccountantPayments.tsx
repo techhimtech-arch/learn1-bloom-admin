@@ -24,6 +24,7 @@ export default function AccountantPayments() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ startDate: '', endDate: '', search: '' });
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [showReceiptViewer, setShowReceiptViewer] = useState(false);
   const [refundFor, setRefundFor] = useState<any | null>(null);
   const [refundForm, setRefundForm] = useState({ refundAmount: 0, reason: '', remarks: '' });
 
@@ -186,7 +187,14 @@ export default function AccountantPayments() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => setReceiptId(p.paymentId || p.id)}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setReceiptId(p.paymentId || p.id);
+                              setShowReceiptViewer(true);
+                            }}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
@@ -201,37 +209,22 @@ export default function AccountantPayments() {
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </Button>
+                        </div>
+                  Viewer Dialog with Print/Download */}
+      {receiptId && (
+        <ReceiptViewer
+          paymentId={receiptId}
+          open={showReceiptViewer}
+          onOpenChange={open => {
+            setShowReceiptViewer(open);
+            if (!open) setReceiptId(null);
+          }}
+        />
+      )}
 
-      {/* Receipt Dialog */}
-      <Dialog open={!!receiptId} onOpenChange={(o) => !o && setReceiptId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Payment Receipt</DialogTitle>
-            <DialogDescription>Official record of fee payment.</DialogDescription>
-          </DialogHeader>
-          {receiptLoading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : receiptData ? (
-            <div className="space-y-2 rounded-lg border p-4 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Receipt #</span><span className="font-mono">{receiptData.receiptNumber}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Student</span><span className="font-medium">{receiptData.studentName}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span>{receiptData.date ? format(new Date(receiptData.date), 'MMM dd, yyyy') : '-'}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Mode</span><span>{receiptData.paymentMode}</span></div>
-              <div className="flex justify-between border-t pt-2 font-semibold"><span>Amount Paid</span><span className="text-primary">{formatINR(receiptData.amount)}</span></div>
-              {receiptData.remainingBalance !== undefined && (
-                <div className="flex justify-between"><span className="text-muted-foreground">Remaining Balance</span><span>{formatINR(receiptData.remainingBalance)}</span></div>
-              )}
-              {receiptData.signature && (
-                <div className="pt-4 text-right text-xs text-muted-foreground">— {receiptData.signature}</div>
-              )}
+      {/* Legacy Receipt Dialog (kept for reference, but using new ReceiptViewer above) */}
+      {/*}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">Receipt unavailable.</p>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Download, FileText, Calendar, Filter } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-
-const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
+import { formatINR } from '@/lib/utils';
 
 export default function AccountantReports() {
   const navigate = useNavigate();
@@ -71,39 +70,7 @@ export default function AccountantReports() {
   });
 
   const report = Array.isArray(reportData) ? reportData : [];
-
-  // Generate mock report data for demonstration
-  const generateMockReport = () => {
-    switch (reportType) {
-      case 'fee-collection':
-        return [
-          { class: '10-A', students: 45, totalFee: 2250000, collected: 2025000, pending: 225000, percentage: 90 },
-          { class: '10-B', students: 42, totalFee: 2100000, collected: 1890000, pending: 210000, percentage: 90 },
-          { class: '9-A', students: 48, totalFee: 2160000, collected: 1944000, pending: 216000, percentage: 90 },
-        ];
-      case 'outstanding-fees':
-        return [
-          { studentName: 'Ahmed Ali', class: '10-A', rollNumber: 'STU001', totalDue: 50000 },
-          { studentName: 'Fatima Khan', class: '10-B', rollNumber: 'STU012', totalDue: 75000 },
-          { studentName: 'Sara Ibrahim', class: '9-A', rollNumber: 'STU023', totalDue: 40000 },
-        ];
-      case 'class-summary':
-        return [
-          { class: '10-A', strength: 45, totalFee: 2250000, collected: 2025000, pending: 225000, percentage: 90 },
-          { class: '10-B', strength: 42, totalFee: 2100000, collected: 1890000, pending: 210000, percentage: 90 },
-        ];
-      case 'student-statement':
-        return [
-          { date: '2026-04-15', description: 'Monthly Tuition', amount: 5000, paid: 5000, balance: 0 },
-          { date: '2026-04-20', description: 'Transport Fee', amount: 2000, paid: 0, balance: 2000 },
-          { date: '2026-05-01', description: 'Exam Fee', amount: 1000, paid: 0, balance: 1000 },
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const reportContent = report.length > 0 ? report : generateMockReport();
+  const reportContent = report;
 
   const handleDownloadReport = () => {
     // Placeholder for download functionality
@@ -286,7 +253,23 @@ export default function AccountantReports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(reportContent as any[]).map((row, index) => (
+                  {reportContent.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={
+                          reportType === 'outstanding-fees'
+                            ? 4
+                            : reportType === 'student-statement'
+                              ? 5
+                              : 6
+                        }
+                        className="text-center text-muted-foreground py-10"
+                      >
+                        No report data for the selected filters and date range. Adjust filters or verify fee records in the system.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    (reportContent as any[]).map((row, index) => (
                     <TableRow key={index}>
                       {reportType === 'fee-collection' && (
                         <>
@@ -332,7 +315,8 @@ export default function AccountantReports() {
                         </>
                       )}
                     </TableRow>
-                  ))}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
