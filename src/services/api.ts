@@ -779,3 +779,14 @@ export const classTeacherAssignmentApi = {
   update: (id: string, data: Record<string, unknown>) => apiClient.put(`/class-teacher/${id}`, data),
   delete: (id: string) => apiClient.delete(`/class-teacher/${id}`),
 };
+
+// ── Billing API ──────────────────────────────────────────
+export const billingApi = {
+  createOrder: (planId: string) => apiClient.post('/billing/create-order', { planId }),
+  verifyPayment: (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    planId: string;
+  }) => apiClient.post('/billing/verify-payment', data),
+};

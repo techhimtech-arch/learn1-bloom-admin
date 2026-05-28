@@ -23,6 +23,7 @@ import {
   Receipt,
   AlertCircle,
   MousePointer2,
+  CreditCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -43,7 +44,7 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
     '/profile', '/sessions', '/exams', '/announcements', '/assignments',
     '/fees/structure', '/fees/structure/bulk', '/fees/heads', '/fees/reports', '/fees/payments', '/fees/dues',
     '/fees/student/:studentId', '/accountant/record-payment', '/accountant/students',
-    '/certificates', '/admin/quizzes', '/settings/school',
+    '/certificates', '/admin/quizzes', '/settings/school', '/billing',
   ],
   teacher: [
     '/teacher/dashboard', '/teacher/profile', '/teacher/students', '/teacher/exams',
@@ -118,6 +119,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: 'My Timetable', url: '/student/timetable', icon: CalendarDays },
   { title: 'My Certificates', url: '/student/certificates', icon: Award },
   { title: 'School Settings', url: '/settings/school', icon: School },
+  { title: 'Billing & Subscription', url: '/billing', icon: CreditCard },
 ];
 
 // Account nav items — always visible

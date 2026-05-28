@@ -40,6 +40,7 @@ const AdminQuizzes = lazy(() => import("@/pages/admin/AdminQuizzes"));
 const SchoolSettings = lazy(() => import("@/pages/admin/SchoolSettings"));
 const TeacherStudyMaterials = lazy(() => import("@/pages/teacher/TeacherStudyMaterials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const BillingDashboard = lazy(() => import("@/pages/admin/BillingDashboard"));
 
 export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
   return (
@@ -81,6 +82,7 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/fees/dues" element={<AccountantDues />} />
         <Route path="/certificates" element={<CertificateGenerator />} />
         <Route path="/settings/school" element={<SchoolSettings />} />
+        <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/teacher/materials" element={<TeacherStudyMaterials />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
