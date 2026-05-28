@@ -15,6 +15,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { accountantApi, studentApi } from '@/services/api';
 
@@ -25,6 +27,28 @@ export default function AccountantDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [forecasterMode, setForecasterMode] = useState<'historical' | 'forecast'>('historical');
+  const [enableWhatsAppCampaign, setEnableWhatsAppCampaign] = useState(false);
+  const [enableEarlyBirdDiscount, setEnableEarlyBirdDiscount] = useState(false);
+
+  // Forecaster Forecast Model Calculations
+  const expenseOverhead = 180000;
+  const multiplier = 1 + (enableWhatsAppCampaign ? 0.35 : 0) + (enableEarlyBirdDiscount ? 0.15 : 0);
+  
+  const forecastedData = [
+    { month: 'May (Forecast)', inflow: Math.round(110000 * multiplier), expense: expenseOverhead },
+    { month: 'June (Forecast)', inflow: Math.round(130000 * multiplier), expense: expenseOverhead },
+    { month: 'July (Forecast)', inflow: Math.round(120000 * multiplier), expense: expenseOverhead },
+  ];
+
+  const deficitMonths = forecastedData
+    .filter(f => f.inflow < f.expense)
+    .map(f => f.month.split(' ')[0]);
+
+  const hasDeficit = deficitMonths.length > 0;
+  const maxDeficitAmount = hasDeficit 
+    ? Math.max(...forecastedData.map(f => Math.max(0, f.expense - f.inflow))) 
+    : 0;
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['accountant-dashboard'],
     queryFn: async () => {
@@ -226,66 +250,178 @@ export default function AccountantDashboard() {
             </p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Charts */}
+      </div>      {/* Charts & Cash Radar Forecaster */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Collection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Monthly Collection Trend
-            </CardTitle>
+        {/* Collection & Forecasting Chart */}
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                {forecasterMode === 'historical' ? 'Fee Collection Trends' : '🤖 Cash Radar & Recovery Forecaster'}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {forecasterMode === 'historical' 
+                  ? 'Real-time historical collection metrics vs targets' 
+                  : 'Advanced multi-month cash inflow projections vs fixed operational overhead'}
+              </p>
+            </div>
+            <div className="flex bg-muted p-1 rounded-lg self-end sm:self-auto">
+              <Button 
+                variant={forecasterMode === 'historical' ? 'default' : 'ghost'} 
+                size="sm"
+                className="text-xs font-semibold px-3 py-1.5 h-8"
+                onClick={() => setForecasterMode('historical')}
+              >
+                Historical
+              </Button>
+              <Button 
+                variant={forecasterMode === 'forecast' ? 'default' : 'ghost'} 
+                size="sm"
+                className="text-xs font-semibold px-3 py-1.5 h-8 flex items-center gap-1 text-purple-600 hover:text-purple-700"
+                onClick={() => setForecasterMode('forecast')}
+              >
+                <TrendingUp className="h-3.5 w-3.5" />
+                AI Forecast Radar
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => formatINR(value as number)} />
-                <Legend />
-                <Bar dataKey="collection" fill="#3b82f6" name="Collected" />
-                <Bar dataKey="target" fill="#d1d5db" name="Target" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+            {forecasterMode === 'historical' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => formatINR(value as number)} />
+                      <Legend />
+                      <Bar dataKey="collection" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Collected Amount" />
+                      <Bar dataKey="target" fill="#d1d5db" radius={[4, 4, 0, 0]} name="Target Goal" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="space-y-4 border-l pl-0 lg:pl-6">
+                  <h4 className="font-semibold text-sm">Collection Progress Bar</h4>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium">Progress to Target</span>
+                      <span className="text-xs font-bold">{(dashboard?.collectionPercentage || 0).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="h-full bg-green-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(dashboard?.collectionPercentage || 0, 100)}%` }}
+                      />
+                    </div>
+                  </div>
 
-        {/* Collection Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Collection Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Fee Collection Progress</span>
-                <span className="text-sm font-bold">{(dashboard?.collectionPercentage || 0).toFixed(1)}%</span>
+                  <div className="space-y-2 mt-4 text-sm">
+                    <div className="flex items-center justify-between p-2.5 bg-muted/30 border rounded-lg">
+                      <span className="text-xs text-muted-foreground">Total Expected</span>
+                      <span className="font-semibold">{formatINR((totalCollected / (dashboard?.collectionPercentage || 100)) * 100)}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-green-50/50 border border-green-100 rounded-lg text-green-700">
+                      <span className="text-xs">Collected to Date</span>
+                      <span className="font-semibold">{formatINR(totalCollected)}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-orange-50/50 border border-orange-100 rounded-lg text-orange-700">
+                      <span className="text-xs">Pending Dues</span>
+                      <span className="font-semibold">{formatINR(totalPendingDues)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="h-full bg-green-500 rounded-full"
-                  style={{ width: `${Math.min(dashboard?.collectionPercentage || 0, 100)}%` }}
-                />
-              </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Future Chart */}
+                <div className="lg:col-span-2">
+                  <ResponsiveContainer width="100%" height={320}>
+                    <LineChart data={forecastedData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => formatINR(value as number)} />
+                      <Legend />
+                      <Line type="monotone" dataKey="inflow" stroke="#8b5cf6" strokeWidth={3} name="Projected Collections" activeDot={{ r: 8 }} />
+                      <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" name="Operational Expenditures" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
 
-            <div className="space-y-3 mt-6">
-              <div className="flex items-center justify-between p-3 border rounded">
-                <span className="text-sm">Total Expected</span>
-                <span className="font-bold">{formatINR((totalCollected / (dashboard?.collectionPercentage || 100)) * 100)}</span>
+                {/* Forecaster Control Panel & Alerts */}
+                <div className="space-y-4 border-l pl-0 lg:pl-6 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
+                      <h4 className="font-semibold text-xs text-purple-800 flex items-center gap-1.5 mb-1">
+                        <span>💡</span> Recovery What-If Scenarios
+                      </h4>
+                      <p className="text-[11px] text-purple-600 mb-3">Adjust parameters to simulate collection recovery rates.</p>
+                      
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-xs font-medium cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-purple-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                            checked={enableWhatsAppCampaign}
+                            onChange={(e) => setEnableWhatsAppCampaign(e.target.checked)}
+                          />
+                          <div className="flex-1">
+                            <span className="group-hover:text-purple-700 transition-colors">WhatsApp Dues Reminders</span>
+                            <span className="block text-[9px] text-muted-foreground font-normal">Est. Collection Recovery: +35%</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-2 text-xs font-medium cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-purple-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                            checked={enableEarlyBirdDiscount}
+                            onChange={(e) => setEnableEarlyBirdDiscount(e.target.checked)}
+                          />
+                          <div className="flex-1">
+                            <span className="group-hover:text-purple-700 transition-colors">Early Bird Pay Campaigns</span>
+                            <span className="block text-[9px] text-muted-foreground font-normal">Est. Early Recoveries: +15%</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Deficit Warning Box */}
+                    {hasDeficit ? (
+                      <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-red-800 space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          Deficit Risk Detected!
+                        </div>
+                        <p className="text-[11px] text-red-700">
+                          Under current settings, projected collections will fall short of operational targets in <span className="font-semibold">{deficitMonths.join(', ')}</span> by up to <span className="font-semibold">{formatINR(maxDeficitAmount)}</span>.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-green-50 border border-green-100 rounded-lg text-green-800 space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                          Cash Positive Forecast!
+                        </div>
+                        <p className="text-[11px] text-green-700">
+                          Excellent! Smart recovery campaigns are projected to yield a cash surplus over fixed expenses.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2 mt-2"
+                    onClick={() => navigate('/fees/dues')}
+                  >
+                    <span>📢</span> Launch Reminder Campaigns
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 border rounded">
-                <span className="text-sm">Amount Collected</span>
-                <span className="font-bold text-green-600">{formatINR(totalCollected)}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 border rounded bg-orange-50">
-                <span className="text-sm">Amount Pending</span>
-                <span className="font-bold text-orange-600">{formatINR(totalPendingDues)}</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

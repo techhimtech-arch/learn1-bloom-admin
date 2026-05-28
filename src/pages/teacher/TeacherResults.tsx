@@ -18,7 +18,8 @@ import {
   Eye,
   Filter,
   TrendingUp,
-  Star
+  Star,
+  Sparkles,
 } from 'lucide-react';
 import { teacherApi, marksApi, examApi } from '@/services/api';
 import { showApiError, showApiSuccess as showSuccess } from '@/lib/api-toast';
@@ -513,12 +514,64 @@ const TeacherResults = () => {
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
-                                  <Input
-                                    placeholder="Optional remarks"
-                                    value={record?.remarks || ''}
-                                    onChange={(e) => updateResultRecord(record.studentId, 'remarks', e.target.value)}
-                                    className="w-48"
-                                  />
+                                  <div className="flex items-center gap-1.5 min-w-[220px]">
+                                    <Input
+                                      placeholder="Optional remarks"
+                                      value={record?.remarks || ''}
+                                      onChange={(e) => updateResultRecord(record.studentId, 'remarks', e.target.value)}
+                                      className="flex-1 text-xs"
+                                    />
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      type="button"
+                                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 flex-shrink-0 h-8 w-8"
+                                      onClick={() => {
+                                        const percentage = (record.marksObtained / (selectedExamDetails?.totalMarks || 100)) * 100;
+                                        const name = studentInfo?.firstName ? `${studentInfo.firstName} ${studentInfo.lastName}` : studentInfo?.name || 'The student';
+                                        
+                                        let remark = '';
+                                        const remarksOptions = {
+                                          excellent: [
+                                            `${name} has shown outstanding performance and deep understanding of the concepts. Truly exemplary work!`,
+                                            `Excellent execution! ${name} is highly attentive and exhibits phenomenal analytical skills.`,
+                                            `Superb academic results! ${name} consistently strives for excellence and leads by example in class.`
+                                          ],
+                                          good: [
+                                            `Very good effort. ${name} understands the core subjects well and participates actively.`,
+                                            `${name} showed commendable performance. With a little more attention to detail, can reach the top tier.`,
+                                            `Consistent and reliable work from ${name}. Maintains a strong grasp on the curriculum.`
+                                          ],
+                                          average: [
+                                            `${name} has a decent grasp of the basics but needs to focus more on advanced topics.`,
+                                            `Satisfactory progress. ${name} is capable of much more with consistent home revisions.`,
+                                            `${name} demonstrates good potential. More rigorous practice will help boost grades.`
+                                          ],
+                                          poor: [
+                                            `${name} is facing challenges with core concepts. Focused guidance and extra help are strongly recommended.`,
+                                            `Needs improvement. ${name} must dedicate more time to practice and seek timely clarifications.`,
+                                            `Struggling to keep up with the coursework. Suggest scheduling a teacher-parent meeting to assist ${name}.`
+                                          ]
+                                        };
+
+                                        if (percentage >= 90) {
+                                          remark = remarksOptions.excellent[Math.floor(Math.random() * remarksOptions.excellent.length)];
+                                        } else if (percentage >= 75) {
+                                          remark = remarksOptions.good[Math.floor(Math.random() * remarksOptions.good.length)];
+                                        } else if (percentage >= 50) {
+                                          remark = remarksOptions.average[Math.floor(Math.random() * remarksOptions.average.length)];
+                                        } else {
+                                          remark = remarksOptions.poor[Math.floor(Math.random() * remarksOptions.poor.length)];
+                                        }
+                                        
+                                        updateResultRecord(record.studentId, 'remarks', remark);
+                                        showSuccess(`Generated smart remark for ${studentInfo?.firstName || 'student'}!`);
+                                      }}
+                                      title="Generate AI Remark"
+                                    >
+                                      <Sparkles className="h-4 w-4 text-purple-500 animate-pulse" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             );

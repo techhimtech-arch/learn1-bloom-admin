@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Search, Eye, CreditCard } from 'lucide-react';
+import { AlertTriangle, Search, Eye, CreditCard, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -105,7 +106,7 @@ export default function AccountantDues() {
                         {formatINR(d.totalDue ?? d.dueAmount ?? 0)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-end gap-1 items-center">
                           <Button 
                             size="sm" 
                             variant="ghost" 
@@ -113,6 +114,26 @@ export default function AccountantDues() {
                             title="View Fee Profile"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 bg-green-50/30 flex items-center gap-1"
+                            onClick={() => {
+                              const studentName = d.studentName || 'Student';
+                              const rawPhone = d.parentPhone || d.phone || '';
+                              const cleanPhone = rawPhone.replace(/\D/g, '');
+                              const phoneWithCountry = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+                              const amount = d.totalDue ?? d.dueAmount ?? 0;
+                              
+                              const message = `Dear Parent,\nThis is a friendly reminder that a pending school fee balance of ₹${amount.toLocaleString('en-IN')} is outstanding for your child, ${studentName}. Please arrange to clear the dues at your earliest convenience.\n\nThank you,\nAccounts Department`;
+                              const encodedText = encodeURIComponent(message);
+                              window.open(`https://api.whatsapp.com/send?phone=${phoneWithCountry}&text=${encodedText}`, '_blank');
+                            }}
+                            title="Send WhatsApp Reminder"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5 mr-0.5" />
+                            Remind
                           </Button>
                           <Button 
                             size="sm" 
