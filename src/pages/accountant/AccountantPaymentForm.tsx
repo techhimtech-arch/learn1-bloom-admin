@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { accountantApi, studentApi } from '@/services/api';
+import { accountantApi, studentApi, feeApi } from '@/services/api';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 
@@ -29,8 +29,10 @@ export default function AccountantPaymentForm() {
     paymentMode: 'cash',
     transactionDate: new Date().toISOString().split('T')[0],
     remarks: '',
+    transactionId: '',
   });
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedFeeId, setSelectedFeeId] = useState<string>('');
 
   // Fetch all students
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -54,7 +56,13 @@ export default function AccountantPaymentForm() {
 
   const recordPaymentMutation = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => {
-      return await accountantApi.recordPayment(payload);
+      return await feeApi.pay({
+        feeId: payload.feeId as string,
+        amount: payload.amount as number,
+        paymentMethod: payload.paymentMethod as string,
+        transactionId: payload.transactionId as string,
+        remarks: payload.remarks as string,
+      });
     },
     onSuccess: () => {
       toast.success('Payment recorded successfully');
@@ -66,8 +74,10 @@ export default function AccountantPaymentForm() {
         paymentMode: 'cash',
         transactionDate: new Date().toISOString().split('T')[0],
         remarks: '',
+        transactionId: '',
       });
       setSelectedStudent(null);
+      setSelectedFeeId('');
       setTimeout(() => navigate('/fees/payments'), 1500);
     },
     onError: (err: any) => {
@@ -88,23 +98,39 @@ export default function AccountantPaymentForm() {
       toast.error('Please select a student');
       return;
     }
+    if (!selectedFeeId) {
+      toast.error('Please select a fee item to pay');
+      return;
+    }
     if (!formData.amount) {
       toast.error('Please enter amount');
       return;
     }
 
     recordPaymentMutation.mutate({
-      studentId: formData.studentId,
+      feeId: selectedFeeId,
       amount: parseFloat(formData.amount),
-      paymentMode: formData.paymentMode,
-      transactionDate: formData.transactionDate,
+      paymentMethod: formData.paymentMode,
+      transactionId: formData.transactionId,
       remarks: formData.remarks,
     });
   };
 
   const students = studentsData || [];
   const studentFees = studentFeesData as any;
-  const dueAmount = studentFees?.dueAmount || studentFees?.totalDue || 0;
+  const dueAmount = studentFees?.summary?.totalBalance || 0;
+  const payableFees = studentFees?.fees?.filter((f: any) => f.status === 'pending' || f.status === 'partial' || f.balanceAmount > 0) || [];
+
+  useEffect(() => {
+    if (payableFees.length > 0) {
+      const firstPending = payableFees[0];
+      setSelectedFeeId(firstPending._id || firstPending.id || '');
+      setFormData(prev => ({ ...prev, amount: firstPending.balanceAmount.toString() }));
+    } else {
+      setSelectedFeeId('');
+      setFormData(prev => ({ ...prev, amount: '' }));
+    }
+  }, [studentFeesData]);
 
   return (
     <div className="space-y-6">
@@ -148,6 +174,39 @@ export default function AccountantPaymentForm() {
                   </Select>
                 )}
               </div>
+
+              {/* Fee Item Selection */}
+              {formData.studentId && (
+                <div>
+                  <Label htmlFor="feeItem">Select Pending Fee Item *</Label>
+                  {feesLoading ? (
+                    <Skeleton className="h-10 w-full mt-2" />
+                  ) : payableFees.length === 0 ? (
+                    <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg mt-2">
+                      ✓ No pending fee items for this student.
+                    </div>
+                  ) : (
+                    <Select value={selectedFeeId} onValueChange={(value) => {
+                      setSelectedFeeId(value);
+                      const selectedFee = payableFees.find((f: any) => (f._id || f.id) === value);
+                      if (selectedFee) {
+                        setFormData(prev => ({ ...prev, amount: selectedFee.balanceAmount.toString() }));
+                      }
+                    }}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Choose a pending fee" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {payableFees.map((fee: any) => (
+                          <SelectItem key={fee._id || fee.id} value={fee._id || fee.id}>
+                            {fee.feeName} - Pending: {formatINR(fee.balanceAmount)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
 
               {/* Student Details */}
               {selectedStudent && (
@@ -209,11 +268,16 @@ export default function AccountantPaymentForm() {
                     step="0.01"
                     className="mt-2"
                   />
-                  {dueAmount > 0 && formData.amount && (
+                  {selectedFeeId && formData.amount && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {parseFloat(formData.amount) > dueAmount
-                        ? `Over-payment of ${formatINR(parseFloat(formData.amount) - dueAmount)}`
-                        : `Remaining: ${formatINR(dueAmount - parseFloat(formData.amount))}`}
+                      {(() => {
+                        const selectedFee = payableFees.find((f: any) => (f._id || f.id) === selectedFeeId);
+                        const feeBalance = selectedFee?.balanceAmount || 0;
+                        const amt = parseFloat(formData.amount) || 0;
+                        return amt > feeBalance
+                          ? `Over-payment of ${formatINR(amt - feeBalance)}`
+                          : `Remaining for this item: ${formatINR(feeBalance - amt)}`;
+                      })()}
                     </p>
                   )}
                 </div>
@@ -235,6 +299,19 @@ export default function AccountantPaymentForm() {
                   </Select>
                 </div>
               </div>
+
+              {formData.paymentMode !== 'cash' && (
+                <div>
+                  <Label htmlFor="transactionId">Transaction ID / Cheque Reference *</Label>
+                  <Input
+                    id="transactionId"
+                    placeholder="Enter transaction ref number"
+                    value={formData.transactionId}
+                    onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
+                    className="mt-2"
+                  />
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="date">Transaction Date *</Label>
