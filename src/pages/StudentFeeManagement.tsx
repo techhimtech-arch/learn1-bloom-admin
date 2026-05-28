@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FeePaymentForm } from '@/components/fee/FeePaymentForm';
-import { ReceiptViewer } from '@/components/fee/ReceiptViewer';
+import ReceiptViewer from '@/components/fee/ReceiptViewer';
 import { feeApi, studentPortalApi } from '@/services/api';
 import { useConfig } from '@/contexts/ConfigContext';
 import { toast } from 'sonner';

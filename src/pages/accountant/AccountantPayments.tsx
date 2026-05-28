@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { accountantApi } from '@/services/api';
+import ReceiptViewer from '@/components/fee/ReceiptViewer';
 
 const formatINR = (n: number) => `₹${(n || 0).toLocaleString('en-IN')}`;
 
@@ -209,32 +210,25 @@ export default function AccountantPayments() {
                           </Button>
                         </div>
                       </TableCell>
-                          </Button>
-                        </div>
-                  Viewer Dialog with Print/Download */}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {receiptId && (
         <ReceiptViewer
           paymentId={receiptId}
           open={showReceiptViewer}
-          onOpenChange={open => {
+          onOpenChange={(open) => {
             setShowReceiptViewer(open);
             if (!open) setReceiptId(null);
           }}
         />
       )}
-
-      {/* Legacy Receipt Dialog (kept for reference, but using new ReceiptViewer above) */}
-      {/*}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Receipt unavailable.</p>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => window.print()}>Print</Button>
-            <Button onClick={() => setReceiptId(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Refund Dialog */}
       <Dialog open={!!refundFor} onOpenChange={(o) => !o && setRefundFor(null)}>
