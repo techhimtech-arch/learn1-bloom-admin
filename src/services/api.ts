@@ -20,19 +20,33 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor variables for queuing concurrent requests during refresh token call
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Response interceptor: auto-refresh on 401
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
     if (error.response?.status === 401) {
       // If we're already on the login page, don't try to refresh or redirect
       if (window.location.pathname === '/login') {
         return Promise.reject(error);
       }
 
-      const originalRequest = error.config;
-      
       // If this was a retry and still failed with 401, or if it's the refresh token call itself
       if (originalRequest._retry || originalRequest.url?.includes('/auth/refresh-token')) {
         localStorage.removeItem("accessToken");
@@ -42,7 +56,23 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
+      // If we are already refreshing the token, push this request into the subscriber queue
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       const refreshToken = localStorage.getItem("refreshToken");
       
       if (refreshToken) {
@@ -55,16 +85,25 @@ apiClient.interceptors.response.use(
             if (newRefresh) {
               localStorage.setItem("refreshToken", newRefresh);
             }
+            
+            // Resolve all queued requests with the new token
+            processQueue(null, newAccessToken);
+            
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return apiClient(originalRequest);
           }
         } catch (refreshError) {
+          // Reject all queued requests with the refresh error
+          processQueue(refreshError, null);
+          
           // Refresh token failed - logout
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           window.location.href = "/login";
           return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
         }
       } else {
         // No refresh token - logout
