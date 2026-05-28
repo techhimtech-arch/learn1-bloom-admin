@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { academicYearApi, classApi, sectionApi } from '@/services/api';
+import { classApi, sectionApi } from '@/services/api';
+import { useConfig } from '@/contexts/ConfigContext';
 
 export interface ExamFiltersProps {
   onFiltersChange: (filters: ExamFiltersState) => void;
   loading?: boolean;
-  showSession?: boolean;
+  showSession?: boolean; // Backwards compatible prop
   showClass?: boolean;
   showSection?: boolean;
   showExamType?: boolean;
@@ -46,26 +47,40 @@ const statusOptions = [
 export function ExamFilters({
   onFiltersChange,
   loading = false,
-  showSession = true,
   showClass = true,
   showSection = true,
   showExamType = true,
   showStatus = true,
   showSearch = true,
 }: ExamFiltersProps) {
+  const { selectedYearId } = useConfig();
+  
   const [filters, setFilters] = useState<ExamFiltersState>({
     search: '',
-    academicYearId: '',
+    academicYearId: selectedYearId || '',
     classId: '',
     sectionId: '',
     examType: '',
     status: '',
   });
 
-  const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
+
+  // Sync with global top-bar selected academic year
+  useEffect(() => {
+    if (selectedYearId) {
+      setFilters(prev => {
+        if (prev.academicYearId !== selectedYearId) {
+          const updated = { ...prev, academicYearId: selectedYearId };
+          onFiltersChange(updated);
+          return updated;
+        }
+        return prev;
+      });
+    }
+  }, [selectedYearId]);
 
   useEffect(() => {
     loadInitialData();
@@ -82,21 +97,10 @@ export function ExamFilters({
   const loadInitialData = async () => {
     setDataLoading(true);
     try {
-      const [yearsRes, classesRes] = await Promise.all([
-        academicYearApi.getAll(),
-        classApi.getAll(),
-      ]);
-      
-      setAcademicYears((yearsRes.data?.data || []).filter((y: any) => y.isActive));
+      const classesRes = await classApi.getAll();
       setClasses(classesRes.data?.data || []);
-      
-      // Set current academic year if available
-      const currentYear = yearsRes.data?.data?.find((year: any) => year.isActive);
-      if (currentYear) {
-        setFilters(prev => ({ ...prev, academicYearId: currentYear.id }));
-      }
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('Error loading classes in ExamFilters:', error);
     } finally {
       setDataLoading(false);
     }
@@ -120,7 +124,7 @@ export function ExamFilters({
   const clearFilters = () => {
     const clearedFilters = {
       search: '',
-      academicYearId: academicYears.find(y => y.isActive)?.id || '',
+      academicYearId: selectedYearId || '',
       classId: '',
       sectionId: '',
       examType: '',
@@ -177,25 +181,6 @@ export function ExamFilters({
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {showSession && (
-            <Select
-              value={filters.academicYearId}
-              onValueChange={(value) => updateFilter('academicYearId', value)}
-              disabled={loading || dataLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Academic Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {academicYears.map((year) => (
-                  <SelectItem key={year.id} value={year.id}>
-                    {year.name} {year.isActive && '(Current)'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
           {showClass && (
             <Select
               value={filters.classId}
@@ -207,7 +192,7 @@ export function ExamFilters({
               </SelectTrigger>
               <SelectContent>
                 {classes.map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+                  <SelectItem key={cls.id || cls._id} value={cls.id || cls._id}>
                     {cls.name}
                   </SelectItem>
                 ))}
@@ -226,7 +211,7 @@ export function ExamFilters({
               </SelectTrigger>
               <SelectContent>
                 {sections.map((section) => (
-                  <SelectItem key={section.id} value={section.id}>
+                  <SelectItem key={section.id || section._id} value={section.id || section._id}>
                     {section.name}
                   </SelectItem>
                 ))}

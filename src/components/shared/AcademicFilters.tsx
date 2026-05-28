@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { academicYearApi, classApi, sectionApi } from '@/services/api';
+import { classApi, sectionApi } from '@/services/api';
+import { useConfig } from '@/contexts/ConfigContext';
 
 export interface AcademicFiltersProps {
   onFiltersChange: (filters: AcademicFiltersState) => void;
   loading?: boolean;
-  showSession?: boolean;
+  showSession?: boolean; // Kept in signature for backwards compatibility but not rendered visually
   showClass?: boolean;
   showSection?: boolean;
   showDepartment?: boolean;
@@ -47,32 +48,36 @@ const statusOptions = [
 export function AcademicFilters({
   onFiltersChange,
   loading = false,
-  showSession = true,
   showClass = true,
   showSection = true,
   showDepartment = true,
   showStatus = true,
   showSearch = true,
 }: AcademicFiltersProps) {
+  const { selectedYearId } = useConfig();
+  
   const [filters, setFilters] = useState<AcademicFiltersState>({
     search: '',
-    academicYearId: '',
+    academicYearId: selectedYearId || '',
     classId: '',
     sectionId: '',
     department: '',
     status: '',
   });
 
-  const [defaultYearSet, setDefaultYearSet] = useState(false);
-
-  // Use React Query so cache is shared with SubjectForm and other components
-  const { data: academicYearsData, isLoading: yearsLoading } = useQuery({
-    queryKey: ['academic-years'],
-    queryFn: async () => {
-      const response = await academicYearApi.getAll();
-      return response.data;
-    },
-  });
+  // Sync with global academic year selection reactively
+  useEffect(() => {
+    if (selectedYearId) {
+      setFilters(prev => {
+        if (prev.academicYearId !== selectedYearId) {
+          const updated = { ...prev, academicYearId: selectedYearId };
+          onFiltersChange(updated);
+          return updated;
+        }
+        return prev;
+      });
+    }
+  }, [selectedYearId]);
 
   const { data: classesData, isLoading: classesLoading } = useQuery({
     queryKey: ['classes'],
@@ -101,23 +106,9 @@ export function AcademicFilters({
     return [];
   };
 
-  const academicYears = normalizeArray(academicYearsData).filter((y: any) => y.isActive);
   const classes = normalizeArray(classesData);
   const sections = normalizeArray(sectionsData);
-  const dataLoading = yearsLoading || classesLoading;
-
-  // Set default academic year once data loads
-  useEffect(() => {
-    if (!defaultYearSet && academicYears.length > 0) {
-      const currentYear = academicYears.find((year: any) => year.isCurrent) || academicYears.find((year: any) => year.isActive) || academicYears[0];
-      if (currentYear) {
-        const yearId = currentYear._id || currentYear.id;
-        setFilters(prev => ({ ...prev, academicYearId: yearId }));
-        onFiltersChange({ ...filters, academicYearId: yearId });
-      }
-      setDefaultYearSet(true);
-    }
-  }, [academicYears, defaultYearSet]);
+  const dataLoading = classesLoading;
 
   const updateFilter = (key: keyof AcademicFiltersState, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -131,7 +122,7 @@ export function AcademicFilters({
   const clearFilters = () => {
     const clearedFilters: AcademicFiltersState = {
       search: '',
-      academicYearId: academicYears.find((y: any) => y.isCurrent)?._id || academicYears.find((y: any) => y.isCurrent)?.id || academicYears.find((y: any) => y.isActive)?._id || '',
+      academicYearId: selectedYearId || '',
       classId: '',
       sectionId: '',
       department: '',
@@ -188,25 +179,6 @@ export function AcademicFilters({
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {showSession && (
-            <Select
-              value={filters.academicYearId}
-              onValueChange={(value) => updateFilter('academicYearId', value)}
-              disabled={loading || dataLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Academic Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {academicYears.map((year: any, index: number) => (
-                  <SelectItem key={year._id || year.id || `year-${index}`} value={year._id || year.id}>
-                    {year.name} {year.isCurrent && '(Current)'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
           {showClass && (
             <Select
               value={filters.classId}

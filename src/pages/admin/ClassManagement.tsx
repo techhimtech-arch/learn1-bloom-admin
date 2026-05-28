@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import { classApi, sectionApi, academicYearApi } from '@/services/api';
+import { classApi, sectionApi } from '@/services/api';
 import { showApiSuccess, showApiError } from '@/lib/api-toast';
 import { Plus, Edit, Trash2, School, Layers, DoorOpen } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useConfig } from '@/contexts/ConfigContext';
 
 interface ClassItem {
   _id: string;
@@ -33,17 +34,11 @@ interface SectionItem {
   academicYearId?: string;
 }
 
-interface AcademicYear {
-  _id: string;
-  name: string;
-  isActive: boolean;
-  isCurrent: boolean;
-}
-
 const ClassManagement = () => {
+  const { selectedYearId } = useConfig();
+  
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [sections, setSections] = useState<SectionItem[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [sectionsLoading, setSectionsLoading] = useState(true);
 
@@ -61,7 +56,7 @@ const ClassManagement = () => {
   const [sectionForm, setSectionForm] = useState({ 
     name: '', 
     classId: '', 
-    academicYearId: '',
+    academicYearId: selectedYearId || '',
     capacity: '40', 
     roomNumber: '', 
     floor: '', 
@@ -93,26 +88,17 @@ const ClassManagement = () => {
     }
   };
 
-  const fetchAcademicYears = async () => {
-    try {
-      const { data } = await academicYearApi.getAll();
-      setAcademicYears((data.data || []).filter((year: AcademicYear) => year.isActive));
-      
-      // Auto-select current academic year for new sections
-      const currentYear = data.data?.find((year: AcademicYear) => year.isCurrent || year.isActive);
-      if (currentYear) {
-        setSectionForm(prev => ({ ...prev, academicYearId: currentYear._id }));
-      }
-    } catch (err) {
-      showApiError(err, 'Failed to load academic years');
-    }
-  };
-
   useEffect(() => {
     fetchClasses();
     fetchSections();
-    fetchAcademicYears();
   }, []);
+
+  // Update sectionForm academicYearId whenever selectedYearId changes
+  useEffect(() => {
+    if (selectedYearId) {
+      setSectionForm(prev => ({ ...prev, academicYearId: selectedYearId }));
+    }
+  }, [selectedYearId]);
 
   // Class CRUD
   const handleSaveClass = async () => {
@@ -131,7 +117,7 @@ const ClassManagement = () => {
         // Auto create sections if provided
         if (sectionsInput.trim() && createdClassId) {
           const sectionNames = sectionsInput.split(',').map(s => s.trim()).filter(s => s);
-          const currentYearId = academicYears.find(y => y.isCurrent || y.isActive)?._id;
+          const currentYearId = selectedYearId;
           
           if (currentYearId) {
             await Promise.all(
@@ -214,7 +200,7 @@ const ClassManagement = () => {
       setSectionForm({ 
         name: '', 
         classId: '', 
-        academicYearId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+        academicYearId: selectedYearId || '',
         capacity: '40', 
         roomNumber: '', 
         floor: '', 
@@ -243,7 +229,7 @@ const ClassManagement = () => {
     setSectionForm({
       name: sec.name,
       classId: typeof sec.classId === 'object' ? sec.classId._id : sec.classId,
-      academicYearId: (sec as any).academicYearId || academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+      academicYearId: (sec as any).academicYearId || selectedYearId || '',
       capacity: String(sec.capacity || 40),
       roomNumber: sec.roomNumber || '',
       floor: sec.floor || '',
@@ -283,7 +269,7 @@ const ClassManagement = () => {
   const totalSections = sections.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Class & Section Management</h1>
         <p className="text-sm text-muted-foreground">Manage classes, sections, and room assignments</p>
@@ -369,7 +355,7 @@ const ClassManagement = () => {
             <Button onClick={() => { setEditingSection(null); setSectionForm({ 
               name: '', 
               classId: '', 
-              academicYearId: academicYears.find(y => y.isCurrent || y.isActive)?._id || '',
+              academicYearId: selectedYearId || '',
               capacity: '40', 
               roomNumber: '', 
               floor: '', 
@@ -452,19 +438,6 @@ const ClassManagement = () => {
                 </Select>
               </div>
             )}
-            <div className="space-y-2">
-              <Label>Academic Year <span className="text-destructive">*</span></Label>
-              <Select value={sectionForm.academicYearId} onValueChange={v => setSectionForm({ ...sectionForm, academicYearId: v })}>
-                <SelectTrigger><SelectValue placeholder="Select academic year" /></SelectTrigger>
-                <SelectContent>
-                  {academicYears.map(year => (
-                    <SelectItem key={year._id} value={year._id}>
-                      {year.name} {year.isCurrent && '(Current)'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Capacity</Label>
