@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap } from 'lucide-react';
+import { VidyoraLogo } from '@/components/ui/VidyoraLogo';
 import { showApiError } from '@/lib/api-toast';
 import { toast } from '@/hooks/use-toast';
 
@@ -43,11 +43,9 @@ const Register = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg animate-fade-in">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
-          </div>
+          <VidyoraLogo className="h-14 w-14" />
           <h1 className="text-2xl font-bold text-foreground">Register Your School</h1>
-          <p className="text-sm text-muted-foreground">Set up your school management system</p>
+          <p className="text-sm text-muted-foreground">Set up Vidyora OS for your institution</p>
         </div>
 
         <Card>
