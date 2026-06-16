@@ -22,6 +22,8 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
+import Landing from "@/pages/Landing";
+import FeaturesPage from "@/pages/FeaturesPage";
 
 // Lazy loaded role-based routes
 const AdminRoutes = lazy(() => import("@/routes/AdminRoutes"));
@@ -121,6 +123,8 @@ const AppContent = () => {
           <Route path="/forgot-password" element={<AuthRedirect><ForgotPassword /></AuthRedirect>} />
           <Route path="/reset-password" element={<AuthRedirect><ResetPassword /></AuthRedirect>} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/features" element={<FeaturesPage />} />
 
           {/* Protected routes with layout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
