@@ -23,6 +23,8 @@ import { useConfig } from '@/contexts/ConfigContext';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
+import { UPIPaymentModal } from '@/components/fees/UPIPaymentModal';
 
 interface StudentFee {
   id: string;
@@ -57,10 +59,12 @@ export default function StudentFeeManagement() {
   const { studentId } = useParams();
   const { selectedYearId } = useConfig();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showUPIModal, setShowUPIModal] = useState(false);
   const [selectedFee, setSelectedFee] = useState<StudentFee | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<any>(null);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const { data: feeData, isLoading } = useQuery({
     queryKey: ['student-fees', studentId, selectedYearId],
@@ -112,7 +116,17 @@ export default function StudentFeeManagement() {
 
   const handlePayFee = (fee: StudentFee) => {
     setSelectedFee(fee);
-    setShowPaymentForm(true);
+    if (user?.role === 'parent' || user?.role === 'student') {
+      setShowUPIModal(true);
+    } else {
+      setShowPaymentForm(true);
+    }
+  };
+
+  const handleUPIConfirm = (utrNumber: string) => {
+    toast.success(`Payment verification request submitted with UTR: ${utrNumber}`);
+    setShowUPIModal(false);
+    setSelectedFee(null);
   };
 
   if (isLoading) {
@@ -235,7 +249,11 @@ export default function StudentFeeManagement() {
                       <TableCell className="text-right">
                         {fee.dueAmount > 0 && (
                           <Button variant="outline" size="sm" onClick={() => handlePayFee(fee)}>
-                            <DollarSign className="h-4 w-4" />
+                            {(user?.role === 'parent' || user?.role === 'student') ? (
+                                <span className="flex items-center gap-1"><Smartphone className="h-4 w-4" /> Pay Online</span>
+                            ) : (
+                                <DollarSign className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                       </TableCell>
@@ -340,6 +358,21 @@ export default function StudentFeeManagement() {
             setShowPaymentForm(false);
             setSelectedFee(null);
           }}
+        />
+      )}
+
+      {/* UPI Payment Modal for Parents/Students */}
+      {showUPIModal && selectedFee && student && (
+        <UPIPaymentModal
+          isOpen={showUPIModal}
+          onClose={() => {
+            setShowUPIModal(false);
+            setSelectedFee(null);
+          }}
+          feeAmount={selectedFee.dueAmount}
+          feeName={selectedFee.feeHead}
+          studentName={student.name}
+          onConfirm={handleUPIConfirm}
         />
       )}
     </div>

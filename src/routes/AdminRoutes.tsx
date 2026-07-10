@@ -41,12 +41,15 @@ const SchoolSettings = lazy(() => import("@/pages/admin/SchoolSettings"));
 const TeacherStudyMaterials = lazy(() => import("@/pages/teacher/TeacherStudyMaterials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const BillingDashboard = lazy(() => import("@/pages/admin/BillingDashboard"));
+const SetupPage = lazy(() => import("@/pages/admin/SetupPage"));
+const PaymentVerification = lazy(() => import("@/pages/admin/PaymentVerification"));
 
 export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
   return (
     <Suspense fallback={<GlobalLoading />}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/admin/setup" element={<SetupPage />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/parent-linking" element={<ParentLinking />} />
         <Route path="/admission" element={<StudentAdmission />} />
@@ -78,6 +81,7 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
         <Route path="/fees/heads" element={<FeeHeadsManagement />} />
         <Route path="/fees/student/:studentId" element={<StudentFeeManagement />} />
         <Route path="/fees/reports" element={<FeeReports />} />
+        <Route path="/fees/verify-upi" element={<PaymentVerification />} />
         <Route path="/fees/payments" element={<AccountantPayments />} />
         <Route path="/fees/dues" element={<AccountantDues />} />
         <Route path="/certificates" element={<CertificateGenerator />} />

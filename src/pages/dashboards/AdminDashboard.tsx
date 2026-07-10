@@ -183,6 +183,18 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {!loading && !currentAcademicSession && (
+        <Card className="border-warning bg-warning/10">
+          <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <h2 className="text-2xl font-bold text-warning-foreground">Welcome to Bloom Admin! 🚀</h2>
+            <p className="text-muted-foreground">It looks like your school is not fully set up yet. Run the setup wizard to get started quickly.</p>
+            <Button onClick={() => navigate('/admin/setup')} size="lg" className="w-full sm:w-auto">
+              Start Setup Wizard
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
         <p className="text-sm text-muted-foreground">Complete overview of your school management system</p>

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
@@ -21,14 +22,14 @@ export function Hero() {
             <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
             Welcome to the Vidyora Ecosystem
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             One Platform for <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
               Students, Parents & Teachers
             </span>
           </h1>
-          
+
           <p className="mt-6 text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
             Discover <span className="font-semibold text-slate-900 dark:text-white">Vidyora OS</span> — The intelligent ecosystem to manage admissions, attendance, exams, and seamless communication.
           </p>
@@ -65,14 +66,14 @@ export function Hero() {
         <div className="mt-20 mx-auto max-w-6xl relative animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200 fill-mode-both">
           <div className="rounded-2xl border border-slate-200/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 p-2 backdrop-blur-xl shadow-2xl">
             <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 aspect-video relative flex items-center justify-center">
-               <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-950"></div>
-               <div className="relative text-center space-y-4 p-8">
-                  <div className="w-20 h-20 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                     <span className="text-4xl">📊</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Interactive Dashboard</h3>
-                  <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Real-time insights and analytics for your entire institution in one beautiful view.</p>
-               </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-950"></div>
+              <div className="relative text-center space-y-4 p-8">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <span className="text-4xl">📊</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Interactive Dashboard</h3>
+                <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Real-time insights and analytics for your entire institution in one beautiful view.</p>
+              </div>
             </div>
           </div>
         </div>
