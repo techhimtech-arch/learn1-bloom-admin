@@ -217,17 +217,7 @@ export function Hero() {
               <div className="text-xs text-slate-500">Grade 10A - 94% present</div>
             </div>
           </div>
-<<<<<<< HEAD
 
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            One Platform for <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
-              Students, Parents & Teachers
-            </span>
-          </h1>
-
-          <p className="mt-6 text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-=======
           <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
             <div className="h-full w-[94%] bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" />
           </div>
