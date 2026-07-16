@@ -289,7 +289,6 @@ export function Hero() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
->>>>>>> a809099856264d266e21b718558cc3e00b404336
             Discover <span className="font-semibold text-slate-900 dark:text-white">Vidyora OS</span> — The intelligent ecosystem to manage admissions, attendance, exams, and seamless communication.
           </p>
 
@@ -343,22 +342,6 @@ export function Hero() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Dashboard Preview Image/Mockup */}
-        <div className="mt-20 mx-auto max-w-6xl relative animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200 fill-mode-both">
-          <div className="rounded-2xl border border-slate-200/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 p-2 backdrop-blur-xl shadow-2xl">
-            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 aspect-video relative flex items-center justify-center">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-950"></div>
-              <div className="relative text-center space-y-4 p-8">
-                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <span className="text-4xl">📊</span>
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Interactive Dashboard</h3>
-                <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">Real-time insights and analytics for your entire institution in one beautiful view.</p>
-              </div>
-            </div>
-          </div>
-=======
         {/* Interactive Dashboard Preview */}
         <div
           className={`mt-16 md:mt-24 mx-auto max-w-6xl relative transition-all duration-1000 delay-500 ${
@@ -378,7 +361,6 @@ export function Hero() {
           <StatCounter value={50000} suffix="+" label="Students" icon={Users} />
           <StatCounter value={98} suffix="%" label="Uptime" icon={TrendingUp} />
           <StatCounter value={24} suffix="/7" label="Support" icon={Calendar} />
->>>>>>> a809099856264d266e21b718558cc3e00b404336
         </div>
       </div>
     </section>

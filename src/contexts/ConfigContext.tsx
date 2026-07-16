@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { academicYearApi } from '@/services/api';
+import { useAuth } from './AuthContext';
 
 interface AcademicYear {
   id: string;
@@ -29,8 +30,15 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  const { isAuthenticated } = useAuth();
+
   // Fetch academic years and set default
   useEffect(() => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+    
     const fetchYears = async () => {
       try {
         const response = await academicYearApi.getAll();
@@ -51,7 +59,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     };
     fetchYears();
-  }, []);
+  }, [isAuthenticated]);
 
   // Update localStorage and document class when theme changes
   useEffect(() => {

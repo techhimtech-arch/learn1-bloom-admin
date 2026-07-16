@@ -93,7 +93,7 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
 
 export function Stats() {
   const { ref, isVisible } = useScrollAnimation<HTMLElement>(0.1, "-100px");
-  const [indicatorRef, indicatorsVisible] = useScrollAnimation<HTMLDivElement>(0.3, "-50px");
+  const { ref: indicatorRef, isVisible: indicatorsVisible } = useScrollAnimation<HTMLDivElement>(0.3, "-50px");
 
   return (
     <section className="relative py-32 overflow-hidden">
