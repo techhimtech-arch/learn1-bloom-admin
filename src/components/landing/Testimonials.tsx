@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 const testimonials = [
   {
     id: 1,
-    quote: "Vidyora OS transformed our school's administrative efficiency by 60%. The real-time attendance and fee management system alone saved us countless hours every week.",
+    quote: "TechHim EduOS transformed our school's administrative efficiency by 60%. The real-time attendance and fee management system alone saved us countless hours every week.",
     author: "Dr. Sarah Mitchell",
     role: "Principal",
     school: "Westfield Academy",
@@ -32,7 +32,7 @@ const testimonials = [
   },
   {
     id: 4,
-    quote: "Implementing Vidyora across our 5 campuses was seamless. The multi-campus management feature is a game-changer for district-level education.",
+    quote: "Implementing TechHim EduOS across our 5 campuses was seamless. The multi-campus management feature is a game-changer for district-level education.",
     author: "Michael Torres",
     role: "District Administrator",
     school: "Sunshine School District",
@@ -123,7 +123,7 @@ export function Testimonials() {
             Loved by <span className="gradient-text">educators</span> worldwide
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
-            See how schools are transforming their operations with Vidyora OS.
+            See how schools are transforming their operations with TechHim EduOS.
           </p>
         </div>
 

@@ -4,37 +4,37 @@ import { Smartphone, BookOpen, Users, Sparkles, LayoutDashboard, Database } from
 
 const products = [
   {
-    name: "Vidyora OS",
+    name: "TechHim EduOS",
     description: "The central nervous system of your school. Manage admissions, HR, finance, and global settings from one powerful unified dashboard.",
     icon: Database,
     color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
   },
   {
-    name: "Vidyora Teacher",
+    name: "TechHim Teacher",
     description: "Empower your educators. Dedicated tools for attendance, grading, assignment creation, and direct student communication.",
     icon: LayoutDashboard,
     color: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
   },
   {
-    name: "Vidyora Parent",
+    name: "TechHim Parent",
     description: "Keep parents in the loop. Real-time updates on attendance, exam results, fee dues, and school announcements.",
     icon: Users,
     color: "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
   },
   {
-    name: "Vidyora LMS",
+    name: "TechHim LMS",
     description: "A complete Learning Management System. Host study materials, online quizzes, video lessons, and interactive learning modules.",
     icon: BookOpen,
     color: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
   },
   {
-    name: "Vidyora Mobile",
+    name: "TechHim Mobile",
     description: "Education on the go. Native mobile applications for students, parents, and teachers for instant access anywhere, anytime.",
     icon: Smartphone,
     color: "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
   },
   {
-    name: "Vidyora AI",
+    name: "TechHim AI",
     description: "Future-ready intelligence. Automated report generation, predictive student performance analysis, and smart timetable generation.",
     icon: Sparkles,
     color: "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
@@ -50,10 +50,10 @@ export default function FeaturesPage() {
         {/* Header Section */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-4xl mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
-            Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-teal-500">Vidyora Ecosystem</span>
+            Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-teal-500">TechHim Ecosystem</span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-            More than just school management. Vidyora provides a deeply integrated suite of applications designed to connect every stakeholder in the educational journey.
+            More than just school management. TechHim EduOS provides a deeply integrated suite of applications designed to connect every stakeholder in the educational journey.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function FeaturesPage() {
                 Ready to transform your campus?
               </h2>
               <p className="text-indigo-100 text-lg mb-8">
-                Join thousands of forward-thinking institutions running on Vidyora OS.
+                Join thousands of forward-thinking institutions running on TechHim EduOS.
               </p>
               <a 
                 href="/register" 

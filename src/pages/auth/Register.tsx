@@ -45,7 +45,7 @@ const Register = () => {
         <div className="mb-8 flex flex-col items-center gap-2">
           <VidyoraLogo className="h-14 w-14" />
           <h1 className="text-2xl font-bold text-foreground">Register Your School</h1>
-          <p className="text-sm text-muted-foreground">Set up Vidyora OS for your institution</p>
+          <p className="text-sm text-muted-foreground">Set up TechHim EduOS for your institution</p>
         </div>
 
         <Card>

@@ -109,7 +109,7 @@ function DashboardPreview() {
           </div>
           <div className="flex-1 bg-slate-700/50 rounded-lg h-6 mx-2 flex items-center px-3">
             <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-            <div className="text-xs text-slate-400">app.vidyora.io/dashboard</div>
+            <div className="text-xs text-slate-400">app.techhim.com/dashboard</div>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export function Hero() {
             }`}
           >
             <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse" />
-            Welcome to the Vidyora Ecosystem
+            Welcome to the TechHim Ecosystem
             <ArrowRight className="ml-2 w-4 h-4" />
           </div>
 
@@ -289,7 +289,7 @@ export function Hero() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Discover <span className="font-semibold text-slate-900 dark:text-white">Vidyora OS</span> — The intelligent ecosystem to manage admissions, attendance, exams, and seamless communication.
+            Discover <span className="font-semibold text-slate-900 dark:text-white">TechHim EduOS</span> — The intelligent ecosystem to manage admissions, attendance, exams, and seamless communication.
           </p>
 
           {/* CTA buttons */}

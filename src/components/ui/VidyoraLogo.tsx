@@ -14,11 +14,11 @@ export const VidyoraLogo: React.FC<LogoProps> = ({ className = "h-8 w-8", ...pro
       {...props}
     >
       <defs>
-        <linearGradient id="vidyoraGrad1" x1="10" y1="20" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+        <linearGradient id="techhimGrad1" x1="10" y1="20" x2="50" y2="90" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#6366f1" /> {/* Indigo */}
           <stop offset="100%" stopColor="#0ea5e9" /> {/* Light Blue */}
         </linearGradient>
-        <linearGradient id="vidyoraGrad2" x1="90" y1="20" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+        <linearGradient id="techhimGrad2" x1="90" y1="20" x2="50" y2="90" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#14b8a6" /> {/* Teal */}
           <stop offset="100%" stopColor="#0ea5e9" /> {/* Light Blue */}
         </linearGradient>
@@ -31,13 +31,13 @@ export const VidyoraLogo: React.FC<LogoProps> = ({ className = "h-8 w-8", ...pro
       {/* Stylized V - Left Wing (Book Page) */}
       <path
         d="M20 30 C30 25, 45 40, 50 85 C40 60, 25 45, 20 30 Z"
-        fill="url(#vidyoraGrad1)"
+        fill="url(#techhimGrad1)"
         filter="url(#glow)"
       />
       {/* Stylized V - Right Wing (Book Page) */}
       <path
         d="M80 30 C70 25, 55 40, 50 85 C60 60, 75 45, 80 30 Z"
-        fill="url(#vidyoraGrad2)"
+        fill="url(#techhimGrad2)"
         filter="url(#glow)"
       />
 

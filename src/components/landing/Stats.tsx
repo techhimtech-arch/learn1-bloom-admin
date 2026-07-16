@@ -129,7 +129,7 @@ export function Stats() {
             <span className="gradient-text">thousands</span>
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
-            Schools around the world are transforming education with Vidyora OS.
+            Schools around the world are transforming education with TechHim EduOS.
           </p>
         </div>
 

@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 const products = [
   {
     id: "admin",
-    name: "Vidyora OS",
+    name: "TechHim EduOS",
     title: "Admin Dashboard",
     description: "Complete school management with powerful analytics, user management, and real-time insights across all departments.",
     icon: Monitor,
@@ -16,7 +16,7 @@ const products = [
   },
   {
     id: "teacher",
-    name: "Vidyora Teacher",
+    name: "TechHim Teacher",
     title: "Teacher Portal",
     description: "Streamlined teaching tools for attendance, assignment management, grade tracking, and parent communication.",
     icon: BookOpen,
@@ -25,7 +25,7 @@ const products = [
   },
   {
     id: "parent",
-    name: "Vidyora Parent",
+    name: "TechHim Parent",
     title: "Parent Portal",
     description: "Stay connected with your child's education through real-time updates, progress reports, and direct teacher communication.",
     icon: Users,
@@ -34,7 +34,7 @@ const products = [
   },
   {
     id: "lms",
-    name: "Vidyora LMS",
+    name: "TechHim LMS",
     title: "Learning Management",
     description: "Comprehensive online learning platform with course creation, virtual classrooms, and interactive assessments.",
     icon: BookOpen,
@@ -43,7 +43,7 @@ const products = [
   },
   {
     id: "mobile",
-    name: "Vidyora Mobile",
+    name: "TechHim Mobile",
     title: "Native Apps",
     description: "Fully-featured iOS and Android apps for students, teachers, and parents with push notifications and offline access.",
     icon: Smartphone,
@@ -52,7 +52,7 @@ const products = [
   },
   {
     id: "ai",
-    name: "Vidyora AI",
+    name: "TechHim AI",
     title: "AI Assistant",
     description: "Intelligent automation and insights powered by AI for scheduling, predictions, and personalized recommendations.",
     icon: Cpu,
@@ -79,7 +79,7 @@ function DeviceMockup({ activeProduct }: { activeProduct: typeof products[0] }) 
           <div className="flex-1 flex justify-center">
             <div className="bg-slate-700/50 rounded-lg h-6 w-96 max-w-full flex items-center px-3">
               <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-              <span className="text-xs text-slate-400">app.vidyora.io/{activeProduct.id}</span>
+              <span className="text-xs text-slate-400">app.techhim.com/{activeProduct.id}</span>
             </div>
           </div>
         </div>

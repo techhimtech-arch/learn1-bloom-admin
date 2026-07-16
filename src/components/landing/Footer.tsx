@@ -37,7 +37,7 @@ export function Footer() {
             <div className="flex items-center gap-2 mb-6">
               <VidyoraLogo className="h-10 w-10" />
               <span className="font-bold text-2xl tracking-tight text-white">
-                Vidyora OS
+                TechHim EduOS
               </span>
             </div>
             <p className="text-slate-400 leading-relaxed mb-6 max-w-md">
@@ -48,7 +48,7 @@ export function Footer() {
             <div className="space-y-3 mb-8">
               <div className="flex items-center gap-3 text-slate-400 hover:text-primary transition-colors">
                 <Mail className="w-4 h-4" />
-                <a href="mailto:hello@vidyora.io" className="text-sm">hello@vidyora.io</a>
+                <a href="mailto:hello@techhim.com" className="text-sm">hello@techhim.com</a>
               </div>
               <div className="flex items-center gap-3 text-slate-400 hover:text-primary transition-colors">
                 <Phone className="w-4 h-4" />
@@ -158,7 +158,7 @@ export function Footer() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="text-center lg:text-left">
               <h3 className="text-white font-semibold text-xl mb-2">Stay up to date</h3>
-              <p className="text-slate-400 text-sm">Get the latest updates and news about Vidyora OS.</p>
+              <p className="text-slate-400 text-sm">Get the latest updates and news about TechHim EduOS.</p>
             </div>
             <div className="flex gap-3 w-full max-w-md">
               <input
@@ -176,7 +176,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-slate-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-500 text-sm text-center md:text-left">
-            © {new Date().getFullYear()} Vidyora OS. All rights reserved.
+            © {new Date().getFullYear()} TechHim EduOS. All rights reserved.
           </p>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">

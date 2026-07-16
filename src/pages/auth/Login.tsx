@@ -42,7 +42,7 @@ const Login = () => {
       <div className="w-full max-w-md animate-fade-in">
         <div className="mb-8 flex flex-col items-center gap-2">
           <VidyoraLogo className="h-14 w-14" />
-          <h1 className="text-2xl font-bold text-foreground">Vidyora OS</h1>
+          <h1 className="text-2xl font-bold text-foreground">TechHim EduOS</h1>
           <p className="text-sm text-muted-foreground">Admin Panel</p>
         </div>
 

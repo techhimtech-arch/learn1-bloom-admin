@@ -36,7 +36,7 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-2 group">
             <VidyoraLogo className="h-8 w-8 transition-transform group-hover:scale-110" />
             <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">
-              Vidyora OS
+              TechHim EduOS
             </span>
           </Link>
 
