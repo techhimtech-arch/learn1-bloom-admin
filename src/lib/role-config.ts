@@ -27,7 +27,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-export type AppRole = 'school_admin' | 'teacher' | 'accountant' | 'parent' | 'student';
+export type AppRole = 'superadmin' | 'school_admin' | 'teacher' | 'accountant' | 'parent' | 'student';
 
 export interface NavItem {
   title: string;
@@ -37,6 +37,9 @@ export interface NavItem {
 
 // Which roles can access which routes
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
+  superadmin: [
+    '/superadmin/dashboard', '/superadmin/schools', '/profile', '/sessions',
+  ],
   school_admin: [
     '/', '/users', '/parent-linking', '/admission', '/enrollment', '/classes', '/subjects',
     '/attendance', '/academic-years', '/teacher-assignments', '/timetable', '/timetable-builder',

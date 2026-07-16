@@ -31,6 +31,7 @@ const TeacherRoutes = lazy(() => import("@/routes/TeacherRoutes"));
 const ParentRoutes = lazy(() => import("@/routes/ParentRoutes"));
 const StudentRoutes = lazy(() => import("@/routes/StudentRoutes"));
 const AccountantRoutes = lazy(() => import("@/routes/AccountantRoutes"));
+const SuperAdminRoutes = lazy(() => import("@/routes/SuperAdminRoutes"));
 
 const RoleBasedRoutes = ({ setRunTour }: { setRunTour: any }) => {
   const { user } = useAuth();
@@ -38,6 +39,8 @@ const RoleBasedRoutes = ({ setRunTour }: { setRunTour: any }) => {
   if (!user) return null;
   
   switch (user.role) {
+    case 'superadmin':
+      return <SuperAdminRoutes />;
     case 'school_admin':
       return <AdminRoutes setRunTour={setRunTour} />;
     case 'teacher':
