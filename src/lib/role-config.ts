@@ -38,7 +38,7 @@ export interface NavItem {
 // Which roles can access which routes
 export const ROLE_ROUTES: Record<AppRole, string[]> = {
   superadmin: [
-    '/superadmin/dashboard', '/superadmin/schools', '/profile', '/sessions',
+    '/dashboard', '/schools', '/profile', '/sessions',
   ],
   school_admin: [
     '/', '/users', '/parent-linking', '/admission', '/enrollment', '/classes', '/subjects',
@@ -74,6 +74,10 @@ export const ROLE_ROUTES: Record<AppRole, string[]> = {
 
 // Main nav items — filtered per role at runtime
 const ALL_NAV_ITEMS: NavItem[] = [
+  // Superadmin
+  { title: 'Super Admin Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Manage Schools', url: '/schools', icon: School },
+  
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'User Management', url: '/users', icon: Users },
   { title: 'Parent Linking', url: '/parent-linking', icon: UsersRound },
@@ -151,13 +155,14 @@ export function canAccessRoute(role: string, path: string): boolean {
 
 export function getDefaultRoute(role: string): string {
   const defaultRoutes: Record<AppRole, string> = {
-    school_admin: '/',
+    superadmin: '/dashboard',
+    school_admin: '/dashboard',
     teacher: '/teacher/dashboard',
-    accountant: '/',
+    accountant: '/accountant/dashboard',
     parent: '/parent/dashboard',
     student: '/student/dashboard',
   };
-  return defaultRoutes[role as AppRole] || '/';
+  return defaultRoutes[role as AppRole] || '/dashboard';
 }
 
 // Labels for display

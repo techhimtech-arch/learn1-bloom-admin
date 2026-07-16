@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { GlobalLoading } from '@/components/shared/GlobalLoading';
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -48,7 +48,8 @@ export default function AdminRoutes({ setRunTour }: { setRunTour: any }) {
   return (
     <Suspense fallback={<GlobalLoading />}>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin/setup" element={<SetupPage />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/parent-linking" element={<ParentLinking />} />
