@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,6 +70,23 @@ const roleIcons: Record<string, string> = {
 };
 
 const ROLES = ['teacher', 'accountant', 'parent', 'student'] as const;
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: "spring", stiffness: 100 }
+  }
+};
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -303,12 +321,19 @@ const UserManagement = () => {
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-8 p-6 pb-16"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            User Management
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 text-lg">
             Manage teachers, accountants and other staff — {stats ? stats.totalUsers : '…'} total users
           </p>
         </div>
@@ -409,69 +434,81 @@ const UserManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
       {/* Role Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={itemVariants} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {ROLES.map((role) => (
-          <Card key={role} className="transition-shadow hover:shadow-md">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${roleColors[role]}`}>
-                {roleIcons[role] || <Shield className="h-4 w-4" />}
-              </div>
-              <div>
-                {statsLoading ? (
-                  <Skeleton className="mb-1 h-6 w-8" />
-                ) : (
-                  <p className="text-xl font-bold text-foreground">{getRoleCount(role)}</p>
-                )}
-                <p className="text-xs capitalize text-muted-foreground">{role}s</p>
-              </div>
-            </CardContent>
-          </Card>
+          <motion.div key={role} whileHover={{ y: -5, scale: 1.02 }}>
+            <Card className="relative overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-xl p-2 shadow-sm transition-all hover:shadow-md">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-2xl ${roleColors[role]}`}>
+                  {roleIcons[role] || <Shield className="h-5 w-5" />}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground capitalize">{role}s</p>
+                  {statsLoading ? (
+                    <Skeleton className="mt-1 h-8 w-12" />
+                  ) : (
+                    <h3 className="text-3xl font-bold tracking-tight mt-1 text-foreground">{getRoleCount(role)}</h3>
+                  )}
+                </div>
+              </CardContent>
+              {/* Decorative background element */}
+              <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${roleColors[role].split(' ')[0]} blur-2xl opacity-40`} />
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-            maxLength={100}
-          />
-        </div>
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className={`${selectClasses} w-full sm:w-40`}
-        >
-          <option value="">All Roles</option>
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r.charAt(0).toUpperCase() + r.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-semibold text-muted-foreground">Name</TableHead>
-              <TableHead className="font-semibold text-muted-foreground">Email</TableHead>
-              <TableHead className="font-semibold text-muted-foreground">Role</TableHead>
-              <TableHead className="font-semibold text-muted-foreground">Status</TableHead>
-              <TableHead className="text-right font-semibold text-muted-foreground">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+      <motion.div variants={itemVariants}>
+        <Card className="border-border/50 shadow-sm overflow-hidden bg-background/50 backdrop-blur-sm">
+          <CardHeader className="border-b bg-muted/20 pb-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+              <div>
+                <CardTitle className="text-2xl">All Users</CardTitle>
+              </div>
+              {/* Filters */}
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 bg-background/50 backdrop-blur-sm border-border/50 focus:ring-primary/50 transition-all"
+                    maxLength={100}
+                  />
+                </div>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="flex h-10 w-full sm:w-40 rounded-md border border-input bg-background/50 backdrop-blur-sm px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">All Roles</option>
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="font-semibold py-4">Name</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="font-semibold">Role</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence>
+                  {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -481,17 +518,30 @@ const UserManagement = () => {
                   <TableCell><Skeleton className="ml-auto h-4 w-16" /></TableCell>
                 </TableRow>
               ))
-            ) : users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
-                  <Users className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                  <p>No users found</p>
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell className="font-medium">{(user as any).name || `${user.firstName} ${user.lastName}`}</TableCell>
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                      <Users className="mx-auto mb-2 h-8 w-8 opacity-40" />
+                      <p>No users found</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((user) => (
+                    <motion.tr
+                      key={user._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="group border-b hover:bg-muted/20 transition-colors"
+                    >
+                      <TableCell className="font-medium py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {user.firstName?.charAt(0).toUpperCase()}
+                          </div>
+                          {(user as any).name || `${user.firstName} ${user.lastName}`}
+                        </div>
+                      </TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={roleColors[user.role] || ''}>
@@ -503,38 +553,43 @@ const UserManagement = () => {
                       {user.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => openResetPasswordDialog(user)}
-                        title="Reset User Password"
-                      >
-                        <Key className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => openEdit(user)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteTarget(user)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => openResetPasswordDialog(user)}
+                            title="Reset User Password"
+                          >
+                            <Key className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => openEdit(user)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteTarget(user)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  ))
+                )}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      </motion.div>
 
       {/* Pagination */}
-      {pagination.pages > 1 && (
+      <motion.div variants={itemVariants}>
+        {pagination.pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Page {pagination.page} of {pagination.pages} — {pagination.total} total users
@@ -668,7 +723,7 @@ const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </motion.div>
   );
 };
 
